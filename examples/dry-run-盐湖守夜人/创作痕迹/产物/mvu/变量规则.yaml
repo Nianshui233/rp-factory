@@ -1,0 +1,60 @@
+# 三条 MVU 条目 · 白潮
+# 导入成世界书条目：constant / position 4 / depth 0 / order 200 / 递归双向 prevent
+
+entries:
+  - comment: "[mvu_update]变量更新规则"
+    constant: true
+    position: 4
+    depth: 0
+    order: 200
+    exclude_recursion: true
+    prevent_recursion: true
+    enabled: true
+    content: |
+      ### 变量更新规则
+      卡内脚本的 zod 会把越界值夹回去、把非数字退回初值，所以这里的边界是建议，不必反复强调。
+
+      世界.日期：写「潮历四十七年 · 第三次涨潮」这一级的整串；跳夜就换成「次日」的口径，一次只改一次。
+      世界.时段：只取 晨 / 昼 / 暮 / 夜；从夜推到晨要顺带改日期。
+      世界.地点：写到「第七塔 · 塔顶灯室」这一级，不写楼梯拐角。
+      角色.祁昭.wick：0–100，只降不升；点灯、饮盐卤、被提醒旧事时下降，一次 3–8。
+      角色.祁昭.tide：0–100，可涨可退；涨潮慢于退潮，一次 2–6。
+
+      只改被互动的那个人；没有互动就不动。改完把补丁写进 <JSONPatch>。
+
+  - comment: "变量列表"
+    constant: true
+    position: 4
+    depth: 0
+    order: 200
+    exclude_recursion: true
+    prevent_recursion: true
+    enabled: true
+    content: "{{format_message_variable::stat_data}}"
+
+  - comment: "[mvu_update]变量输出格式"
+    constant: true
+    position: 4
+    depth: 0
+    order: 200
+    exclude_recursion: true
+    prevent_recursion: true
+    enabled: true
+    content: |
+      ### 变量输出格式
+      每次回复的最后输出一个更新块，正文里不提。
+
+      <UpdateVariable>
+      <Analysis>
+      这一轮发生了什么，影响了祁昭的哪一项，为什么是这个数。
+      </Analysis>
+      <JSONPatch>
+      [
+        { "op": "replace", "path": "/世界/时段", "value": "晨" },
+        { "op": "delta", "path": "/角色/祁昭/wick", "value": -5 }
+      ]
+      </JSONPatch>
+      </UpdateVariable>
+
+      - replace 表示设为某值（时间、地点、位置），delta 表示加多少（数值轴）。
+      - 没有改动也要写一个空的 <JSONPatch>[]</JSONPatch>。

@@ -1,0 +1,23 @@
+# [initvar] 变量初始化 —— 导入前删掉本注释块
+# 作为世界书条目导入：comment 必须含 "[initvar]"，enabled: false（只在开聊时读一次）
+# 键必须与 mvu-schema.js 的 Schema 一一对应；值对齐 axis-system.yaml 的 initial / targets_initial
+# 示例里刻意写 33（轴 initial 是 62 也无妨）：与 schema 的 prefault 不同，才能一眼看出 initvar 到底读没读到
+
+世界:
+  日期: "第 1 日"
+  时段: "傍晚"
+  地点: "第七塔 · 塔顶灯室"
+
+主角:
+  姓名: "旅人"
+  位置: "第七塔"
+
+角色:
+  角色甲:            # ← 与 mvu-schema.js 的键逐字一致
+    好感度: 33
+    堕落度: 0
+  角色乙:
+    好感度: 20
+    堕落度: 0
+
+背包: {}

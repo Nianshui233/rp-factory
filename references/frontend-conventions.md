@@ -30,17 +30,19 @@
 
 ## 二、数据怎么从 AI 流到界面
 
-三条路径，按需选一条，别混用：
+四条路径，按需选一条，别混用：
 
 | 路径 | 怎么用 | 适合 | 代价 |
 |---|---|---|---|
 | **A 静态替换** | `findRegex` 命中一个触发词，`replaceString` 是整份 HTML，无数据 | 建卡向导、纯展示面板 | 界面里的信息全靠 HTML 写死 |
 | **B `$1` 注入** | `findRegex` 带捕获组，HTML 里藏 `<textarea id="xx-raw" hidden>$1</textarea>`，JS 读 `.value` | 每轮状态栏、HUD、单楼面板 | 只能看本楼，**取不到上一层，所以做不了差值箭头** |
 | **C 聊天 API** | `getChatMessages(getCurrentMessageId())[0].message` 拆标签 | 需要跨楼历史（差值、趋势、跨楼统计） | 依赖酒馆助手注入的 API；纯预览环境下拿不到 |
+| **D 变量（MVU）** | `await waitGlobalInitialized('Mvu')` → `_.get(getAllVariables(), 'stat_data')` → `eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, …)`；正则 `findRegex: '<StatusPlaceHolderImpl/>'`、`markdownOnly: true`、`maxDepth: 2` | 项目做了 `mvu` 阶段 | 依赖酒馆助手 + MVU 脚本；没启用脚本时 `Mvu` 不存在，界面要留白不要报错 |
 
 - B 是最稳的一条：数据与 HTML 在同一个正则脚本里，不依赖楼层 API，`runOnEdit` 一开就连手改消息也跟着重算。模板默认“先试 B、B 空则回退 C”，两种环境都能跑。
 - 选 C 就得写 `FOLLOW_LATEST`（跟随最新楼）与差值逻辑；选 B 就别写箭头，两个一起上只会互相抵销。
 - 任何一条路径都不许从 `document` 里读别的消息 DOM：iframe 是隔离的，读不到。
+- 走 D 时：`Mvu.getMvuData()` 是**同步**返回，不要 `await`；变量没初始化（新聊天、脚本没启用）时 `stat_data` 可能是空对象，界面按"未知"渲染，别整块报错。
 
 **发送动作的三级降级**（点击按钮要发消息时才需要）：
 
@@ -206,12 +208,13 @@ else {
 1. 标签三处一致：`findRegex` 里的标签名、HTML 里的 `TAG`、`frontend-prompt.yaml` 的 `标签`。
 2. 字段两处一致：HTML 的 `FIELDS`、`frontend-prompt.yaml` 的 `字段`；并且都能在对应产物里找到来源。
 3. 正则 `markdownOnly: true`、`replaceString` 含 ```` ```html ````、HTML 含 `<body>`。
-4. 数据路径自洽：走 B 时 `findRegex` 有 `([\s\S]*?)` 且 HTML 里有 `<textarea … hidden>$1</textarea>`（只一处）；走 A 时 两者都没有；走 C 时无 `$1` 且 `FIELDS` 与消息里拆的字段同名。
+4. 数据路径自洽：走 D 时 `findRegex` 是 `<StatusPlaceHolderImpl/>` 且没有 `$1`；走 B 时 `findRegex` 有 `([\s\S]*?)` 且 HTML 里有 `<textarea … hidden>$1</textarea>`（只一处）；走 A 时 两者都没有；走 C 时无 `$1` 且 `FIELDS` 与消息里拆的字段同名。
 5. HTML 无外链、无 `eval`、无 `document.write`；class 全带命名空间。
 6. 本楼无标签时留白不报错（自己造一条不含标签的消息，看是否安静）；`$1` 未被替换（字面 `$1`）时也留白。
-7. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本；越界值不溢出。
-8. 交用户四句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里、触发词该出现在哪条消息里。
-9. 跑 `python scripts/validate-frontend.py <界面.html>`：F01–F08 全过（F04 专抓 `<script>` 里的 HTML 实体，那是唯一会让界面整份静默不显示的写法）。
+7. 走 D 时字段名必须能在 `mvu-schema.js` 的 `Schema` 里找到，`FIELDS` 的 min/max 逐项抄轴的 `range`（不一致就改界面，不改产物）。
+8. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本；越界值不溢出。
+9. 交用户四句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里、触发词该出现在哪条消息里。
+10. 跑 `python scripts/validate-frontend.py <界面.html>`：F01–F08 全过（F04 专抓 `<script>` 里的 HTML 实体，那是唯一会让界面整份静默不显示的写法）。
 
 ## 九、正则只能界面导入
 

@@ -1,0 +1,11 @@
+<%# 阶段控制器 · 守夜所（按 wick 切换在场者的态度） %>
+<%# 条目配置：constant / position 1(after_char) / order 100 / 递归双向 prevent %>
+<%# 被控条目 [阶段]守夜所·清醒 / ·磨损 / ·空壳 全部 disable: true %>
+<%_ if (typeof wick === 'undefined') { var wick = getvar('stat_data.角色.祁昭.wick', { defaults: 68 }); } _%>
+<%_ if (wick >= 67) { _%>
+<%- await getwi(null, '[阶段]守夜所·清醒') %>
+<%_ } else if (wick >= 34) { _%>
+<%- await getwi(null, '[阶段]守夜所·磨损') %>
+<%_ } else { _%>
+<%- await getwi(null, '[阶段]守夜所·空壳') %>
+<%_ } _%>

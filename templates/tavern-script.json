@@ -1,0 +1,11 @@
+{
+  "type": "script",
+  "enabled": true,
+  "name": "变量结构",
+  "id": "00000000-0000-4000-8000-000000000001",
+  "content": "// 这里放 mvu-schema.js 的全文（由脚本填入，不要手抄，避免与原件漂移）\nimport { registerMvuSchema } from 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js';\nconst Schema = z.object({});\n$(() => { registerMvuSchema(Schema); });\n",
+  "info": "",
+  "button": { "enabled": false, "buttons": [] },
+  "data": {},
+  "export_with": { "data": false, "button": false }
+}

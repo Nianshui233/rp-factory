@@ -381,8 +381,9 @@ def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
             keys = []
         if any(not isinstance(k, str) or not k.strip() for k in keys):
             rep.fail("W05", f"{tag}.key 里有空值或非字符串")
-        if e.get("constant") is False and not keys:
-            rep.fail("W05", f"{tag} 既非常驻又没有关键词：永远不会触发")
+        disabled = e.get("disable") is True or e.get("enabled") is False
+        if e.get("constant") is False and not keys and not disabled:
+            rep.fail("W05", f"{tag} 既非常驻又没有关键词：永远不会触发（要么给关键词，要么 disable: true）")
         if e.get("position") not in VALID_POSITIONS:
             rep.fail("W06", f"{tag}.position = {e.get('position')!r}，合法值 0–7")
         if e.get("position") == 4 and not isinstance(e.get("depth"), (int, float)):
@@ -400,7 +401,7 @@ def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
         plain = [k for k in keys if isinstance(k, str) and k.strip() and not (k.startswith("/") and k.endswith("/"))]
         if isinstance(e.get("order"), (int, float)):
             orders.append(float(e["order"]))
-        if not e.get("constant"):
+        if not e.get("constant") and not disabled:
             if e.get("selective") is False:
                 tune["sel"].append(str(uid))
             if len(plain) < MIN_KEYS:
@@ -438,10 +439,8 @@ def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
     else:
         rep.ok("W08", f"{len(all_keys)} 个关键词无重复")
 
-    if const_chars > CONST_BUDGET:
-        rep.fail("W09", f"常驻条目合计 {const_chars} 字，超过预算 {CONST_BUDGET}：每轮都要付这个钱")
-    else:
-        rep.ok("W09", f"常驻条目合计 {const_chars} 字（预算 {CONST_BUDGET}）")
+    # 预算不设上限：只把数字摆出来，判定留给用户（MVU 三件套会把常驻顶到 9k 上下，那是"该写的都写了"）
+    rep.ok("W09", f"常驻条目合计 {const_chars} 字（参考值 {CONST_BUDGET}，不判定）")
     return len(entries)
 
 
@@ -480,7 +479,9 @@ def validate_regex_pack(scripts, path: Path | None, rep: Report) -> list[dict]:
             rep.fail("R03", f"{tag}.placement 含非法值 {bad_place}（1 用户输入 / 2 AI 输出 / 3 斜杠 / 5 世界书 / 6 思维链）")
         elif 2 not in (s.get("placement") or []):
             rep.warn("R03", f"{tag}.placement 不含 2（AI 输出）：界面不会出现在回复里")
-        if s.get("markdownOnly") is not True:
+        bookkeeping = any(t in str(s.get("findRegex", ""))
+                          for t in ("update", "UpdateVariable", "StatusPlaceHolder"))
+        if s.get("markdownOnly") is not True and not bookkeeping:
             rep.warn("R04", f"{tag} markdownOnly 不是 true：替换后的 HTML 会进提示词与聊天记录")
         patterns.append(str(s.get("findRegex", "")))
 
@@ -505,7 +506,9 @@ def validate_regex_pack(scripts, path: Path | None, rep: Report) -> list[dict]:
         uses_dollar = bool(re.search(r"\$\{?[1-9]", repl))
         if uses_dollar and groups == 0:
             rep.fail("R06", f"正则[{i}] 用了 $1 但 findRegex 没有捕获组：数据会整段丢失")
-        if groups > 0 and not uses_dollar:
+        bookkeeping = any(t in str(s.get("findRegex", ""))
+                          for t in ("update", "UpdateVariable", "StatusPlaceHolder"))
+        if groups > 0 and not uses_dollar and not bookkeeping:
             rep.warn("R06", f"正则[{i}] 有 {groups} 个捕获组但 replaceString 没引用 $1（若有意为之可忽略）")
         if uses_dollar and "```html" not in repl:
             rep.warn("R06", f"正则[{i}] 的 replaceString 不是 ```html 围栏：酒馆助手不会把它当界面渲染")
@@ -674,6 +677,32 @@ def main(argv: list[str]) -> int:
         rep.fail("X05", f"包里有构建期占位符（{'、'.join(hits)}）：模型会把它当设定读，甚至写进回复")
     else:
         rep.ok("X05", "三件里都没有构建期占位符")
+
+    # X06 做了 mvu 阶段就得把东西带齐：卡内脚本、两条隐藏正则
+    stages = (contract or {}).get("stages") if isinstance(contract, dict) else {}
+    stages = stages if isinstance(stages, dict) else {}
+    stage_mvu = stages.get("mvu") if isinstance(stages, dict) else None
+    if stage_mvu == "done":
+        scripts = nested_get(data, "extensions.tavern_helper.scripts")[0]
+        if not isinstance(scripts, list) or not scripts:
+            rep.fail("X06", "`stages.mvu: done` 但卡里没有 extensions.tavern_helper.scripts："
+                            "MVU 不跑、变量永远是初值，而且不报错")
+        else:
+            names = " ".join(str(x.get("name", "")) for x in scripts if isinstance(x, dict))
+            if "MVU" not in names.upper():
+                rep.warn("X06", "卡内脚本里没有名字含 MVU 的那条（一般是 import 一行 bundle 的加载器）")
+            else:
+                rep.ok("X06", f"卡内脚本 {len(scripts)} 条，含 MVU 加载器")
+        if not script_list:
+            rep.fail("X06", "`stages.mvu: done` 但正则文件缺失")
+        else:
+            pats = " ".join(str(x.get("findRegex", "")) for x in script_list)
+            if "(update" not in pats.lower():
+                rep.fail("X06", "正则里没有隐藏 <UpdateVariable> 的规则：模型下一轮会读到自己的补丁")
+            elif not any(x.get("markdownOnly") for x in script_list):
+                rep.warn("X06", "没有 markdownOnly 的隐藏规则：玩家会看到 JSONPatch 原文")
+            else:
+                rep.ok("X06", "两条隐藏更新块的正则都在")
 
     rep.dump(as_json)
     return 0 if not rep.failures else 1

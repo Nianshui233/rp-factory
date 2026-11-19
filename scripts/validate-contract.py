@@ -22,24 +22,33 @@ except ImportError:
     print('需要 PyYAML：python -m pip install pyyaml')
     sys.exit(2)
 
-STAGES = [1, 2, 3, 4, 5, 6, 7]
+# 阶段用名字键（顺序即执行顺序）；旧的数字键仍认，但会提醒改
+STAGE_ORDER = ['world', 'cast', 'scenes', 'axes', 'mvu', 'ejs', 'opening', 'statusbar', 'delivery']
+# 旧数字键是"七阶段时代"的编号：5/6 是 opening/statusbar。新写法一律用名字，
+# 免得 5 在旧契约里指 opening、在新枚举里指 mvu 这种静默错位。
+STAGE_NUM = {1: 'world', 2: 'cast', 3: 'scenes', 4: 'axes',
+             5: 'opening', 6: 'statusbar', 7: 'delivery'}
+STAGES = STAGE_ORDER
 STAGE_STATES = {'none', 'partial', 'done', 'skipped'}
 ROUTES = {'native', 'st', 'both'}
 HARD_SOURCES = {'用户确认', '推导'}
 
 # 阶段 → 该阶段至少产出的 type（任一即可）
 STAGE_ARTIFACT = {
-    1: {'world-bible'},
-    2: {'rolecard'},
-    3: {'scene-sheet'},
-    4: {'axis-system'},
-    5: {'opening-ui'},
-    6: {'statusbar-ui'},
-    7: {'st-card', 'st-regex', 'st-worldbook'},
+    'world': {'world-bible'},
+    'cast': {'rolecard'},
+    'scenes': {'scene-sheet'},
+    'axes': {'axis-system'},
+    'mvu': {'mvu-schema', 'mvu-initvar', 'mvu-entries'},
+    'ejs': {'ejs-controller'},
+    'opening': {'opening-ui'},
+    'statusbar': {'statusbar-ui'},
+    'delivery': {'st-card', 'st-regex', 'st-worldbook'},
 }
 
 ARTIFACT_TYPES = {
     'project-profile', 'world-bible', 'rolecard', 'scene-sheet', 'axis-system',
+    'mvu-schema', 'mvu-initvar', 'mvu-entries', 'mvu-regex', 'ejs-controller',
     'opening-ui', 'statusbar-ui', 'st-card', 'st-regex', 'st-worldbook',
 }
 # 历史漂移里出现过的错名，直接点出来，比「不在枚举内」更好用
@@ -53,6 +62,9 @@ LEGACY_ALIASES = {
     'st': 'st-card',
     'regex': 'st-regex',
     'worldbook': 'st-worldbook',
+    'schema': 'mvu-schema',
+    'initvar': 'mvu-initvar',
+    'controller': 'ejs-controller',
 }
 
 NAME_LISTS = ('factions', 'places', 'systems', 'axes')
@@ -61,11 +73,13 @@ fails, warns = [], []
 
 
 def fail(rule, msg):
-    fails.append((rule, msg))
+    if (rule, msg) not in fails:
+        fails.append((rule, msg))
 
 
 def warn(rule, msg):
-    warns.append((rule, msg))
+    if (rule, msg) not in warns:
+        warns.append((rule, msg))
 
 
 def as_dict(v):
@@ -105,29 +119,47 @@ def check_project(c, root):
         if not isinstance(sr, list):
             fail('C03', '`project.stages_requested` 必须是列表')
         else:
-            bad = [x for x in sr if x not in STAGES]
-            if bad:
-                fail('C03', f'`project.stages_requested` 含非法阶段：{bad}')
+            for x in sr:
+                key = STAGE_NUM.get(x, x)
+                if key not in STAGES:
+                    fail('C03', f'`project.stages_requested` 含非法阶段：{x!r}')
+            if any(isinstance(x, int) for x in sr):
+                warn('C03', '`project.stages_requested` 用了数字，改成阶段名（world / cast / … / delivery）')
     if 'web_research' in p and not isinstance(p['web_research'], bool):
         fail('C03', '`project.web_research` 必须是布尔值')
 
 
+def stage_map(raw):
+    """把 stages 段归一到名字键；旧的数字键仍认，给一条提醒。"""
+    out = {}
+    numeric = False
+    for k, v in as_dict(raw).items():
+        if isinstance(k, int) or (isinstance(k, str) and k.isdigit()):
+            numeric = True
+        key = STAGE_NUM.get(k, k)
+        if key not in STAGES:
+            fail('C04', f'`stages` 出现非法键 {k!r}（只能是 {" / ".join(STAGE_ORDER)}）')
+            continue
+        out[key] = v
+    if numeric:
+        warn('C04', '`stages` 还在用数字键（按旧的七阶段编号解释），改成阶段名：world / cast / scenes / axes / mvu / ejs / opening / statusbar / delivery')
+    return out
+
+
 def check_stages(c):
-    s = as_dict(c.get('stages'))
-    if not s:
+    raw = c.get('stages')
+    if not raw:
         fail('C04', '缺 `stages` 段')
         return
-    for k in s:
-        if k not in STAGES:
-            fail('C04', f'`stages` 出现非法键 {k!r}（只能是 1–7）')
+    s = stage_map(raw)
     for n in STAGES:
         v = s.get(n)
         if v is None:
             fail('C04', f'`stages.{n}` 缺失（没跑就写 none / skipped）')
         elif v not in STAGE_STATES:
             fail('C04', f'`stages.{n}` = {v!r}，只能是 {" / ".join(sorted(STAGE_STATES))}')
-    if s.get(1) == 'skipped' and any(s.get(n) not in (None, 'none', 'skipped') for n in (2, 3, 4)):
-        warn('C04', '`stages.1` 是 skipped，但后续阶段已推进；世界观缺位时下游只能靠推断')
+    if s.get('world') == 'skipped' and any(s.get(n) not in (None, 'none', 'skipped') for n in ('cast', 'scenes', 'axes')):
+        warn('C04', '`stages.world` 是 skipped，但后续阶段已推进；世界观缺位时下游只能靠推断')
 
 
 def check_artifacts(c, root):
@@ -174,7 +206,7 @@ def check_artifacts(c, root):
 
 
 def check_stage_artifacts(c, types):
-    s = as_dict(c.get('stages'))
+    s = stage_map(c.get('stages'))
     for n in STAGES:
         if s.get(n) != 'done':
             continue
@@ -185,10 +217,10 @@ def check_stage_artifacts(c, types):
 
 def check_delivery(c):
     d = as_dict(c.get('delivery'))
-    s = as_dict(c.get('stages'))
+    s = stage_map(c.get('stages'))
     if not d:
-        if s.get(7) == 'done':
-            fail('C10', '`stages.7: done` 但缺 `delivery` 段')
+        if s.get('delivery') == 'done':
+            fail('C10', '`stages.delivery: done` 但缺 `delivery` 段')
         return
     route = d.get('route')
     if route not in ROUTES:
@@ -212,21 +244,21 @@ def check_delivery(c):
 
 def check_output_dirs(c, root):
     """最终产物/ 是交付目录：交付前必须空着（C13）。"""
-    s = as_dict(c.get('stages'))
+    s = stage_map(c.get('stages'))
     d = as_dict(c.get('delivery'))
     route = d.get('route') if d else None
-    delivered = s.get(7) == 'done'
+    delivered = s.get('delivery') == 'done'
     out = root / '最终产物'
     items = sorted(p.name for p in out.iterdir()) if out.is_dir() else []
     if not delivered:
         if items:
-            fail('C13', f'`stages.7` 还没 done，但 `最终产物/` 已有 {len(items)} 项：{", ".join(items[:5])}（过程产物应放 创作痕迹/产物/）')
+            fail('C13', f'`stages.delivery` 还没 done，但 `最终产物/` 已有 {len(items)} 项：{", ".join(items[:5])}（过程产物应放 创作痕迹/产物/）')
         return
     if not route:
-        fail('C13', '`stages.7: done` 但 `delivery.route` 为空')
+        fail('C13', '`stages.delivery: done` 但 `delivery.route` 为空')
         return
     if not items:
-        fail('C13', '`stages.7: done` 但 `最终产物/` 是空的')
+        fail('C13', '`stages.delivery: done` 但 `最终产物/` 是空的')
         return
     if route in ('st', 'both'):
         want = {'正则.json'}
@@ -293,8 +325,10 @@ def check_lists(c):
                 head = str(item['source']).split('（')[0].strip()
                 if head not in HARD_SOURCES:
                     fail('C12', f'`hard_settings` 第 {i} 条 source = {item["source"]!r}，必须以 用户确认 / 推导 开头')
-            if key == 'pending' and item.get('stage') is not None and item['stage'] not in STAGES:
-                fail('C12', f'`pending` 第 {i} 条 stage = {item["stage"]!r} 非法')
+            if key == 'pending' and item.get('stage') is not None:
+                st = STAGE_NUM.get(item['stage'], item['stage'])
+                if st not in STAGES:
+                    fail('C12', f'`pending` 第 {i} 条 stage = {item["stage"]!r} 非法')
 
 
 def main():

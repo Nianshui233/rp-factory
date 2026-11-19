@@ -102,7 +102,26 @@
 | A21 | 系统 | 扩展 interactions | templates/axis-system.yaml | [x] |
 | A22 | 系统 | 落地三路线（本包只做路线 C） | references/stage-4-axis-system.md | [x] |
 
-## 表现层（阶段 5 / 6）
+## 变量系统（阶段 `mvu` / `ejs`）
+
+- [ ] `变量结构.js` 用 zod 4，`import { registerMvuSchema } from 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js'`，末尾 `$(() => registerMvuSchema(Schema))`
+- [ ] 每个数值字段是 `z.coerce.number().catch(初值).transform(v => _.clamp(v, lo, hi)).prefault(初值)`——**没有 `.catch()`，模型写一句"很高"就作废整楼更新**
+- [ ] 夹取上下界逐项等于轴 `range`，不另造
+- [ ] 枚举字段用 `z.enum([...]).catch(默认值).prefault(默认值)`，不用 `.min/.max`（会拒整条更新）
+- [ ] `[initvar]` 条目 `enabled: false`（或 `disable: true`），键与 schema 逐层对齐，初值与轴 `initial` 一致
+- [ ] `[initvar]` 的初值**至少有一个**故意与 `prefault` 不同，否则验不出它到底有没有被读到
+- [ ] 三条常驻条目齐：更新规则（每变量 type/range/format/check）、`变量列表`（内容逐字符 `{{format_message_variable::stat_data}}`）、输出格式（JSON Patch + `delta` 自定义 op）
+- [ ] 世界书 `uid` == `entries` 的键（错位会让条目在面板里静默消失）
+- [ ] 两条隐藏正则齐：`<UpdateVariable>` 的 `promptOnly` 与 `markdownOnly` 各一条
+- [ ] 卡里带 `data.extensions.tavern_helper.scripts`（MVU 加载器 + 变量结构），交付说明写明"进酒馆助手启用脚本"
+- [ ] `ejs` 做与不做有明确判据：不做时 `stages.ejs: skipped` 并记一条 decisions；做了必须写清"整段文本随档位切换"
+- [ ] 控制器只读 `stat_data`，不自己算数值；`getvar` 的路径带 `stat_data.` 前缀
+- [ ] 控制器用 `typeof` 防重声明 + `var`；被控条目全部 `disable: true`
+- [ ] 分支边界单调、不留空档；末档是 `else` 时豁免两端覆盖检查
+- [ ] 改写了前序条目时，`创作痕迹/产物/改写前/` 有原件、`改写清单.yaml` 记了改哪条改什么
+- [ ] `python scripts/validate-mvu.py` 与 `validate-ejs.py` 退出码都是 0
+
+## 表现层（阶段 `opening` / `statusbar`）
 
 > 源：`非变量的HTML状态栏.md` 已整份出界（用户判定过时），本节不追源，追的是本包自己定的表现层规则；每条对应一个可在产物上核对的点。
 
@@ -130,7 +149,7 @@
 | U20 | 表现层 | 状态栏两种规模：细条 / 分页 HUD；默认路径 B | references/stage-6-statusbar-ui.md | [x] |
 | U21 | 表现层 | 前端门八条（新增数据路径自洽、字面占位符留白、交用户四句话） | references/frontend-conventions.md | [x] |
 
-## 交付（阶段 7）
+## 交付（阶段 `delivery`）
 
 > 源：用户给的参考包 `我，非我`（角色卡 JSON + 世界书 JSON + 两条正则 + 两个 HTML）；规则对齐 `D:\AI\SillyTavern` 本体的校验与导入路径。
 
@@ -188,7 +207,7 @@
 | D32 | 交付 | 答「要」→ `st-import.py` 导入 + 回读五项自检 + 白名单 WARN；不成就报错不硬试 | references/stage-7-delivery.md · scripts/st-import.py | [x] |
 | D33 | 交付 | 有界面的包再跑 `st-probe.js` 量 iframe 高度（没有 iframe / 2px 各有判定） | references/stage-7-delivery.md · scripts/st-probe.js | [x] |
 
-## 交付形态（阶段 7 三件套）
+## 交付形态（阶段 `delivery` 三件套）
 
 - [ ] 三件齐全：`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`
 - [ ] 卡里没有 `character_book`，`extensions.regex_scripts` 是空数组
@@ -199,4 +218,5 @@
 - [ ] `first_mes` 的标签能被 `正则.json` 里某条 `findRegex` 接住
 - [ ] 正则数组里每条 `findRegex` 可编译；用 `$1` 的必须有捕获组
 - [ ] `最终产物/` 在交付前为空，交付后按路线只有该路线的文件
-- [ ] 装配四步写进 `creator_notes`：书 → 卡 → 正则 → 渲染开关
+- [ ] 装配四步写进 `creator_notes`：书 → 卡 → 正则 → 渲染开关（做了 `mvu` 时补第五步"启用脚本"）
+- [ ] 做了 `mvu` 时：卡内有 `tavern_helper.scripts`、正则里有两隐藏更新块、`X06` 通过

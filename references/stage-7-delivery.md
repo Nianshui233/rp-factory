@@ -8,7 +8,8 @@
 
 - `project.stages_requested` 里的阶段都已 `done`（有 `partial` 就先问一句"还差 X，先打包还是补完"）。
 - 要出酒馆包，必须有 `rolecard` 与 `world-bible`；缺任一个就只能走原生产物，或先回阶段 1 / 2。
-- 阶段 5 / 6 没做也能打包：只是正则那一件少脚本，第一楼是纯文字开场。
+- 阶段 `opening` / `statusbar` 没做也能打包：只是正则那一件少脚本，第一楼是纯文字开场。
+- 做了 `mvu` → 卡里要带 `data.extensions.tavern_helper.scripts`（MVU 加载器 + 变量结构），`正则.json` 要带隐藏 `<UpdateVariable>` 的两条；交付说明里多一句"进酒馆助手把这两个脚本启用"。**不带脚本的 MVU 包等于没做变量系统**，而且不会报错。
 - **`最终产物/` 此刻应该是空的**。里面有任何东西（HTML、正则、卡）都是流程跑错了，先把它们挪回 `创作痕迹/产物/` 再进本阶段。
 
 ## 追问
@@ -41,7 +42,7 @@
 ## 判断标准
 
 - **三件各管一件事**：卡只装"每轮都要在的骨架"，世界书装"按需加载的细节"，正则装"把标签渲染成界面"。同一段话只在一处出现。
-- **卡是纯净的**：`data.character_book` 不写，`data.extensions.regex_scripts` 写空数组。卡里塞内嵌书会让"改一条设定"变成"重导整卡"，用户也没法单独换世界书。
+- **卡是纯净的**：`data.character_book` 不写，`data.extensions.regex_scripts` 写空数组。**唯一例外**是 `mvu` 阶段的 `extensions.tavern_helper.scripts`——它不是世界书也不是正则，是脚本本体，必须跟着卡走（或者单独发 `酒馆助手脚本-*.json`，两者选一，别都做）。卡里塞内嵌书会让"改一条设定"变成"重导整卡"，用户也没法单独换世界书。
 - **世界书名三处一致**：`<世界名> 世界书.json` 的**文件名** = 酒馆里的书名（导入时用文件名建书）；卡里 `data.extensions.world` 写同一个名字。名字不一致，卡导进去后不会自动挂上书。
 - **第一楼不是裸标签**：`first_mes` 里的标签必须能被 `正则.json` 里某个 `findRegex` 接住；接不住就把 `first_mes` 换成一句普通开场白。
 - **内容有预算**：`description` ≤8000 字（校验器 X01 盯着）。群像卡的主要篇幅在人物条目里，不在 `description`。
@@ -110,6 +111,7 @@
 一个 **数组**，一条正则一个对象，字段见 `templates/regex-frontend.json`。酒馆的正则导入认数组——`public/scripts/extensions/regex/index.js` 的 `onRegexImportFileChange()` 里 `Array.isArray(regexScripts)` 就逐个导，一次导完；单对象的文件也能导（参考包就是一条一个文件）。
 
 - 阶段 5 有 → 一条：`scriptName` 带"建卡向导"，`findRegex` 只匹配标签（`/<建卡向导>/g`），`placement: [2]`（AI 输出）、`markdownOnly: true`、`runOnEdit: true`。
+- 做了 `mvu` → 三条：藏 `<UpdateVariable>…</UpdateVariable>`（`promptOnly: true` 空替换，别让模型下一轮读到自己上一轮的补丁）、藏同一个块（`markdownOnly: true`，别让玩家看见 JSONPatch）、藏 `<StatusPlaceHolderImpl/>`（`markdownOnly: true`，占位符只是给状态栏挂载用的锚点）。没做 `statusbar` 就不要第三条。
 - 阶段 6 有 → 一条：`findRegex` 带捕获组（`/<状态栏>([\s\S]*?)<\/状态栏>/g`），`replaceString` 的 HTML 里必须有一行 `<textarea id="rp-sb-raw" hidden>$1</textarea>`，且在 `<script>` 之前。
 - `replaceString` 的 HTML 用 `templates/wizard-ui.html` / `templates/statusbar.html` 填，改完跑 `python scripts/validate-frontend.py <html>`。
 - 内联脚本里需要 HTML 实体时用 `\u0026` 拼（`'\u0026amp;'`）——酒馆会把消息里的实体再解一次码，写 `&amp;` 会让脚本语法错误、界面塌成 2px。
@@ -120,6 +122,7 @@
 2. **角色卡**：角色页 → 导入 → 选 `<世界名>（纯净）.json`。导完在卡片设置里把世界书选成 `<世界名> 世界书`（卡里已写 `extensions.world`，同名时自动挂上，小地球会变绿）。
 3. **正则**：设置 → 扩展 → 正则 → 导入 → 选 `正则.json`。导入时问"导入为全局 / 角色专属 / 预设"，选**全局**最省事（不需要白名单）；选角色专属则第一次进聊天会弹"允许角色专属正则"，点允许（只弹一次）。这一件必须界面点，脚本写 `settings.json` 会被运行中的客户端盖掉。
 4. **渲染**：设置 → 扩展 → 酒馆助手 → 打开"消息渲染"（`render.enabled`）。回聊天，第一条消息应出现建卡向导。
+5. **脚本**（只有做了 `mvu`）：酒馆助手 → 脚本库 → 把卡里的两条脚本**启用**（`extension_settings` 里 `script.enabled.characters` 要包含这个卡）。不启用时 MVU 静默不跑，变量永远是初值——这是最难查的一种"跑通了但没生效"。
 
 ### 六、文件放哪
 
@@ -200,8 +203,8 @@ python scripts/validate-contract.py 创作痕迹/contract.yaml
 2. 卡：`spec == "chara_card_v2"`、`spec_version == "2.0"`、`data` 十四必填字段齐全；**不许有 `character_book`（C19）**；`data.extensions.regex_scripts` 必须为空（C20）；`extensions.world` 非空（C21）。
 3. 书：`entries` 是**对象**不是数组（W01）；每条 `uid` == 键、`content` 非空、`key` 是数组、`position` ∈ 0–7、`order` 是数字、`disable` 是布尔；非常驻且无 `key` = 失败；常驻合计 ≤8000（X02）；关键词语义重复 = 失败。
 4. 正则：数组（R01）；每条 `scriptName` 非空、`findRegex` 能被 JS 编译（有 node 就实测）、`placement` 数组、`markdownOnly: true`；用了 `$1` 却没捕获组 = 失败。
-5. 交叉：`extensions.world` == 世界书文件名（去 `.json`）（X03）；`first_mes` 里的标签能被某条正则接住（X04）；三件的占位符 0 命中（X05）。
-6. 调优：绿灯关键词 <8、未 `excludeRecursion`、`position` 2·3·5·6、`key` 带逗号、`order` 全同、`selective: false` 给 WARN。
+5. 交叉：`extensions.world` == 世界书文件名（去 `.json`）（X03）；做了 `mvu` 时卡里必须有 `tavern_helper.scripts` 且正则里有隐藏更新块的规则（X06）；`first_mes` 里的标签能被某条正则接住（X04）；三件的占位符 0 命中（X05）。
+6. 调优：绿灯关键词 <8、未 `excludeRecursion`、`position` 2·3·5·6、`key` 带逗号、`order` 全同、`selective: false` 给 WARN；常驻字数只打印不判定（`W09`）。
 
 还有三条肉眼过：
 

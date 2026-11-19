@@ -1,0 +1,33 @@
+# 改写清单 · 阶段 ejs
+# 整份世界书改写前的原件：创作痕迹/产物/改写前/白潮 世界书.json
+
+entries:
+  - name: 守夜所（夜班）
+    change: 拆分 + 禁用
+    before: 194
+    after: 0
+    note: "原文拆成三份按 wick 切换的版本，原条目 disable: true（由控制器按数值加载对应那份）"
+
+  - name: "[阶段]守夜所·清醒"
+    change: 拆分（新条目）
+    before: 0
+    after: 236
+    note: wick 67–100；值班的人认得祁昭，会主动递茶、提醒换班
+
+  - name: "[阶段]守夜所·磨损"
+    change: 拆分（新条目）
+    before: 0
+    after: 251
+    note: wick 34–66；叫得出绰号但叫错名字，排班表上他的名字被划掉又写回
+
+  - name: "[阶段]守夜所·空壳"
+    change: 拆分（新条目）
+    before: 0
+    after: 243
+    note: wick 0–33；值班的人把他当新来的，重复问同一句"你找谁"
+
+  - name: 阶段控制器 · 守夜所
+    change: 新增控制条目
+    before: 0
+    after: 292
+    note: constant / after_char / order 100；只读 stat_data.角色.祁昭.wick，不做别的判断

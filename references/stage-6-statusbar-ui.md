@@ -39,6 +39,12 @@
 
 ## 生成
 
+### 〇、先看有没有 `mvu`
+
+契约 `stages.mvu: done` → **走 `references/frontend-conventions.md` 第二节的 D 路径**：状态栏不再要求模型输出 `<状态栏>` 块，直接读 `stat_data`，`findRegex` 用 `<StatusPlaceHolderImpl/>`、`maxDepth: 2`。此时"数据块"一节整节跳过。
+
+没有 `mvu` → 按下面的一、二节走标签方案。两条不要混用：混用的结果是"有一条正则接不到任何东西"，看起来只是不显示，很难查。
+
 ### 一、数据块（AI 每轮输出什么）
 
 每轮回复末尾输出一个 `<状态栏>` 块：

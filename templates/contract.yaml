@@ -8,7 +8,7 @@ project:
   mode: "text"             # text | engineering
   rp_form: ""              # 1v1 / 多人 / 跑团风格 / 旁白主导
   language: "zh"           # 描述性内容的语言
-  stages_requested: []     # 开局多选的结果，升序，如 [1, 2, 4]；没勾的阶段在 stages 里写 skipped
+  stages_requested: []     # 开局多选的结果，按执行顺序写名字：world / cast / scenes / axes / mvu / ejs / opening / statusbar
   web_research: false      # 开局第四问：是否联网检索；true 时每次落笔前都先搜，走 references/web-research.md
   source_ip: ""            # 可选：检索依据（原作名+版本 / 真实年代地点 / 专业领域）。自动记录，不为此提问
   sillytavern:             # 开局静默探测的结果（scripts/detect-sillytavern.py），不为此提问；没探测到写 null
@@ -18,14 +18,16 @@ project:
     pkg_version: ""        # 实例或安装包的版本号
     extension_tavern_helper: false   # 有没有装酒馆助手（阶段 5/6 的前置）
 
-stages:                    # 每阶段状态，不是标量。乱序合法。
-  1: none                  # none | partial | done | skipped（未勾选的阶段写 skipped）
-  2: none
-  3: none
-  4: none
-  5: none                  # 开局前端
-  6: none                  # 状态栏前端
-  7: none                  # 交付/打包：只在最后一次进入；选原生路线写 skipped
+stages:                    # 每阶段状态，名字键，不是标量。顺序即执行顺序，乱序进入合法。
+  world: none              # none | partial | done | skipped（未勾选的阶段写 skipped）
+  cast: none               # 角色卡
+  scenes: none             # 场景卡
+  axes: none               # 数值系统
+  mvu: none                # 变量系统：把轴投影成 zod + initvar + 三条目（必须在 ejs 前）
+  ejs: none                # 分档控制器：按数值切条目（默认不建，命中判据才建）
+  opening: none            # 开局前端
+  statusbar: none          # 状态栏前端
+  delivery: none           # 交付/打包：只在最后一次进入；选原生路线写 skipped
 
 delivery:                  # 收尾问一次：交付到哪（不选就按 native）
   route: "native"          # native（把 创作痕迹/产物/ 复制进 最终产物/）| st（三件套）| both
@@ -43,8 +45,9 @@ naming:                    # 命名门的事实源：同一实体在所有产物
   factions: []             # - {id: "", name: "", alias: []}
   places: []               # - {id: "", name: "", scope: ""}
   systems: []              # 超自然 / 科技系统，- {id: "", name: "", ceiling: ""}
-  axes: []                 # - {name: "", range: [], initial: 0, provisional: true, levels: []}
+  axes: []                 # - {name: "", range: [], initial: 0, provisional: true, levels: [], targets: []}
                            #   provisional 只在阶段 2/3 先行写名时为 true；阶段 4 接管后删除该键
+  schema_axes: []          # 阶段 mvu 实际投影进 zod 的轴名；交付校验 X02 用它查轴有没有漏在包外
   ui_tags:                 # 表现层的消息标签名；写定后不与正则、HTML 的 TAG 分离
     opening: ""            # 阶段 5 写「开局界面」
     status: ""             # 阶段 6 写「状态栏」
@@ -61,6 +64,7 @@ decisions: []              # 用户拍的板，- {stage: 1, question: "", answer
 
 artifacts: []              # 产物索引，正文不在这里
   # - type: world-bible    # project-profile | world-bible | rolecard | scene-sheet | axis-system
+  #                        # | mvu-schema | mvu-initvar | mvu-entries | mvu-regex | ejs-controller
   #                        # | opening-ui | statusbar-ui | st-card | st-regex | st-worldbook
   #   path: ""             # 相对项目根，运行期一律在 创作痕迹/产物/ 下；文本模态留空（多文件产物写目录，如 创作痕迹/产物/rolecard/）
   #   inline_ref: ""       # 文本模态写产物在会话里的标识

@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - **自包含**：`SKILL.md`、`references/**`、`templates/**` 中不得出现任何指向包外文件的路径，不得出现源文件名（`RP 世界观设计助手.md`、`AI-RP 角色架构师.md`、`AI-RP 系统架构师.md`、`RP场景生成器.md`、`非变量的HTML状态栏.md`）。源文件在验证通过后会被删除（spec §3.2）。
-- **体量**：`SKILL.md` ≤ 150 行（原 120，加阶段门与自创字段门后放宽）；每个 `references/stage-*.md` ≤ 200 行；`references/pipeline.md` ≤ 150 行。
+- **体量**：`SKILL.md` ≤ **300 行**（2026-11-20 用户拍板：九阶段 + 十一道门后前几轮上限都不够用，索性给足）；每个 `references/stage-*.md` ≤ 220 行；`references/pipeline.md` ≤ 150 行。
 - **占位符只有 7 个**，定义在 `references/pipeline.md`，别处只引用不自造：`【未知】`、`【AI补全·可替换】`、`[待定]`、`[待定：<内容>]`、`[推断：<内容>](待确认)`、`[不适用]`、`[用户跳过]`。
 - **产物 type 只有 4 个**：`world-bible`、`rolecard`、`scene-sheet`、`axis-system`。
 - **门名只有 5 个**：`开工门`、`边界门`、`收敛门`、`自检门`、`命名门`。
@@ -565,7 +565,7 @@ Expected: 三条命令均无输出。
 ```bash
 wc -l SKILL.md references/*.md
 ```
-Expected: `SKILL.md` ≤120；各 `stage-*.md` ≤200；`pipeline.md` ≤150。
+Expected: `SKILL.md` ≤300；各 `stage-*.md` ≤220；`pipeline.md` ≤150。
 
 - [ ] **Step 3: dry-run 概念**
 
@@ -795,3 +795,276 @@ Expected: 0 失败（WARN 可带着走），退出码 0。
 **Ruling**：`最终产物/` 严格空——不是"只放终稿"，是"交付前什么都没有"。理由：一旦允许半成品进去，"这是终稿还是草稿"就没人分得清，而 `创作痕迹/` 本来就是给过程用的，多一层目录比多一次判断便宜。
 - [x] 追记：`st-import.py` 的正则改为"只校验不写设置"，`references/stage-7-delivery.md` 与 `frontend-conventions.md` 写明原因（运行中的客户端会盖掉 `settings.json`）
 
+
+---
+
+# 追加任务（2026-11-20）：变量系统（阶段 `mvu` / `ejs`）
+
+依据：`docs/specs/2026-11-20-rp-prompt-architect-design.md` §24–§26（本轮补写）。取证来源：`D:/AI/RP创作/参考/` 下 `二十一人会`、`高塔：2080`、`呕吐内心的少女`、`尸变纪元`、`时雨不终-太阁立志`、`苏玉` 六个实例，以及 `SillyTavern预设结构参考/他人撰写的预设.json`。
+
+## 追加 Global Constraints
+
+- 结构脚本固定两行骨架：`import { registerMvuSchema } from 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js';` 与 `$(() => { registerMvuSchema(Schema); });`。`z` 与 `_` 由酒馆助手自动注入，**不写 `import z`**。
+- zod 里凡是数值一律 `z.coerce.number()`，不许 `z.number()`；上下界用 `z.coerce.number().transform(v => _.clamp(v, 0, 100))`，不许 `.min()/.max()`（后者会拒掉整条更新，前者只夹一次）。
+- `[initvar]` 条目：`disable: true`、`position: 0`、`depth: 4`、`constant: false`。**不许加 `$meta`**（六个实例零使用）。
+- `[mvu_update]` 三条（更新规则 / 输出格式 / 输出格式强调）与 `变量列表`：`constant: true`、`position: 4`、`depth: 0`、`order: 200`、`recursion.prevent_incoming: true`、`recursion.prevent_outgoing: true`。
+- `变量列表` 内容必须逐字符等于 `---\n<status_current_variables>\n{{format_message_variable::stat_data}}\n</status_current_variables>\n`（98 字节），生成期用 `==` 比较。
+- EJS 只允许三样：`<%_ _%>`、`if (typeof x === 'undefined') var x = getvar('stat_data.…', { defaults: … });`、`<%- await getwi(null, '条目名') %>`。被 `getwi` 加载的条目一律 `disable: true`。
+- 变量系统产物写 `创作痕迹/产物/<阶段>/`；`最终产物/` 交付前保持空（沿用 Task 22 的规则）。
+- 数值只准从 `axis-system.yaml` 投影，不许在 `mvu` 阶段重新发明一条轴。
+
+## Review Focus（变量系统）
+
+1. `axes` 改了范围而 zod 没跟着改 → 模型写 120 被夹成 100，界面显示"从没到过 100"，人以为是卡坏了。钉在 Task 23 的 M04（schema 边界 == 轴 `range`）与 Step 9 的越界用例。
+2. `[initvar]` 忘了关 → 初值条目被当常驻设定塞进上下文，每轮多烧 1.5k 字。钉在 Task 23 的 M03。
+3. `变量列表` 被写成 `get_message_variable`（裸 JSON）→ 模型看不到描述，改值全靠猜。钉在 Task 23 的 M07。
+4. EJS 分支边界留缝（`< 30` 与 `> 30`）→ 恰好 30 时没有任何人设，模型自由发挥。钉在 Task 24 的 E06。
+5. 被控条目没关 → 三个阶段人设同时进上下文，人格自相矛盾。钉在 Task 24 的 E05。
+
+### Task 23: 阶段 `mvu`（变量系统）
+
+**Files:**
+- Create: `references/stage-mvu.md`、`templates/mvu-schema.js`、`templates/mvu-initvar.yaml`、`templates/mvu-entries.yaml`、`templates/tavern-script.json`、`scripts/validate-mvu.py`
+- Test: `examples/dry-run-盐湖守夜人/创作痕迹/产物/mvu/`（三个文件）
+
+**Interfaces:**
+- Consumes: `axis-system.yaml` 的 `axes[]`（`name` / `range` / `initial` / `direction` / `thresholds` / `targets` / `targets_initial`）、`rolecard` 的 `identity`、`contract.naming.axes`
+- Produces: `变量结构.js`（zod，导出脚本用 `templates/tavern-script.json` 包一层）、`[initvar]变量初始化.yaml`、`变量规则.yaml`（三条 `[mvu_update]` 条目 + `变量列表` 固定内容）；`artifacts[type=mvu-schema]`、`artifacts[type=mvu-initvar]`、`artifacts[type=mvu-entries]`
+
+- [ ] **Step 1: 写 `references/stage-mvu.md` 六节**
+
+`## 进入条件` / `## 追问` / `## 判断标准` / `## 生成` / `## 写回契约` / `## 退出`，标题必须裸写（`grep -c '^## '` = 6）。判断标准里写清"什么时候不该做 MVU"：轴 < 2 条、单人线性叙事、不做状态栏也不做分档人设——三条全中就直接 `skipped`。
+
+- [ ] **Step 2: 追问表（首轮 5 问，不占阶段预算的只有开局三问）**
+
+| 问题 | 选项（A/B/C + 我的建议） | 落进 |
+|---|---|---|
+| 轴要不要换成"每角色一份" | A 全局一份（≤2 人）/ B 每人一份（3–15 人）/ C 分 2–4 组 | `targets` |
+| 时间推进要不要可写 | A 只读展示 / B 可写（日期/时段/天气三件） | `世界` 块 |
+| 要不要物品栏 | A 不要 / B 固定键 / C 动态键（`z.record`） | `背包` 块 |
+| 数值变动频率 | A 每轮微调 ±(1~3) / B 每场结算 ±(3~6) / C 只在关键事件 | `check` 里写死 |
+| 要不要"输出格式强调"条目 | A 不建（默认）/ B 建但禁用 / C 建并启用 | 产物第 5 件 |
+
+- [ ] **Step 3: `templates/mvu-schema.js`**
+
+骨架只留四段：两行 import 与注册、`const 轴 = { … }`（从 `axes[]` 逐条投影，`transform` 里 `_.clamp(0, range[1])`）、`const Schema = z.object({ … })`（顶层键 = 世界 / 主角 / 各角色 / 背包）、末尾 `$(() => { registerMvuSchema(Schema); });`。文件头注释写"本文件由 `axis-system.yaml` 投影生成，改数值先改轴"。
+
+- [ ] **Step 4: `templates/mvu-initvar.yaml`**
+
+纯 YAML，值与轴 `initial` / `targets_initial` 逐项对齐；文件头注释写"必须作为 `[initvar]` 条目导入且 `disable: true`"。
+
+- [ ] **Step 5: `templates/mvu-entries.yaml`**
+
+三个条目的骨架，每条上方用注释钉死配置：`[mvu_update]变量更新规则`（`constant/depth 0/order 200/recursion 双向`）、`变量列表`（内容逐字符等于固定串）、`[mvu_update]变量输出格式`（含 `<UpdateVariable>` + `<Analysis>` + `<JSONPatch>`，`delta` op 要写进去）。文件名前缀 `[mvu_update]` 是 MVU 的识别条件，不许省。
+
+- [ ] **Step 6: `templates/tavern-script.json`**
+
+酒馆助手脚本导出格式：`{type: "script", enabled: true, name: "变量结构", id: "<uuid>", content: "<整个 js>", info: "", button: {...}, data: {}, export_with: {...}}`。
+
+- [ ] **Step 7: `scripts/validate-mvu.py`**
+
+参数 `--contract`（可选）。检查项：
+M01 三个文件齐；M02 `变量结构.js` 含 `registerMvuSchema` 与 `$(() =>`；M03 `[initvar]` 的条目配置 `disable == True` 且无 `$meta`；M04 每条轴 `range` 与 zod 里 `_.clamp(…, <hi>)` 的 `<hi>` 一致（正则抽 `_.clamp(v, 0, N)`），轴名在 schema 里出现；M05 数值字段没有 `z.number()`（只查 `z.object` 之后、`transform` 之前，避免误报）；M06 `变量规则.yaml` 里三条条目配置正确；M07 `变量列表` 内容逐字符等于固定串（FAIL 级）；M08 输出格式含 `<UpdateVariable>`、`<JSONPatch>`、`delta`；M09 占位符 `【AI补全·可替换】` / `[待定` / `【未知】` 计数为 0；M10 `node --check`（拷到临时 `.mjs` 再跑）。退出码 0/1/2。
+
+- [ ] **Step 8: dry-run 出三件**
+
+`examples/dry-run-盐湖守夜人/创作痕迹/产物/mvu/` 下：`变量结构.js`（轴 `wick` 0–100 clamp、`tide` 0–100 clamp，顶层 `世界`/`主角`/`祁昭`）、`[initvar]变量初始化.yaml`（`wick: 62`、`tide: 18`，与 `axis-system.yaml` 的 `initial` 一致）、`变量规则.yaml`（三条目 + `变量列表`）。
+
+- [ ] **Step 9: 越界用例与核验**
+
+在同一目录加 `mvu-越界用例.md`：写 120 / -5 / 字符串 `"高"` 三个输入，期望都被 `transform` 夹成 `100` / `0` / 保持数字或缺省，不进"整条更新被拒"的分支。
+
+```bash
+python scripts/validate-mvu.py "examples/dry-run-盐湖守夜人/创作痕迹/产物/mvu" --contract "examples/dry-run-盐湖守夜人/创作痕迹/contract.yaml"
+grep -c 'registerMvuSchema' examples/dry-run-盐湖守夜人/创作痕迹/产物/mvu/变量结构.js   # 期望 1
+grep -c '\$meta' examples/dry-run-盐湖守夜人/创作痕迹/产物/mvu/*.yaml                  # 期望 0
+```
+
+Expected: `0 失败`，M01–M10 全过，退出码 0。
+
+**Ruling 1**：结构用 zod 脚本、`[initvar]` 只放初始值——六个实例里 `[initvar]` 一个 `$meta` 都没有，结构全在 zod 脚本里；`$meta` 是"没有脚本时的退化路线"，不是标准做法。
+**Ruling 2**：`mvu` 只做投影，不重新设计数值。轴的定义权在 `axes` 阶段，`mvu` 只负责把 `range` / `initial` / `thresholds` 翻译成可执行的 `clamp` 与 `check`。否则同一个数有两份真相。
+**Ruling 3**：`变量结构.js` 交 `.js` 原文 + `tavern-script.json` 两个形状——前者能直接读能改，后者能一键导入；只给 JSON 的话人没法 review。
+
+### Task 24: 阶段 `ejs`（分档控制器）
+
+**Files:**
+- Create: `references/stage-ejs.md`、`templates/ejs-controller.ejs`、`scripts/validate-ejs.py`
+- Test: `examples/dry-run-盐湖守夜人/创作痕迹/产物/ejs/阶段控制器.ejs`
+
+**Interfaces:**
+- Consumes: `contract.naming.axes`、`axis-system.yaml` 的 `thresholds`、已被 `cast` / `scenes` 产出的分档内容条目名（改写对象）
+- Produces: `阶段控制器.ejs`（世界书条目正文）+ `改写清单.yaml`（被控条目名、阶段边界、改写前后字数）；`artifacts[type=ejs-controller]`
+
+- [ ] **Step 1: 写 `references/stage-ejs.md` 六节**
+
+判断标准里写死能力边界（照抄预设那张做不到清单）：能做"按变量切条目 / 切关键词 / 切日期"；不能做 JSON 解析、复杂数组操作、网络、定时任务、`includes`/`endsWith`/`startsWith` 之外的字符串处理。越界就退回静态分档，并在 `decisions` 记一笔。
+
+- [ ] **Step 2: 追问表（首轮 4 问）**
+
+| 问题 | 选项 | 落进 |
+|---|---|---|
+| 控制器切什么 | A 人设/称谓 / B 场景可见细节 / C 两样都要（两个控制器） | 条目数 |
+| 阶段边界 | A 用轴的 `thresholds` 原值 / B 自己定 3–5 档 | `阶段边界` |
+| 无 MVU 时降级 | A 不做（推荐）/ B 用 `[InitialVariables]` + 模型输出 `setvar`（可靠性低一档） | `mode` |
+| 被控条目怎么来 | A 从已有条目改写（默认）/ B 新写 | `改写清单` |
+
+- [ ] **Step 3: `templates/ejs-controller.ejs`**
+
+三段：读变量（`typeof` 守卫 + `var`）、`if/else` 分支（每个分支一行 `<%- await getwi(null, '条目名') %>`）、末尾不使用 `else` 兜底到最高档以外的情况（边界由 E06 保证不重合不遗漏）。文件头注释写"控制条目 `constant/after_char order 100/recursion 双向`，被控条目 `disable: true`"。
+
+- [ ] **Step 4: 改写清单格式**
+
+`创作痕迹/产物/ejs/改写清单.yaml`：`条目名` / `改动类型`（拆分·合并·改称谓·只加禁用）/ `改前字数` / `改后字数`。整份世界书改写前备份到 `创作痕迹/产物/改写前/`。
+
+- [ ] **Step 5: `scripts/validate-ejs.py`**
+
+参数 `--book`（世界书 JSON，用来查被控条目存在且 `disable: true`）。检查项：
+E01 只用 `<%_ … _%>`（出现 `<% ` 或 `<%=` 即 FAIL）；E02 每个变量都有 `typeof … === 'undefined'` 守卫且声明为 `var`；E03 所有 `getvar(` 的路径以 `stat_data.` 开头（带 `--no-mvu` 时降为 WARN，且要求前缀是 `initial.` 或 `stat_data.`）；E04 每个 `getwi` 带 `await`，条目名能在 `--book` 里找到；E05 被控条目 `disable == true`（FAIL 级）；E06 数值边界连续性——抽取所有 `>=` / `>` / `<=` / `<` 的数字，按升序检查相邻区间"上界 + 1 == 下界"或"上界 == 下界"，有缝或重叠即 FAIL；E07 无 `JSON.parse` / `fetch` / `require` / `new Function` / `eval`；E08 占位符计数为 0。退出码 0/1/2。
+
+- [ ] **Step 6: dry-run 出控制器**
+
+以 `tide` 轴（0–100，`warn 60`、`danger 82`）做三档人设控制器，被控条目写成 `[阶段]祁昭·低潮` / `[阶段]祁昭·涨潮` / `[阶段]祁昭·漫堤`，三条 `disable: true` 追加进 dry-run 世界书。
+
+- [ ] **Step 7: 边界用例**
+
+在 `阶段控制器.ejs` 同目录加 `边界用例.md`：`tide = 59 / 60 / 81 / 82` 四处，逐个写"命中哪一档"，用来验证 E06 的区间无缝。
+
+- [ ] **Step 8: 核验**
+
+```bash
+python scripts/validate-ejs.py "examples/dry-run-盐湖守夜人/创作痕迹/产物/ejs/阶段控制器.ejs" --book "examples/dry-run-盐湖守夜人/最终产物/白潮 世界书.json"
+grep -c 'await getwi' examples/dry-run-盐湖守夜人/创作痕迹/产物/ejs/阶段控制器.ejs   # 期望 3
+grep -c 'typeof' examples/dry-run-盐湖守夜人/创作痕迹/产物/ejs/阶段控制器.ejs        # 期望 >= 1
+```
+
+Expected: `0 失败`，E01–E08 全过，退出码 0。
+
+**Ruling 1**：`ejs` 只做"控制器 + 被控条目"，不新写内容——分档内容本来就该在 `cast` / `scenes` 阶段产出，`ejs` 只负责把它变成"按变量生效"。这也就是"允许改写前序条目"的适用范围：只改称谓与拆分粒度，不改人设事实。
+**Ruling 2**：允许"只 EJS 无 MVU"档，但必须在交付说明里写明可靠性低一档（模型得自己吐 `setvar`，漏一轮就断档），并记进 `decisions`。
+
+### Task 25: 接线（阶段表 / 门 / 契约 / 路由 / 文档）
+
+**Files:**
+- Modify: `SKILL.md`、`references/pipeline.md`、`references/contract-schema.md`、`templates/contract.yaml`、`references/interview-protocol.md`、`references/frontend-conventions.md`、`references/stage-6-statusbar-ui.md`、`docs/coverage-checklist.md`、`docs/specs/2026-11-20-rp-prompt-architect-design.md`、`docs/plans/2026-11-20-rp-prompt-architect.md`、`README.md`、`examples/dry-run-盐湖守夜人/README.md`、`examples/dry-run-盐湖守夜人/创作痕迹/contract.yaml`、`examples/dry-run-盐湖守夜人/创作痕迹/创作记录.md`、`scripts/validate-contract.py`
+
+- [ ] **Step 1: `stages` 从数字键改成名字键**
+
+九个阶段：`world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery`。`templates/contract.yaml` 与 `contract-schema.md` 同步；`validate-contract.py` 同时接受旧的数字键（读到时给 WARN「`stages.1` 是旧写法，请改成 `world`」）。`project.stages_requested` 存名字数组。
+
+- [ ] **Step 2: 阶段表与门**
+
+`pipeline.md` 阶段表加 `mvu`（`axes` 之后）、`ejs`（`mvu` 之后、`opening` 之前）；十道门 → 十一道门，新增 `变量门`（跑两个校验器，占位符 0，被控条目全禁用）。`ejs` 可以单独跑（无 `mvu` 时走降级档），`mvu` 不行。
+
+- [ ] **Step 3: `SKILL.md`**
+
+路由行加两条；开局第二问从七项变九项；文件索引加 `stage-mvu.md` / `stage-ejs.md` / 两个校验器；硬门 11（变量门）；上限从 150 放宽到 **170**，并在 spec §26 写理由（阶段 7 → 9、硬门 10 → 11，压不回 150；把门挪去别的文件等于读两处才知道能不能开工）。
+
+- [ ] **Step 4: 契约与预算**
+
+`artifacts.type` 加 `mvu-schema` / `mvu-initvar` / `mvu-entries` / `ejs-controller`；`naming` 加 `schema_axes: []`（zod 里用到的轴名，供 X02 用）；`interview-protocol.md` 预算表加 `mvu`（5 问）/ `ejs`（4 问）两行。
+
+- [ ] **Step 5: 状态栏与前端公约**
+
+`frontend-conventions.md` 的三条数据路径表加第 4 条 **D：MVU 全局变量**（`waitGlobalInitialized('Mvu')` + `getAllVariables()` + `Mvu.events.VARIABLE_UPDATE_ENDED`，`findRegex: '<StatusPlaceHolderImpl/>'`，`maxDepth: 2`）；`stage-6` 的「数据源」一节改成「有 `mvu` 就走 D，没有就走 A/B/C」。
+
+- [ ] **Step 6: 覆盖清单**
+
+加「变量系统（阶段 `mvu`/`ejs`）」一节：M01–M12、E01–E10，每条对应一份源材料或一条实例证据。
+
+- [ ] **Step 7: spec §24–§26**
+
+§24 变量系统为什么是两个阶段（含三件取证结论：zod 而非 `$meta`、状态栏绑 MVU、控制器 + 被控条目）；§25 与表现层的边界（状态栏读哪份数据）；§26 阶段改名与文件上限调整的理由。
+
+- [ ] **Step 8: dry-run 契约与记录**
+
+契约写回 `stages.mvu: done`、`stages.ejs: done`、三条 `decisions`、四条 `artifacts`；`创作记录.md` 补两轮（问了几问、改写了哪几条、边界用例结果）；`examples/.../README.md` 与仓库 `README.md` 的目录树补 `创作痕迹/产物/{mvu,ejs}/`。
+
+- [ ] **Step 9: 全量核验**
+
+```bash
+python scripts/validate-contract.py "examples/dry-run-盐湖守夜人/创作痕迹/contract.yaml"
+python scripts/validate-st-package.py "examples/dry-run-盐湖守夜人/最终产物" --contract "examples/dry-run-盐湖守夜人/创作痕迹/contract.yaml"
+python scripts/validate-mvu.py "examples/dry-run-盐湖守夜人/创作痕迹/产物/mvu" --contract "examples/dry-run-盐湖守夜人/创作痕迹/contract.yaml"
+python scripts/validate-ejs.py "examples/dry-run-盐湖守夜人/创作痕迹/产物/ejs/阶段控制器.ejs" --book "examples/dry-run-盐湖守夜人/最终产物/白潮 世界书.json"
+python scripts/validate-frontend.py templates examples
+grep -c '^## ' references/stage-mvu.md references/stage-ejs.md          # 各 6
+grep -rn 'RP 世界观设计助手\|RP场景生成器\|AI-RP 角色架构师\|非变量的HTML状态栏' .   # 期望 0
+wc -l SKILL.md                                                           # <= 170
+```
+
+Expected: 四个校验器 `0 失败`，自包含 grep 零命中，退出码全 0。
+
+- [ ] **Step 10: 提交**
+
+```bash
+git add -A && git commit -m "feat: 变量系统——阶段 mvu（zod 结构 + initvar + 三条目）与 ejs（控制器 + 被控条目）"
+```
+
+**Ruling 1**：`stages` 改名字键而不是继续加数字——九个阶段靠数字记住顺序不可能，而名字键让"`mvu` 在 `ejs` 前"这种约束写进枚举就能校验。
+**Ruling 2**：门数从 10 涨到 11，但门本身不合并；合并等于降低某一道的检查强度，而每一道都对应一次真实的失败。
+
+---
+
+## 实验后修订（2026-11-20 · 《爱情公寓》实操验证）
+
+一次真机实验（14 人格群像、两条轴、MVU + EJS 手搓、导入真实酒馆跑两轮生成）打出十处需要改的地方。实验记录在 `H:/RP创作/未命名项目/创作痕迹/产物/mvu-ejs-实验报告.md`，这里只记改动。
+
+### 四条新 Ruling（用户已拍）
+
+- **Ruling 4：常量预算不设上限。** `validate-st-package.py` 的「常驻条目 ≤ N 字」从判定项降为**只打印数字**（`INFO`，不进失败也不进警告）。理由：实测 MVU 三件套把常驻从 4.7k 顶到 8.7k，而那是"该写的都写了"的结果；卡字数换上下文是用户自己的取舍。
+- **Ruling 5：`ejs` 默认不建。** 判据只有一条——**整段文本要随状态整体切换**（同一份内容放书里 N 份会 N 份全进上下文）。"报个档名"不算，书里的 `thresholds` 已经够用。不满足就 `skipped`，并在 `decisions` 写一句"轴表已够，不建控制器"。
+- **Ruling 6：数值上限遇 OOC 放行且静默。** `caps`（单次 / 单场）只是给模型的建议，玩家显式命令改数值时照办：不夹、不告警、不记 `decisions`。理由：玩家手动调数值是常见诉求，事后追账没有收益。
+- **Ruling 7：`<StatusPlaceHolderImpl/>` 默认藏。** 交付正则里默认带一条 `markdownOnly` 空替换；只有做了 `statusbar` 阶段的项目才撤掉这条。
+
+### Task 23（`mvu`）增补
+
+- **Step 3 骨架**：数值一律 `z.coerce.number().catch(初值).transform(v => _.clamp(v, 0, 上界)).prefault(初值)`。只写 `z.coerce.number()` 时，模型写一个 `"很高"` 会先产出 `NaN`，在 `transform` 之前就拒绝**整条**更新（实测复现）。
+- **Step 3 骨架**：`世界` / `主角` 的字符串字段用 `z.string().catch(默认值)`，枚举用 `.catch(默认值)`，避免一个脏字段整条作废。
+- **Step 5 之后新增 Step 5b：交付正则两件**（写进 `templates/regex-mvu.json`，随卡一起交）：
+  - `[不发送]去除变量更新`：`findRegex: /<(update(?:variable)?)>(?:(?!.*<\/\1>)(?:(?!<\1>).)*$|(?:(?!<\1>).)*<\/\1?>)/gsi`，`replaceString: ""`，`placement: [1,2]`，`promptOnly: true`，`markdownOnly: false`
+  - `[不显示]变量更新`：同上 `findRegex`，`promptOnly: false`，`markdownOnly: true`
+  - 缺第一条：模型下一轮会看到自己上次的补丁；缺第二条：玩家看到 JSONPatch 原文。
+- **Step 7 `validate-mvu.py` 增三项**：
+  - `M11`：导出 native 世界书时 **`uid` 必须等于 `entries` 的键**（连续 `0..N-1`）。实测错位时 ST 面板按 uid 取条目取不到，条目**静默消失**且刷新不恢复（本次丢了 9 条）。
+  - `M12`：`[initvar]` 的键集合必须与 zod `Schema` 的键集合一致；且 dry-run 示例里的值**必须与 `prefault` 不同**（本次两边都是 20，导致"initvar 到底读没读"白验一轮）。
+  - `M13`：`templates/regex-mvu.json` 两条正则齐备，且 `findRegex` 能被 `node --eval "new RegExp(...)"` 编译。
+- **Step 8 dry-run**：`[initvar]` 的 `wick` 写 `33`（轴 `initial` 是 62 也无所谓，关键是**与 zod `prefault` 不同**），让"读没读到"一眼可分。
+- **Step 9 越界用例**补 `null` 与 `[]` 两行（`.catch` 要接得住）。
+
+### Task 24（`ejs`）增补
+
+- **Step 1 判断标准**加"不做"判据（见 Ruling 5）与 `skipped` 分支；`## 退出` 允许 "`skipped` + 一句理由"。
+- **Step 3 模板**：分支链末尾**允许** `else` 兜底（不是必须写死 `<= 100`）；开头注释写清"被控条目必须 `disable: true`"。
+- **Step 5 `validate-ejs.py` 三处修正**（都是本次实测的误报）：
+  - `E02`：只数**首个 `<%_ … _%>` 块**里的 `var` 声明，循环里的局部变量不计。
+  - `E06`：末尾是 `else` 兜底时不要求"最后一条上界盖到 100"；仍要求升序、不重合。
+  - `E01`：判定前先把 `<%-` 归一成 `<%_`，否则 `<%- x %>` 会被误判成"无下划线标签"。
+
+### Task 25（接线）增补
+
+- **Step 2 门**：交付门加两条——`delivery.route == mvu` 时①卡必须内嵌 `extensions.tavern_helper.scripts`（至少 `MVU` + 变量结构两个），②交付说明里必须有"**在酒馆助手里给该角色启用脚本**"这一步。缺这一步，MVU 静默不跑且不报错（本次实测）。
+- **Step 5 前端公约**：第四条数据路径 D（MVU 全局变量）旁边补一句——`Mvu.getMvuData()` 是**同步**返回，不要 `await`。
+- **Step 6 覆盖清单**：M 组补 M11–M13、E 组补"不做判据"与三处校验器修正。
+
+### 交付形态（Task 16 / 22）改口
+
+MVU 路线是**四件 + 一个开关**，不再是三件套：
+
+| 件 | 内容 |
+|---|---|
+| 卡 | 内嵌 `tavern_helper.scripts`（`MVU` 一行 import + 变量结构 js） |
+| 世界书 | 独立 JSON，`uid` 与键连续对齐 |
+| 正则 | 开局正则 + 两条隐藏更新块（+ `<StatusPlaceHolderImpl/>` 隐藏） |
+| 开关 | 酒馆助手 → 该角色 → 启用脚本（一次性，非文件） |
+
+`validate-st-package.py` 增 `P07`：`route == mvu` 时卡内必须有脚本、且交付说明含"启用脚本"字样；三件套路线（`route == text`）不查。
+
+### 核验追加
+
+```bash
+python scripts/validate-mvu.py "examples/dry-run-盐湖守夜人/创作痕迹/产物/mvu" --contract "examples/dry-run-盐湖守夜人/创作痕迹/contract.yaml"
+python -c "import json;d=json.load(open('examples/dry-run-盐湖守夜人/最终产物/白潮 世界书.json',encoding='utf-8'));assert all(str(v['uid'])==k for k,v in d['entries'].items()),'uid 与键不一致'"
+grep -c 'StatusPlaceHolderImpl' templates/regex-mvu.json      # 期望 >= 1
+grep -c 'promptOnly' templates/regex-mvu.json                 # 期望 >= 1
+```

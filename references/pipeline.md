@@ -1,21 +1,23 @@
 # 公共脊：阶段、门、占位符、输出纪律
 
-主 skill 与六个阶段文件都从本文件取名字。**这里定义的东西，别处只引用，不另造。**
+主 skill 与九个阶段文件都从本文件取名字。**这里定义的东西，别处只引用，不另造。**
 
 ## 一、阶段表
 
 | 阶段 | 负责文件 | 产物 type | 进入条件 | 退出条件 |
 |---|---|---|---|---|
-| 0 开工判定 | `SKILL.md` | — | 用户给出任何 RP 相关请求 | 判出目标阶段，且判定够不够开工 |
-| 1 世界观 | `references/stage-1-world-bible.md` | `world-bible` | 用户给出题材 / 概念 / 世界构想 | 收敛门通过 + 用户明确确认终稿 |
-| 2 角色卡 | `references/stage-2-rolecard.md` | `rolecard` | 有 `naming.world`，或用户直接给出角色设定 | 自检门通过 |
-| 3 场景卡 | `references/stage-3-scene-sheet.md` | `scene-sheet` | 有 `naming.world`，或用户直接给出地点构想 | 自检门通过 |
-| 4 数值系统 | `references/stage-4-axis-system.md` | `axis-system` | 有 `naming.world`，或用户直接给出可量化维度 | 自检门通过 |
-| 5 开局前端 | `references/stage-5-opening-ui.md` | `opening-ui` | 有 `naming.world`；用户要开局界面/开场面板/建卡向导（两形态选一） | 前端门通过 |
-| 6 状态栏前端 | `references/stage-6-statusbar-ui.md` | `statusbar-ui` | 有 `axis-system`（降级形态：信息卡）；用户要状态栏/每轮数值 | 前端门通过 |
-| 7 交付 | `references/stage-7-delivery.md` | `st-card` / `st-regex` / `st-worldbook` | 需求阶段全部 `done`；用户要打包 / 导入酒馆 / 要角色卡 json | 交付门通过；用户点头就导入并实测 |
+| 0 `start` 开工判定 | `SKILL.md` | — | 用户给出任何 RP 相关请求 | 判出目标阶段，且判定够不够开工 |
+| 1 `world` 世界观 | `references/stage-1-world-bible.md` | `world-bible` | 用户给出题材 / 概念 / 世界构想 | 收敛门通过 + 用户明确确认终稿 |
+| 2 `cast` 角色卡 | `references/stage-2-rolecard.md` | `rolecard` | 有 `naming.world`，或用户直接给出角色设定 | 自检门通过 |
+| 3 `scenes` 场景卡 | `references/stage-3-scene-sheet.md` | `scene-sheet` | 有 `naming.world`，或用户直接给出地点构想 | 自检门通过 |
+| 4 `axes` 数值系统 | `references/stage-4-axis-system.md` | `axis-system` | 有 `naming.world`，或用户直接给出可量化维度 | 自检门通过 |
+| 5 `mvu` 变量系统 | `references/stage-mvu.md` | `mvu-schema` / `mvu-initvar` / `mvu-entries` | 有 `axis-system`；装了酒馆助手 | 变量门通过 |
+| 6 `ejs` 分档控制器 | `references/stage-ejs.md` | `ejs-controller` | 有 `axis-system` 或别的切换判据；装了 Prompt Template | 变量门通过；命中「不做」判据就写 `skipped` |
+| 7 `opening` 开局前端 | `references/stage-5-opening-ui.md` | `opening-ui` | 有 `naming.world`；用户要开局界面/开场面板/建卡向导（两形态选一） | 前端门通过 |
+| 8 `statusbar` 状态栏 | `references/stage-6-statusbar-ui.md` | `statusbar-ui` | 有 `axis-system`（降级形态：信息卡）；用户要状态栏/每轮数值 | 前端门通过 |
+| 9 `delivery` 交付 | `references/stage-7-delivery.md` | `st-card` / `st-regex` / `st-worldbook` | 需求阶段全部 `done`；用户要打包 / 导入酒馆 / 要角色卡 json | 交付门通过；用户点头就导入并实测 |
 
-阶段可任意顺序进入（"我只要一张场景卡"合法）。`contract.stages` 记录每阶段实际状态，不假定前置阶段已完成。**阶段 7 例外**：它只能在最后一次进入，是整条流程的收尾，不与前六个阶段抢顺序。
+阶段可任意顺序进入（"我只要一张场景卡"合法）。`contract.stages` 记录每阶段实际状态，不假定前置阶段已完成。两条例外：`mvu` 必须在 `ejs` 之前（控制器要读变量结构里定下的键），`delivery` 只能在最后一次进入。
 
 ## 二、占位符（只有 7 个）
 
@@ -31,7 +33,7 @@
 
 七个以外的标记一律不用。`[不适用]` 的模块在终稿中整段移除，不留空壳。
 
-## 三、十道门
+## 三、十一道门
 
 **`开工门`（阶段 0）** 判"够不够开工"：能否定出目标阶段。不单独提问——题目并入下游首轮。
 
@@ -49,9 +51,11 @@
 
 **`阶段门`（贯穿全程）** 一次只做一个阶段：做完就停，汇总本轮落下什么 + 哪些是替用户定的 + 下一步是哪一阶段，然后等用户回话。不许在同一条回复里连做两个阶段，不许交付后直接弹「继续吗」的选项。用户说「全流程」也只代表不用逐段问，不代表可以一口气做完。
 
-**`交付门`（仅阶段 7）** 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过。查的事：三件齐全（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`）；卡里不许有 `character_book`、`extensions.regex_scripts` 必须为空（否则又回到「改一条设定重导整卡」）；世界书是 native 对象形状、`uid` 与键对齐；`extensions.world` == 世界书文件名（不一致卡不会自动挂书）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点一条；常驻合计 ≤8000；三件占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、装配四步齐全。细则见 `references/stage-7-delivery.md`。交付门过了、用户也说「帮我导」，就接着跑 `scripts/st-import.py --pkg`（三件逐件导入 + 回读自检）与 `scripts/st-probe.js`（量 iframe 高度）；这三步是流水线，不额外收门。
+**`变量门`（仅阶段 `mvu` / `ejs`）** 交给两个脚本判：`python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml --book "<世界书>"`（M01–M13）与 `python scripts/validate-ejs.py 创作痕迹/产物/ejs/<控制器>.ejs --book "<世界书>"`（E01–E08），退出码都要是 0。要点：数值字段有 `.catch(初值)`、夹取上界等于轴的 `range`、`[initvar]` 已禁用且键与 schema 对得上、`变量列表` 内容逐字符等于 `{{format_message_variable::stat_data}}`、两条隐藏 `<UpdateVariable>` 的正则齐备且能编译、控制器的分支边界单调、被控条目全部 `disable: true`。细则见两个阶段文件。
 
-**`前端门`（仅阶段 5 / 6）** 九条：标签三处一致（正则 ↔ HTML 的 `TAG` ↔ `frontend-prompt.yaml`）、字段两处一致且能追到产物、`markdownOnly: true`、`replaceString` 的代码块含 `<body>`、数据路径自洽（走 `$1` 注入就必须有捕获组与隐藏 textarea，走静态或聊天 API 就必须都没有）、无外链无 `eval` 无 `document.write`、本楼无标签或占位符未被替换时留白不报错、脏值与越界值都安全、跑过 `python scripts/validate-frontend.py <界面.html>` 全过（它专抓内联脚本里的 HTML 实体——那种写法会让整个界面静默变成 2px 高）。细则与机制事实见 `references/frontend-conventions.md`。
+ 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过。查的事：三件齐全（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`）；做了 `mvu` 阶段时卡内必须有 `tavern_helper.scripts` 且正则里必须有隐藏 `<UpdateVariable>` 的两条（X06 专查这个——缺了 MVU 静默不跑）；卡里不许有 `character_book`、`extensions.regex_scripts` 必须为空（否则又回到「改一条设定重导整卡」）；世界书是 native 对象形状、`uid` 与键对齐；`extensions.world` == 世界书文件名（不一致卡不会自动挂书）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点一条；常驻合计 ≤8000；三件占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、装配四步齐全。细则见 `references/stage-7-delivery.md`。交付门过了、用户也说「帮我导」，就接着跑 `scripts/st-import.py --pkg`（三件逐件导入 + 回读自检）与 `scripts/st-probe.js`（量 iframe 高度）；这三步是流水线，不额外收门。
+
+**`前端门`（仅 `opening` / `statusbar`）** 十条：标签三处一致（正则 ↔ HTML 的 `TAG` ↔ `frontend-prompt.yaml`）、字段两处一致且能追到产物、`markdownOnly: true`、`replaceString` 的代码块含 `<body>`、数据路径自洽（走 `$1` 注入就必须有捕获组与隐藏 textarea，走静态 / 聊天 API / MVU 变量就必须都没有；走 MVU 时 `findRegex` 是 `<StatusPlaceHolderImpl/>`）、无外链无 `eval` 无 `document.write`、本楼无标签或占位符未被替换时留白不报错、脏值与越界值都安全、跑过 `python scripts/validate-frontend.py <界面.html>` 全过（它专抓内联脚本里的 HTML 实体——那种写法会让整个界面静默变成 2px 高）。细则与机制事实见 `references/frontend-conventions.md`。
 
 ## 四、自检门四类
 
@@ -91,7 +95,7 @@
 
 ## 六、输出纪律
 
-- **写哪**：运行期所有产物写 `创作痕迹/产物/`（`world-bible.yaml` / `rolecard/` / `scene/` / `axis/` / 界面 HTML 与正则草稿）；`最终产物/` 是交付目录，**选定路线之前必须空着**（校验器 C13 盯着）。阶段 7 才把它填上：原生路线复制 `产物/` 的树，酒馆路线只放三件套。
+- **写哪**：运行期所有产物写 `创作痕迹/产物/`（`world-bible.yaml` / `rolecard/` / `scene/` / `axis/` / `mvu/` 的 schema 与条目 / `ejs/` 的控制器与改写清单 / 界面 HTML 与正则草稿）；`最终产物/` 是交付目录，**选定路线之前必须空着**（校验器 C13 盯着）。阶段 7 才把它填上：原生路线复制 `产物/` 的树，酒馆路线只放三件套。
 - 终稿只输出模板本体，不加前言、结语、"以下是……"。
 - 移除全部 `#` 注释行与被注释掉的可选结构。
 - 文本模态是一个 ```yaml 代码块；代码块之外只允许四样：设计说明（≤ 5 句）、补全清单、待确认清单、运行示例（仅数值系统）。

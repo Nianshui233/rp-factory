@@ -1,0 +1,15 @@
+<%# 分档控制器 · 由 stage-ejs 生成；本文件要作为世界书条目导入，配置：constant / after_char / order 100 / 递归双向 prevent %>
+<%# 被它加载的条目必须 enabled: false —— 否则它们会跟着控制器一起常驻，等于白拆 %>
+<%# 只用 <%_ _%>：不留空行；每个变量先 typeof 守卫再 var；getvar 路径以 stat_data. 开头 %>
+<%_
+  if (typeof 灯芯 === 'undefined') {
+    var 灯芯 = getvar('stat_data.角色.⟨角色名⟩.⟨轴名⟩', { defaults: 0 });
+  }
+_%>
+<%_ if (灯芯 >= 70) { _%>
+<%- await getwi(null, '[阶段]⟨角色名⟩·满灯') %>
+<%_ } else if (灯芯 >= 30) { _%>
+<%- await getwi(null, '[阶段]⟨角色名⟩·半灯') %>
+<%_ } else { _%>
+<%- await getwi(null, '[阶段]⟨角色名⟩·残灯') %>
+<%_ } _%>

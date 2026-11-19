@@ -1,6 +1,6 @@
 # dry-run 记录：盐湖上的守夜人
 
-**构建期产物，不随 skill 发布。** 目的：把阶段 1 → 7 真跑一遍，用产物反证规则够不够用。
+**构建期产物，不随 skill 发布。** 目的：把九个阶段真跑一遍，用产物反证规则够不够用。
 
 虚构概念一句话：盐湖每年冬末涨潮，潮水带走名字；七座灯塔守着堤线，最末一座已熄十二年。
 
@@ -8,13 +8,15 @@
 
 | 阶段 | 产物 | 说明 |
 |---|---|---|
-| 0–1 | `world-bible.yaml` | 3 势力 / 3 地点 / 2 关键系统 / 3 条硬设定（`元信息` 与 `类型与基调` 不在此文件，见 `创作痕迹/项目档案.yaml`） |
-| 2 | `rolecard.yaml` | 标准档位：祁昭，第七塔次席守夜人 |
-| 3 | `scene-sheet.yaml` | 强结构（潜入 + 推理向）：第七塔，十块全填 |
+| `world` | `world-bible.yaml` | 3 势力 / 3 地点 / 2 关键系统 / 3 条硬设定（`元信息` 与 `类型与基调` 不在此文件，见 `创作痕迹/项目档案.yaml`） |
+| `cast` | `rolecard.yaml` | 标准档位：祁昭，第七塔次席守夜人 |
+| `scenes` | `scene-sheet.yaml` | 强结构（潜入 + 推理向）：第七塔，十块全填 |
 | 4 | `axis-system.yaml` | 双轴：`wick` 灯芯（记忆余量）/ `tide` 潮压 |
-| 5 | `wizard-ui.html` + `regex-opening.json` | 建卡向导：序章 6 张卡 + 6 组字段 + 总览导出（8 步），开场白触发词 `<建卡向导>` |
-| 6 | `statusbar-ui.html` + `regex-statusbar.json` + `frontend-prompt.yaml` | 状态栏：正则捕获 `<状态栏>` 换成 HTML 代码块，酒馆助手渲成 iframe，`$1` 注入优先、`getChatMessages` 兜底 |
-| 7 | `最终产物/白潮（纯净）.json` + `正则.json` + `白潮 世界书.json` | 酒馆三件套：卡（无内嵌）/ 正则数组（2 条）/ native 世界书（15 条），用户自己装配 |
+| 5 | `mvu/变量结构.js` + `[initvar]变量初始化.yaml` + `变量规则.yaml` + `regex-mvu.json` | 把两轴投影成 zod：`刻度(初值, 上界)` 带 `.catch()` 与 `_.clamp`；`[initvar]` 的 `wick: 33` 故意 ≠ `prefault 68`；三条常驻条目；两条隐藏更新块的正则 |
+| 6 | `ejs/阶段控制器.ejs` + 三段 `[阶段]守夜所·*` | `wick` 三档切守夜所对祁昭的态度：原文 194 字拆成 236/251/243 三份，原件 `disable: true` |
+| `opening` | `wizard-ui.html` + `regex-opening.json` | 建卡向导：序章 6 张卡 + 6 组字段 + 总览导出（8 步），开场白触发词 `<建卡向导>` |
+| `statusbar` | `statusbar-ui.html` + `regex-statusbar.json` + `frontend-prompt.yaml` | 状态栏：正则捕获 `<状态栏>` 换成 HTML 代码块，酒馆助手渲成 iframe，`$1` 注入优先、`getChatMessages` 兜底 |
+| `delivery` | `最终产物/白潮（纯净）.json` + `正则.json` + `白潮 世界书.json` | 酒馆三件套：卡（无内嵌书，但带两条 `tavern_helper.scripts`）/ 正则数组（5 条）/ native 世界书（23 条） |
 | — | `contract.yaml` | 命名权威与索引，四份产物都指向它 |
 
 模态取 `engineering`（写文件），因为四份产物要互相读。
@@ -144,3 +146,14 @@
 4. **常驻预算定得太死**：原 5,000，数值条目一进来就爆。改法：预算提到 8,000（单条 ≤1,000），超了先问自己"真的每轮都要吗"。
 5. **单文件卡是错的形**：内嵌世界书 + 内嵌正则看着省事，实际改一条设定就要重导整卡。→ 改成三件套（`docs/specs` §23）。
 
+
+## 七、阶段 `mvu` / `ejs` 跑出来的东西
+
+先拿真实项目《爱情公寓》手搓验证过一遍（`H:/RP创作/未命名项目`），再回来补 dry-run。真机结论：`<JSONPatch>` 的 `replace` / `delta` 都被执行、逐人独立成立、正文确实跟着数值变了。
+
+1. **`.min/.max` 会拒整条更新**：`z.coerce.number()` 遇 `'很高'` 先产出 `NaN`，在 `.transform` 之前就抛 `ZodError`，整楼更新作废。必须 `.catch(初值)`，夹取放到 `.transform` 里。
+2. **`[initvar]` 的 `uid` 必须等于 `entries` 的键**：导出时给 9 条写了 `uid: 1033…1041` 而键是 `"33"…"41"`，酒馆面板按 `uid` 索引，取不到就静默不渲染——磁盘上 42 条、面板里 33 条。
+3. **卡内脚本默认不启用**：`extension_settings.settings.script.enabled.characters` 不含这个 avatar 时脚本根本不跑，且不报错。脚本跑在独立 iframe 里，`Mvu` 挂在 `window.parent`。
+4. **`character_book` 不会自动变世界书**：导入卡只写角色文件，`.json` 里的书要单独导。
+5. **示例初值必须与 `prefault` 不同**：全相等时"initvar 读没读到"根本验不出来。
+6. **控制器只在"整段切换"时值得做**：书里已有阈值表时，只报档名的控制器与它是重复的。

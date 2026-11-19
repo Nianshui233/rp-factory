@@ -1,0 +1,65 @@
+# 三条 MVU 条目 · 配置逐字照抄，不要「优化」
+# 导入成世界书条目时：constant / position / depth / order / 递归 全按下表；
+# 前缀 [mvu_update] 是 MVU 的识别条件，不许省。
+# 「输出格式强调」默认不建；实测模型漏输出时再建一条并 enabled: false 备用。
+
+entries:
+  - comment: "[mvu_update]变量更新规则"
+    constant: true
+    position: 4          # atDepth
+    depth: 0
+    order: 200
+    exclude_recursion: true   # 递归双向 prevent
+    prevent_recursion: true
+    enabled: true
+    content: |
+      ### 变量更新规则（建议，不是护栏）
+      真正拦得住的是卡内脚本里的 zod：越界会被夹、非数字会退回初值，所以不必在正文里反复强调边界。
+
+      世界.日期：日期串，格式「第 N 日」或「YYYY-MM-DD」，一次跳跃只改一次。
+      世界.时段：只取 清晨 / 上午 / 午后 / 傍晚 / 夜 / 深夜 之一；推进跨度大就顺带改日期。
+      世界.地点：写到「区域 · 具体地点」一级，不写房间角落。
+      角色.<名字>.<轴名>：整数，范围见轴表；每次只改**被互动的那一个人**，其余人不动。
+      关系变化要有事件依据：没有互动就不改，别按"时间过去了"自行涨落。
+
+      输出时把改动写进 <JSONPatch>，用 replace 表达"设为某值"、delta 表达"加多少"；
+      不确定的字段宁可不写，写错一个字段会让整条更新作废。
+
+  - comment: "变量列表"
+    constant: true
+    position: 4
+    depth: 0
+    order: 200
+    exclude_recursion: true
+    prevent_recursion: true
+    enabled: true
+    # 内容逐字符等于下面这一行：不加空格、不换行、不加引号
+    content: "{{format_message_variable::stat_data}}"
+
+  - comment: "[mvu_update]变量输出格式"
+    constant: true
+    position: 4
+    depth: 0
+    order: 200
+    exclude_recursion: true
+    prevent_recursion: true
+    enabled: true
+    content: |
+      ### 变量输出格式
+      每次回复的**最后**输出一个更新块，正文里不要提这件事。
+
+      <UpdateVariable>
+      <Analysis>
+      这一轮发生了什么、影响了谁的哪个数值、为什么是这么多。三五行即可，不写给玩家看。
+      </Analysis>
+      <JSONPatch>
+      [
+        { "op": "replace", "path": "/世界/时段", "value": "夜" },
+        { "op": "delta", "path": "/角色/角色甲/好感度", "value": 8 }
+      ]
+      </JSONPatch>
+      </UpdateVariable>
+
+      - `replace`：设为某值（时间、时段、地点、位置）。
+      - `delta`：加多少（数值轴用这个）；负值直接写负数。
+      - 没有改动也要输出一个空的 `<JSONPatch>[]</JSONPatch>`——漏掉整块时这一楼就等于没结算。

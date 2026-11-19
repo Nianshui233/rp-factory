@@ -2,20 +2,22 @@ project:
   name: "白潮"
   workspace: "examples/dry-run-盐湖守夜人"
   mode: "engineering"
-  stages_requested: [1, 2, 3, 4, 5, 6]
+  stages_requested: [world, cast, scenes, axes, mvu, ejs, opening, statusbar]
   web_research: false
   source_ip: ""
   rp_form: "1v1 长线"
   language: "zh"
 
-stages:
-  1: done
-  2: done
-  3: done
-  4: done
-  5: done
-  6: done
-  7: done
+stages:                    # 名字键，顺序即执行顺序
+  world: done
+  cast: done
+  scenes: done
+  axes: done
+  mvu: done
+  ejs: done
+  opening: done
+  statusbar: done
+  delivery: done
 
 delivery:                  # 收尾问一次：交付到哪
   route: "st"
@@ -47,6 +49,7 @@ naming:
   axes:
     - {name: "wick", range: [0, 100], initial: 68, levels: ["清醒", "磨损", "空壳"]}
     - {name: "tide", range: [0, 100], initial: 22, levels: ["静潮", "压潮", "漫潮"]}
+  schema_axes: ["wick", "tide"]    # 阶段 mvu 实际投影进 zod 的轴名；交付校验 X02 用它查漏
   ui_tags:
     opening: "建卡向导"
     status: "状态栏"
@@ -97,12 +100,22 @@ decisions:
   - {stage: 7, question: "交付形态", answer: "两者都要（原生产物 + 酒馆包）", why: "用户要能直接在酒馆里跑，也要留 YAML 方便自己改"}
   - {stage: 7, question: "first_mes 取什么", answer: "<建卡向导>", why: "阶段 5 做的是向导形态，开场白即触发词，与 regex-opening.json 的 findRegex 对得上"}
   - {stage: 7, question: "正则怎么带", answer: "卡内嵌 + 独立 regex-*.json 都给", why: "内嵌省事但要弹窗允许；全局导入不弹窗但作用于所有角色，两条路都留"}
+  - {stage: "mvu", question: "轴要不要每人一份", answer: "单角色（祁昭），不做 targets", why: "白潮只有一个玩家角色，逐人一份的账没有第二个账户可分"}
+  - {stage: "mvu", question: "时间与背包", answer: "日期 + 时段 + 地点可写，不要背包", why: "守塔的压迫感来自「又过了一夜」，物品栏对这条线没有信息量"}
+  - {stage: "mvu", question: "initvar 初值取什么", answer: "wick 写 33（轴 initial 是 68），其余按 initial", why: "示例值与 schema prefault 故意不同，否则验不出 initvar 到底读没读到"}
+  - {stage: "ejs", question: "要不要建分档控制器", answer: "建一个，切守夜所的三档", why: "守夜所对祁昭的态度整段随 wick 变；三份同时常驻会占掉约 730 字，而每轮只需要一份"}
+  - {stage: "ejs", question: "被控条目从哪来", answer: "拆分原「守夜所（夜班）」并禁用原件", why: "原文 194 字，拆成三份各 240 字上下；人名与地点全部沿用，不新增设定"}
 
 artifacts:
   - {type: "world-bible", path: "创作痕迹/产物/world-bible.yaml", version: 1}
   - {type: "rolecard", path: "创作痕迹/产物/rolecard.yaml", version: 1}
   - {type: "scene-sheet", path: "创作痕迹/产物/scene-sheet.yaml", version: 1}
   - {type: "axis-system", path: "创作痕迹/产物/axis-system.yaml", version: 1}
+  - {type: "mvu-schema", path: "创作痕迹/产物/mvu/变量结构.js", version: 1}
+  - {type: "mvu-initvar", path: "创作痕迹/产物/mvu/[initvar]变量初始化.yaml", version: 1}
+  - {type: "mvu-entries", path: "创作痕迹/产物/mvu/变量规则.yaml", version: 1}
+  - {type: "mvu-regex", path: "创作痕迹/产物/mvu/regex-mvu.json", version: 1}
+  - {type: "ejs-controller", path: "创作痕迹/产物/ejs/阶段控制器.ejs", version: 1}
   - {type: "opening-ui", path: "创作痕迹/产物/wizard-ui.html", version: 1}
   - {type: "opening-ui", path: "创作痕迹/产物/regex-opening.json", version: 1}
   - {type: "statusbar-ui", path: "创作痕迹/产物/statusbar-ui.html", version: 1}
