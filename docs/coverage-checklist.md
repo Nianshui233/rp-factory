@@ -58,27 +58,27 @@
 | R15 | 角色 | 输出模板（身份/心理/行为/语言/anti_ooc/扩展） | templates/rolecard.yaml | [x] |
 | R16 | 角色 | 参考示例（精简档位） | examples/rolecard-minimal.yaml | [x] |
 | R17 | 角色 | 系统身份与核心原则（可执行性 / 禁止产出 / 不确定信息处理） | references/stage-2-rolecard.md | [x] |
-| S01 | 场景 | 依赖 1 提供世界观则不得冲突 | references/stage-3-scene-sheet.md | [ ] |
-| S02 | 场景 | 依赖 2 未提供世界观时的处理 | references/stage-3-scene-sheet.md | [ ] |
-| S03 | 场景 | 依赖 3 细节深度按玩法决定 | references/stage-3-scene-sheet.md | [ ] |
-| S04 | 场景 | 依赖 4 可判定性 | references/stage-3-scene-sheet.md | [ ] |
-| S05 | 场景 | 依赖 5 可扩展性 | references/stage-3-scene-sheet.md | [ ] |
-| S06 | 场景 | 流程 第一步 ≤10 问确认用途与边界 | references/stage-3-scene-sheet.md | [ ] |
-| S07 | 场景 | 流程 第二步 输出粗版场景卡并标缺失 | references/stage-3-scene-sheet.md | [ ] |
-| S08 | 场景 | 流程 第三步 每轮 ≤8 问补全 | references/stage-3-scene-sheet.md | [ ] |
-| S09 | 场景 | 流程 第四步 确认后输出最终卡 | references/stage-3-scene-sheet.md | [ ] |
-| S10 | 场景 | 输出约束 1 必须是场景卡模板结构 | references/stage-3-scene-sheet.md | [ ] |
-| S11 | 场景 | 输出约束 2 除模版本体不附加内容 | references/stage-3-scene-sheet.md | [ ] |
-| S12 | 场景 | 卡 1 场景概览 | templates/scene-sheet.yaml | [ ] |
-| S13 | 场景 | 卡 2 规模与空间结构 | templates/scene-sheet.yaml | [ ] |
-| S14 | 场景 | 卡 3 关键区域清单（5–12 个 + 扩展规则） | templates/scene-sheet.yaml | [ ] |
-| S15 | 场景 | 卡 4 出入口、权限与安保 | templates/scene-sheet.yaml | [ ] |
-| S16 | 场景 | 卡 5 场景内角色与生态 | templates/scene-sheet.yaml | [ ] |
-| S17 | 场景 | 卡 6 物品、资源与可破坏元素 | templates/scene-sheet.yaml | [ ] |
-| S18 | 场景 | 卡 7 线索与信息结构 | templates/scene-sheet.yaml | [ ] |
-| S19 | 场景 | 卡 8 时间变量与事件触发器 | templates/scene-sheet.yaml | [ ] |
-| S20 | 场景 | 卡 9 场景规则 | templates/scene-sheet.yaml | [ ] |
-| S21 | 场景 | 卡 10 边界：不可改动 vs 可即兴 | templates/scene-sheet.yaml | [ ] |
+| S01 | 场景 | 依赖 1 提供世界观则不得冲突 | references/stage-3-scene-sheet.md | [x] |
+| S02 | 场景 | 依赖 2 未提供世界观时的处理 | references/stage-3-scene-sheet.md | [x] |
+| S03 | 场景 | 依赖 3 细节深度按玩法决定 | references/stage-3-scene-sheet.md | [x] |
+| S04 | 场景 | 依赖 4 可判定性 | references/stage-3-scene-sheet.md | [x] |
+| S05 | 场景 | 依赖 5 可扩展性 | references/stage-3-scene-sheet.md | [x] |
+| S06 | 场景 | 流程 第一步 ≤10 问确认用途与边界 | references/stage-3-scene-sheet.md | [x] |
+| S07 | 场景 | 流程 第二步 输出粗版场景卡并标缺失 | references/stage-3-scene-sheet.md | [x] |
+| S08 | 场景 | 流程 第三步 每轮 ≤8 问补全 | references/stage-3-scene-sheet.md | [x] |
+| S09 | 场景 | 流程 第四步 确认后输出最终卡 | references/stage-3-scene-sheet.md | [x] |
+| S10 | 场景 | 输出约束 1 必须是场景卡模板结构 | references/stage-3-scene-sheet.md | [x] |
+| S11 | 场景 | 输出约束 2 除模版本体不附加内容 | references/stage-3-scene-sheet.md | [x] |
+| S12 | 场景 | 卡 1 场景概览 | templates/scene-sheet.yaml | [x] |
+| S13 | 场景 | 卡 2 规模与空间结构 | templates/scene-sheet.yaml | [x] |
+| S14 | 场景 | 卡 3 关键区域清单（5–12 个 + 扩展规则） | templates/scene-sheet.yaml | [x] |
+| S15 | 场景 | 卡 4 出入口、权限与安保 | templates/scene-sheet.yaml | [x] |
+| S16 | 场景 | 卡 5 场景内角色与生态 | templates/scene-sheet.yaml | [x] |
+| S17 | 场景 | 卡 6 物品、资源与可破坏元素 | templates/scene-sheet.yaml | [x] |
+| S18 | 场景 | 卡 7 线索与信息结构 | templates/scene-sheet.yaml | [x] |
+| S19 | 场景 | 卡 8 时间变量与事件触发器 | templates/scene-sheet.yaml | [x] |
+| S20 | 场景 | 卡 9 场景规则 | templates/scene-sheet.yaml | [x] |
+| S21 | 场景 | 卡 10 边界：不可改动 vs 可即兴 | templates/scene-sheet.yaml | [x] |
 | A01 | 系统 | 核心原则 闭环 | references/stage-4-axis-system.md | [ ] |
 | A02 | 系统 | 核心原则 可计算 | references/stage-4-axis-system.md | [ ] |
 | A03 | 系统 | 核心原则 可观察 | references/stage-4-axis-system.md | [ ] |
