@@ -58,7 +58,8 @@
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      // 实体一律用 & 拼：正文里的实体写法会被渲染管线多吃掉一层（见 frontend-conventions 三之一）
+      return { '&': '\x26amp;', '<': '\x26lt;', '>': '\x26gt;', '"': '\x26quot;', "'": '\x26#39;' }[c];
     });
   }
   function pick(block, name) {
@@ -85,9 +86,14 @@
       .map(function (p) { return '<dt>' + esc(p[0]) + '</dt><dd>' + esc(p[1]) + '</dd>'; });
     return rows.length ? '<dl class="rp-open-info">' + rows.join('') + '</dl>' : '';
   }
+  function messageText() {
+    try {
+      var list = getChatMessages(getCurrentMessageId());
+      return list && list.length ? list[0].message : '';
+    } catch (e) { return ''; }   // 没装酒馆助手 / 不在正式聊天里 → 留白，不报错
+  }
   function render() {
-    var msg = getChatMessages(getCurrentMessageId())[0];
-    var d = msg ? parse(msg.message) : null;
+    var d = parse(messageText());
     if (!d || (!d['标题'] && !d.entries.length)) { ROOT.innerHTML = ''; return; }
 
     var html = '';

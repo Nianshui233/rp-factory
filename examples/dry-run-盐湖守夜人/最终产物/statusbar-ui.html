@@ -77,8 +77,10 @@
   var NUM_RE = /^-?\d+(?:\.\d+)?$/;
 
   function esc(s) {
+
+    // 实体一律用 \x26 拼：正文里的实体写法会被渲染管线多吃掉一层（见 frontend-conventions 三之一）
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      return { '&': '\x26amp;', '<': '\x26lt;', '>': '\x26gt;', '"': '\x26quot;', "'": '\x26#39;' }[c];
     });
   }
 

@@ -79,7 +79,7 @@ else {
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      return { '&': '\x26amp;', '<': '\x26lt;', '>': '\x26gt;', '"': '\x26quot;', "'": '\x26#39;' }[c];
     });
   }
   function pick(block, name) {
@@ -117,12 +117,24 @@ else {
 - 所有 class 加命名空间前缀，避免两个界面互相串样式。
 - 不用 `eval` / `new Function` / `document.write`。
 - 数据一律先 `esc()` 再进 `innerHTML`；能不用 `innerHTML` 就不用。
+- **HTML 里不要写 HTML 实体，JS 字符串里的实体用 `\x26` 拼。** 见下节。
 - 用 `$1` 注入时，隐藏 textarea 必须放在 `<body>` 里、且 `$1` 前后不留空白字符（空白会被当作数据）；捕获内容里不能出现 `</textarea>`，所以数据块字段值禁止含 `<` `>`。
 - 本楼没有标签时整块留白（`return`），不抛错、不显示占位红字。
 - 高度别写死：内容多时让它自然高；需要限高时用 `max-height` + `overflow:auto`，不要把 `vh` 换算写死（酒馆助手会替换 `min-height: XXvh`）。
 - 不做全屏遮罩、不夺焦点、不自动滚动外部聊天；界面在消息气泡内正常流淌。
 - 无障碍：正文用真文本，不把信息只塞进 title；对比度至少 4.5:1；点击元素用 `<button>`。
 - 中文界面默认 `lang="zh-CN"`；用户要英文界面时改 `lang` 与文案，字段名仍用中文（与产物一致）。
+
+## 三之一、实体陷阱：`&amp;` 会被多吃一层
+
+整条管线是 文本 → `encode_tags` → Showdown → 解析成 DOM → 再插回消息容器，**实体在中间被解码两次**。实测：`esc()` 里写 `'&': '&amp;'`，到了 iframe 里变成 `'&': '&'`，`"'": '&#39;'` 变成三个单引号连写，整段 `<script>` 直接 `SyntaxError: Invalid or unexpected token`，界面高度停在 2px（酒馆助手量的就是这个残骸）。
+
+两条规矩：
+
+1. **正文与 CSS 里不写实体**。要 `&` 就直接写 `&`（浏览器容忍），要空格用 `white-space: pre-wrap` 或 `\u00a0`，不要 `&nbsp;`。
+2. **JS 字符串里的实体用 `\x26` 拼**：`'\x26amp;'`、`'\x26lt;'`、`'\x26gt;'`、`'\x26quot;'`、`'\x26#39;'`。`\x26` 在 JS 求值时才变 `&`，源码里没有字面 `&`，管线就没东西可吃。
+
+自查：`python scripts/validate-frontend.py 最终产物/xxx.html` 的 F04 专抓这条。
 
 ## 四、正则脚本 JSON
 
@@ -198,3 +210,4 @@ else {
 6. 本楼无标签时留白不报错（自己造一条不含标签的消息，看是否安静）；`$1` 未被替换（字面 `$1`）时也留白。
 7. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本；越界值不溢出。
 8. 交用户四句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里、触发词该出现在哪条消息里。
+9. 跑 `python scripts/validate-frontend.py <界面.html>`：F01–F08 全过（F04 专抓 `<script>` 里的 HTML 实体，那是唯一会让界面整份静默不显示的写法）。

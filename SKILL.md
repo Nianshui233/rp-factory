@@ -90,7 +90,7 @@ disable-model-invocation: true
 4. **零回溯**：不引用任何包外路径、不登记源文件名。本包自包含，删掉任何外部文件都不影响运行。
 5. **自检门**：每份设定产物交付前内部执行四类检查，不向用户展示检查过程。**产物正文里不许出现构建期占位符**（`【AI补全·可替换】` / `[待定]` / `【未知】` 只允许出现在给用户的补全清单与契约 `pending` 里，落进 YAML 值域即失败）。
 6. **联网门（仅 `web_research: true`）**：每次落笔前先检索（不限阶段、含局部改动）、交付前复核一遍外部专名；查不到就记 `未检索到` 并改走确认清单，**不编造外部事实**。
-7. **前端门（仅阶段 5 / 6）**：交付前按 `references/frontend-conventions.md` 第六节八条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽、无外链无 `eval`、无标签时留白、脏值转义。
+7. **前端门（仅阶段 5 / 6）**：交付前按 `references/frontend-conventions.md` 第六节九条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽、无外链无 `eval`、无标签时留白、脏值转义、`validate-frontend.py` 全过（内联脚本里写 HTML 实体 = 界面静默变 2px 高）。
 
 8. **交付门（仅阶段 7）**：先跑 `python scripts/validate-st-package.py "<卡>.json" --contract 创作痕迹/contract.yaml`，退出码 0 才算过；脚本查的事——单文件卡（`data.character_book` 内嵌且 `name` == `extensions.world`）、条目形状完整、`description` ≤8000 字且含每个轴名、每个角色与每个地点都有条目、正则 `$1` 与捕获组对得上、`first_mes` 的标签能被某个正则接住、正文占位符 0 命中、常驻条目 ≤8000 字、关键词无重复。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、导入三步齐全）。
 9. **阶段门**：一次只推进一个阶段。阶段做完 → 跑一遍 `python scripts/validate-contract.py 创作痕迹/contract.yaml` → 停下、汇总（本轮落下什么 / 哪些是你替我定的 / 下一步是什么）→ **等用户回话**。用户说「全都要」也只按顺序一阶段一阶段做，每段之间必须停。禁止在同一条回复里既交付本阶段又发起下一阶段的第一轮提问，禁止交付后立刻弹「要不要继续」的选项——那是在替用户按按钮。
@@ -112,7 +112,7 @@ disable-model-invocation: true
 | `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 7 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning（三灯、套餐、8–15 关键词、位置、预算、递归、概率、十二条自查） |
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
-| `templates/st-card.json` / `st-character-book-entry.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` | 酒馆包骨架（卡 / 内嵌条目 / 独立世界书）+ 三个校验器（契约门 / 阶段 2 / 交付门） |
+| `templates/st-card.json` / `st-character-book-entry.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` | 酒馆包骨架（卡 / 内嵌条目 / 独立世界书）+ 四个校验器（契约门 / 阶段 2 / 前端门 / 交付门） |
 
 ## 八、阶段文件约定
 

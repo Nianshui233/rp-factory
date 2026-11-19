@@ -551,3 +551,17 @@ artifacts: []              # {type, path | inline_ref, version}
 
 **示例同步**：dry-run 的 `白潮.json` 内嵌条目从 12 条增至 15 条（补三个场景条目），`description` 删掉 `场景速查`（避免与场景条目重复），5,943 字；契约去掉已删除的 `st-worldbook` 产物记录。校验：`validate-contract.py` 0 失败（2 条示例目录的预期警告）、`validate-st-package.py` 17 项 0 失败 0 警告。
 
+## 21. 前端界面静默失败：HTML 实体（2026-11-20 追加）
+
+**现象**：建卡向导在酒馆里只剩一条 2px 高的黑边，控制台一句 `Invalid or unexpected token`，界面空白，但消息原文仍是 `<建卡向导>`（正则确实跑了）。
+
+**根因**：正则替换出来的代码块要经过 `encode_tags → Showdown → 解析成 DOM → 再插回消息容器`，实体在中间被解码两次。模板里 `esc()` 写的是 `'&': '&amp;'`、`"'": '&#39;'`，进 iframe 时变成 `'&': '&'`、`"'": '''`——右边那个 `'''` 直接让整段 `<script>` 语法错误。脚本一死，酒馆助手量到的 body 高度就是 2px。
+
+**修法**（两条）：
+
+1. 正文与 CSS 里不写实体；需要 `&` 就写 `&`，空格用 `white-space`／`u00a0`。
+2. JS 字符串里的实体用 `&` 拼（`'&amp;'` 等）——`&` 在求值时才变 `&`，源码里没有字面 `&`，管线没东西可吃。
+
+**落地**：三个模板（`wizard-ui` / `statusbar` / `opening-ui`）与两个 dry-run 示例全部改掉；新增 `scripts/validate-frontend.py`（F01–F08：骨架、外链、`eval`、**内联脚本里的实体**、硬编码 vh、`innerHTML` 无 `esc()`、标签配平、外部样式）；`frontend-conventions.md` 新增「三之一 实体陷阱」并把前端门从 8 条加到 9 条；`stage-5` / `stage-6` / `pipeline` / `SKILL.md` 同步。`opening-ui.html` 顺手把 `getChatMessages` 包进 try/catch（不在正式聊天里预览时留白而不报错）。
+
+**验证方式可复用**：用 `puppeteer-core` + 本机 Chrome 打开 `http://127.0.0.1:8000/`，点开角色卡，读 `.mes_text iframe` 的高度与 iframe 内的 DOM——高度 2px 就是脚本死了，高度正常才叫渲染成功。只跑 `node --check` 不够：`&` 这类写法在源码里合法，问题只出现在管线解码之后。

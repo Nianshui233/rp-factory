@@ -127,7 +127,7 @@
 
 ## 退出
 
-- 前端门八条（`references/frontend-conventions.md` 第六节）逐条过。形态 A 额外验：脏值 `<b>x</b>` 显示成字面文本；删掉整个数据块后界面留白；按钮点两次只发一次。
+- 前端门九条（`references/frontend-conventions.md` 第六节）逐条过，并跑 `python scripts/validate-frontend.py 最终产物/开局前端/*.html`。形态 A 额外验：脏值 `<b>x</b>` 显示成字面文本；删掉整个数据块后界面留白；按钮点两次只发一次。
 - 形态 B 额外验：**清空 `localStorage` 重开**能从头填；中途跳步不丢数据；只填一半也能导出且顶部提示缺哪些必填；导出文本里的字段名与角色卡字段名逐字一致；复制在无 `navigator.clipboard` 的兜底路径下仍成功（把 `navigator.clipboard` 置 `undefined` 试一次）。
 - 交付时说清四句话：正则怎么导入、渲染开关在哪、提示词条目（或开场白触发词）贴哪里、向导粘回来的那段交给谁（阶段 2）。
 - 用户只要粘贴版（不要文件）→ 三个代码块给全，`project.mode = text` 不变。

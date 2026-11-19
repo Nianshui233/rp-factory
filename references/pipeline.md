@@ -51,7 +51,7 @@
 
 **`交付门`（仅阶段 7）** 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "<卡>.json" --contract 创作痕迹/contract.yaml`，退出码 0 才算过。它查 C01–C23 / X01–X03，其中几条是本包专为踩过的坑加的：卡必须是单文件（`data.character_book` 内嵌、`name == extensions.world`，否则导入后建完书不绑卡）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点或场景一条（否则界面上的实体在包里查无此人）；常驻合计 ≤8000；正文占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、导入三步齐全。细则见 `references/stage-7-delivery.md`。
 
-**`前端门`（仅阶段 5 / 6）** 八条：标签三处一致（正则 ↔ HTML 的 `TAG` ↔ `frontend-prompt.yaml`）、字段两处一致且能追到产物、`markdownOnly: true`、`replaceString` 的代码块含 `<body>`、数据路径自洽（走 `$1` 注入就必须有捕获组与隐藏 textarea，走静态或聊天 API 就必须都没有）、无外链无 `eval` 无 `document.write`、本楼无标签或占位符未被替换时留白不报错、脏值与越界值都安全。细则与机制事实见 `references/frontend-conventions.md`。
+**`前端门`（仅阶段 5 / 6）** 九条：标签三处一致（正则 ↔ HTML 的 `TAG` ↔ `frontend-prompt.yaml`）、字段两处一致且能追到产物、`markdownOnly: true`、`replaceString` 的代码块含 `<body>`、数据路径自洽（走 `$1` 注入就必须有捕获组与隐藏 textarea，走静态或聊天 API 就必须都没有）、无外链无 `eval` 无 `document.write`、本楼无标签或占位符未被替换时留白不报错、脏值与越界值都安全、跑过 `python scripts/validate-frontend.py <界面.html>` 全过（它专抓内联脚本里的 HTML 实体——那种写法会让整个界面静默变成 2px 高）。细则与机制事实见 `references/frontend-conventions.md`。
 
 ## 四、自检门四类
 

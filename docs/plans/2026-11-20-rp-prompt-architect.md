@@ -759,3 +759,12 @@ Expected: 0 失败（WARN 可带着走），退出码 0。
 
 **Ruling**：`核心矛盾` 只改名不删字段——旧的 `矛盾各方` / `升级路径` 原样保留在块内，因为单一引擎题材（战争、生存、悬疑）确实需要它们；改名是为了让"多源日常"这种形态在模板里有位置，而不是为了否定旧形态。
 
+### Task 20: 前端实体陷阱与界面校验器
+
+- [x] `references/frontend-conventions.md`：新增「三之一 实体陷阱」（根因 + 两条规矩 + 自查）；骨架里的 `esc()` 改 `&` 写法；前端门 8 → 9 条
+- [x] `templates/wizard-ui.html` / `statusbar.html` / `opening-ui.html`：`esc()` 改 `&` 拼接；`opening-ui` 的 `getChatMessages` 包 try/catch
+- [x] 新建 `scripts/validate-frontend.py`（F01–F08）；`pipeline.md` / `stage-5` / `stage-6` / `SKILL.md` 退出项加"跑校验器"
+- [x] dry-run 两个界面同步修掉实体；`validate-frontend.py templates examples` 0 失败 0 警告；`node --check` 五个文件全过
+- [x] 真机验证：`爱情公寓.png` 重导入后，`http://127.0.0.1:8000` 里建卡向导从 2px 黑边变成正常 674px，序章 / 基础身份 / 外观 / 总览四步可点，填完能导出档案
+
+**Ruling**：不做"在正则里把实体再转义一遍"的绕法——那要求每个界面各自记住一套转义规则，且 `$1` 注入路径会二次转义。统一在写法层面禁止实体，规则只有一条，校验器能拦。

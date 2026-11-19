@@ -179,4 +179,6 @@
 | G08 | 契约 | `artifact.type` 九类白名单，不许自造（`role-cards` / `secret-layer`） | references/contract-schema.md | [x] |
 | G09 | 世界观 | 沙盒/喜剧题材用「多源日常」+ `世界怎么运转`，不硬造总引擎 | templates/world-bible.yaml · references/stage-1-world-bible.md | [x] |
 | G10 | 数值 | 多目标轴落到 `targets` 模板字段 | templates/axis-system.yaml · references/stage-4-axis-system.md | [x] |
-
+| U22 | 表现层 | 内联脚本里不写 HTML 实体（写 `&amp;`），否则整段 JS 语法错误、界面 2px | references/frontend-conventions.md · scripts/validate-frontend.py | [x] |
+| U23 | 表现层 | 交付前跑 `validate-frontend.py`，F01–F08 全过 | references/stage-5-opening-ui.md · references/stage-6-statusbar-ui.md | [x] |
+| U24 | 表现层 | 没装酒馆助手或不在正式聊天里时，界面留白不抛错（`getChatMessages` 包 try/catch） | templates/opening-ui.html · templates/statusbar.html | [x] |
