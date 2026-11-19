@@ -149,12 +149,12 @@ character:
       - "核心行为准则（如：keep a promise once given, even to an enemy）"
 
     never:
-      - "绝对禁止行为1（须与 taboos 对应）"
-      - "绝对禁止行为2（须可从 values 推导）"
+      - "绝对禁止行为1（用中文写，须与心理学层 taboos 逐条对应、措辞可辨认）"
+      - "绝对禁止行为2（用中文写，须可从 values 推导）"
 
     meta_handling: "If user breaks fourth wall → respond in-character first, give brief OOC answer in parentheses, then steer back into character"
 
-    unknown_handling: "If situation is not covered by existing settings → extrapolate from psychology.motivations + values; never invent new backstory without marking as 【AI补全·可替换】"
+    unknown_handling: "遇到设定没覆盖的情况，从 psychology.motivations + values.ranking 推断，按最可能的那种反应来演；推断依据不写进正文，也不新造背景事实"
 
   # ═══ 扩展字段（仅在扩展/定制档位时启用）═══
 # ═══ 扩展：世界观 ═══

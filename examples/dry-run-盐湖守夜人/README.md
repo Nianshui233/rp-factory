@@ -14,7 +14,7 @@
 | 4 | `axis-system.yaml` | 双轴：`wick` 灯芯（记忆余量）/ `tide` 潮压 |
 | 5 | `wizard-ui.html` + `regex-opening.json` | 建卡向导：序章 6 张卡 + 6 组字段 + 总览导出（8 步），开场白触发词 `<建卡向导>` |
 | 6 | `statusbar-ui.html` + `regex-statusbar.json` + `frontend-prompt.yaml` | 状态栏：正则捕获 `<状态栏>` 换成 HTML 代码块，酒馆助手渲成 iframe，`$1` 注入优先、`getChatMessages` 兜底 |
-| 7 | `st/白潮.json` + `st/白潮 世界书.json` | 酒馆包：角色卡 v2（设定进 `description`、两条正则进 `extensions.regex_scripts`）+ 世界书 10 条（7 常驻 / 2 关键词 / 1 状态栏协议） |
+| 7 | `st/白潮.json` | 酒馆包：单文件——角色卡 v2 + 内嵌世界书 12 条 + 两条正则（`extensions.regex_scripts`） |
 | — | `contract.yaml` | 命名权威与索引，四份产物都指向它 |
 
 模态取 `engineering`（写文件），因为四份产物要互相读。
@@ -120,27 +120,26 @@
 
 ## 六、阶段 7（交付）跑出来的东西
 
-**收尾只问一句**：原生 / 酒馆包 / 两者都要。这次选「两者都要」，于是 `最终产物/st/` 落两个文件，原生 YAML 与 HTML 原样不动。
+**收尾只问一句**：原生 / 酒馆包 / 两者都要。这次选「两者都要」，但**酒馆包只落一个文件**：`最终产物/st/白潮.json`（卡 + 内嵌世界书 + 内嵌正则），原生 YAML 与 HTML 原样不动。
 
-**世界书怎么切的**（`world-bible.yaml` 一个 section 一条，不拆字段）：
+**三层怎么分**：
 
-| 条目 | 来源 | 触发 |
+| 层 | 内容 | 字数 |
 |---|---|---|
-| 世界规则 / 变更边界 / AI即兴角色约束 | 同名 section | 常驻，角色卡前 |
-| 核心矛盾 / 常识清单 / 关键历史与时间线 | 同名 section | 常驻，角色卡后 |
-| 信息分层 | 同名 section | 常驻，depth 2（防剧透） |
-| 时间地点与世界范围 | 同名 section | 关键词：白盐镇 / 第七塔 / 湖心盐岛 |
-| 势力与社会结构 | 同名 section | 关键词：守夜所 / 灯所 / 拾盐人公行 / 湖心教团 |
-| 状态栏协议 | 阶段 6 的标签与字段 | 常驻，depth 0 |
+| `description` | 世界骨架（时间地点 / 信息分层 / 核心矛盾 / 世界规则 / 势力 / 即兴约束 / 变更边界）+ 住户·场景·数值速查 + 一句"以上是设定" | 5,998 |
+| `data.character_book` | 12 条：世界观 10 条（7 常驻 / 2 关键词 / 1 状态栏协议）+ 祁昭（关键词 8 个）+ 数值与判定（常驻 depth 2） | 常驻 7,880 |
+| `system_prompt` | 项目档案的「本文档对AI的核心指令」 | 59 |
 
-`未决事项` 不进世界书（它是建构期台账，还在说明设定没写完）。
+**为什么不再把整张角色卡与整份数值塞进 `description`**：那样 13.6 KB，每轮都付；而且十四人卡按这个算法会到 5 万 token。现在人物进关键词条目（被点名才加载），数值进常驻条目（每轮都在），`description` 只留"立刻要知道的事"。
 
-**卡片怎么填的**：`description` = 世界观 YAML 全文 + 角色卡 YAML 全文 + 数值系统（供旁白计账），13.6 KB；`first_mes = <建卡向导>`；`system_prompt` = 项目档案的「本文档对AI的核心指令」；`personality` / `scenario` / `mes_example` 留空（内容都在 `description`，重复写等于翻倍烧 token）；`extensions.world = "白潮 世界书"`（= 世界书文件名，导入即自动挂载）。
+**内嵌而不是外挂**：世界书放在 `data.character_book`（v2 形状：`keys` / `insertion_order` / `position: "before_char"` / 高级项在 `extensions`）。导入时 ST 会问「这张卡内嵌了世界书，要现在导入吗」，点 Yes 就按 `character_book.name` 建书并自动绑定——**用户不需要先导世界书、再导卡、再手动选绑定**。
 
-**校验**：`python scripts/validate-st-package.py "最终产物/st/白潮.json" "最终产物/st/白潮 世界书.json"` → 12 项全通过（0 失败 0 警告），常驻条目合计 4715 字（预算 5000）。
+**校验**：`python scripts/validate-st-package.py "最终产物/st/白潮.json" --contract "创作痕迹/contract.yaml"` → 17 项全过（0 失败 0 警告），`description` 5,998 字（上限 8,000），常驻合计 7,880 字（预算 8,000）。
 
 **暴露的问题（已修）**
 
-1. **`extensions.world` 到底写什么**：一开始按直觉写成 `st_name`（`白潮`），但 ST 导入世界书时用**文件名**当书名（`src/endpoints/worldinfo.js` 的 `path.parse(request.file.originalname).name`），于是 `白潮` ≠ `白潮 世界书`，自动挂载失效。改法：世界书名 = 世界书文件名 = `extensions.world`，卡片名单独是 `st_name`；校验器 C11 专门盯这一条。
-2. **只靠肉眼对不上 ST 的规则**：手写清单漏了 `data` 十四个必填字段、`character_book.entries` 必须是数组、`placement` 的合法值（1/2/3/5/6）。改法：把 `TavernCardValidator.js`、`newWorldInfoEntryDefinition`、`regexFromString` 的判定抄成 `scripts/validate-st-package.py`，交付门改成"跑脚本，退出码 0 才算过"。
-3. **常驻预算定得太死**：原写 3000 字，这份世界书光规则就 4715 字。改法：预算提到 5000，超了警告并提示"把可省的段落挪成关键词条目"。
+1. **`extensions.world` 与书名必须一致**：世界书名 = `character_book.name` = `extensions.world`，默认 `<世界名> 世界书`；卡片名 `st_name` 是另一个值。不一致时 ST 建完书不会自动挂。校验器 C20 盯这一条。
+2. **两种世界书形状别混**：卡内是数组（`keys` / `insertion_order` / `before_char`），独立文件是映射（`key` / `order` / `position: 0`）。混用会在导入后把参数全丢掉。模板分成 `st-character-book-entry.json` 与 `st-worldbook.json` 两份。
+3. **占位符会漏进运行时**：早期 `description` 里有 15 处 `【AI补全·可替换】`，模型会把它当设定读。现在 X03 强制 0 命中，模板里那句 `unknown_handling` 也改成了运行时口径。
+4. **常驻预算定得太死**：原 5,000，数值条目一进来就爆。改法：预算提到 8,000（单条 ≤1,500），超了先看作息"真的每轮都要吗"。
+

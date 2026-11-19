@@ -82,12 +82,14 @@
 
 ## 生成
 
+**第一步先把模板抄下来再填**：把 `templates/rolecard.yaml` 的键树整份复制，逐个键填值；**不许新增顶层键**，也**不许用自创块替换既有块**（例如另起 `intimacy` 顶替 `nsfw`——那是同一次实操里真实发生过的失败）。模板的键不够用时，信息往扩展位塞（`lore` / `relationships` / `growth_arc`），要真需要新键，先问用户、同意后写进 `contract.decisions` 并在交付说明里点名。
+
 **档位**（用户未指定时默认标准）：
 
 | 档位 | 包含字段 | 适用 |
 |---|---|---|
 | 精简 | `psychology` + `behavior` + `speech` + `anti_ooc` | 快速原型、轻量 RP，40–60 行 |
-| 标准 | 模板全部基础字段 | 通用（默认），80–120 行 |
+| 标准 | 模板全部基础字段；`content_boundaries.nsfw: true` 时**必须附加 `nsfw` 块（七键齐全）** | 通用（默认），80–120 行 |
 | 扩展 | 标准 + `lore` + `relationships` + `growth_arc` | 长线叙事、复杂世界观，150–200 行 |
 | 定制 | 仅用户指定字段 | 用户点名要某几块 |
 
@@ -120,7 +122,11 @@
 
 ## 退出
 
-- 自检门四类（见 `references/pipeline.md`）全通过；内容边界层那一类仅当 `content_boundaries.nsfw: true` 且卡里有 `nsfw` 块时执行，`nsfw: false` 时整类跳过。
+- 自检门四类（见 `references/pipeline.md`）全通过。内容边界层按开关判，**不按产物自己有没有字段判**：
+  - `nsfw: true` → 每张卡必须有 `nsfw` 块且七键齐全；**缺块 = 这一阶段失败**，回生成步补，不是跳过检查。
+  - `nsfw: false` → 卡里不得出现 `nsfw` 块；`taboos` 与 `anti_ooc.never` 必须含「不做任何性行为」。
+- 产物正文里不许出现构建期占位符（`【AI补全·可替换】` / `[待定]` / `【未知】`）——模板里的 `unknown_handling` 要改写成运行时口径（「从 `values.ranking` 推断，依据不写进正文」），不能把「标占位符」这句话原样留在卡里。
 - `【AI补全·可替换】` 逐条列出，交用户确认。
+- 跑 `python scripts/validate-rolecard.py <卡路径…>`（可传多个文件或一个目录），退出码 0 才算过。它查：九大块齐全、`behavior.rules` ≥4 且每条含 `trigger` + `action` 与 `condition|reason|cost` 之一、`stress_response` ≥3、`quirks` ≥3、`attitudes` 四类各 ≥2、`speech.rules` 四类齐、`catchphrases`/`quotes` ≥3、`taboos ⊆ anti_ooc.never`、`nsfw` 开关与块一致、正文占位符 0 命中。
 - 命名门四步通过（角色名、势力名、地点名与契约一致）→ 交付 → 回写契约 → 阶段结束。
 - 用户只要精简档位时不强推标准档；只在交付时一句说明精简档会让 AI 即兴补全更多。

@@ -75,7 +75,9 @@ REGEX_SCRIPT_FIELDS = {
 BAD_FILENAME_CHARS = set('/\\:*?"<>|')
 
 # 本包自己的预算：常驻条目合计字数（每轮都要进上下文）
-CONST_BUDGET = 5000
+CONST_BUDGET = 8000
+DESC_SOFT = 6000
+DESC_HARD = 8000
 
 # 本包自己的下限：每条绿灯条目至少这么多个关键词（宁宽勿漏）
 MIN_KEYS = 8
@@ -228,7 +230,8 @@ def nested_get(d: dict, dotted: str):
 
 # ---------------------------------------------------------------- 卡片
 
-def validate_card(card: dict, card_path: Path, book_path: Path | None, rep: Report) -> None:
+def validate_card(card: dict, card_path: Path, book_path: Path | None, rep: Report,
+                  contract: dict | None = None) -> None:
     spec = card.get("spec")
 
     if spec is None:
@@ -314,9 +317,14 @@ def validate_card(card: dict, card_path: Path, book_path: Path | None, rep: Repo
         if not isinstance(cb, dict):
             rep.fail("C12", "data.character_book 必须是对象")
         else:
-            for key in ("entries", "extensions"):
-                if key not in cb:
-                    rep.fail("C12", f"data.character_book 缺 {key}（convertCharacterBook 直接读它）")
+            if "entries" not in cb:
+                rep.fail("C12", "data.character_book 缺 entries（convertCharacterBook 直接读它）")
+            elif not isinstance(cb.get("entries"), list) or not cb["entries"]:
+                rep.fail("C12", "data.character_book.entries 必须是非空数组（v2 规范），不是 {uid: …} 映射")
+            if "extensions" not in cb:
+                rep.warn("C12", "data.character_book 没有 extensions：本机导入不读它，但 TavernCardValidator 要求有")
+            if not str(cb.get("name") or "").strip():
+                rep.fail("C12", "data.character_book.name 为空：导入内嵌书时没有书名，无法自动建世界并挂载")
             if isinstance(cb.get("entries"), list):
                 ids = [e.get("id") for e in cb["entries"] if isinstance(e, dict)]
                 if len(ids) != len(set(ids)):
@@ -328,8 +336,79 @@ def validate_card(card: dict, card_path: Path, book_path: Path | None, rep: Repo
             elif "entries" in cb:
                 rep.fail("C12", "character_book.entries 必须是数组（v2 规范），不是 {uid: …} 映射")
         if cb is not None and book_path is not None:
-            rep.warn("C13", "同时给了内嵌 character_book 和独立世界书文件：导入后可能有两本书，"
-                            "改设定时容易只改一本。二选一，本包默认用独立世界书")
+            rep.warn("C13", "同时给了内嵌 character_book 和独立世界书文件：导入后同名会覆盖、"
+                            "改名会有两本。默认只用内嵌，独立文件要同源且交付说明写清二选一")
+
+    # 内嵌世界书（本包默认交付形态：一个文件进酒馆）
+    if cb is None:
+        rep.fail("C19", "没有 data.character_book：本包默认把世界书内嵌进卡，"
+                        "否则用户要另导世界书再手动绑定，多一步就多一次漏")
+    else:
+        rep.ok("C19", "有内嵌 character_book")
+        cb_name = str(cb.get("name") or "")
+        world_now = str(world or "")
+        if not world_now:
+            rep.fail("C20", "data.extensions.world 为空：内嵌书导入后建出来的世界不会挂到卡上")
+        elif cb_name and world_now != cb_name:
+            rep.fail("C20", f"extensions.world = {world_now!r}，character_book.name = {cb_name!r}；"
+                            "两者必须一致，否则 checkEmbeddedWorld 建完书不会自动绑定")
+        elif cb_name:
+            rep.ok("C20", f"书名一致：{cb_name!r}")
+        ok_entries = 0
+        for i, e in enumerate(cb.get("entries") or []):
+            if not isinstance(e, dict):
+                rep.fail("C21", f"character_book.entries[{i}] 不是对象")
+                continue
+            bad = []
+            if not str(e.get("content") or "").strip():
+                bad.append("content 为空")
+            if not isinstance(e.get("keys"), list) and not e.get("constant"):
+                bad.append("keys 不是数组且不是常驻")
+            if not isinstance(e.get("insertion_order"), int):
+                bad.append("insertion_order 不是整数")
+            pos = e.get("position")
+            ext_pos = (e.get("extensions") or {}).get("position") if isinstance(e.get("extensions"), dict) else None
+            if ext_pos is None and pos not in ("before_char", "after_char"):
+                bad.append(f"position = {pos!r}（只认 before_char / after_char，深度用 extensions.position）")
+            if ext_pos is not None and ext_pos not in range(0, 8):
+                bad.append(f"extensions.position = {ext_pos!r}（0–7）")
+            if not isinstance(e.get("enabled"), bool):
+                bad.append("enabled 不是布尔")
+            if bad:
+                rep.fail("C21", f"character_book.entries[{i}]（{e.get('comment') or '无注释'}）：" + "；".join(bad))
+            else:
+                ok_entries += 1
+        if ok_entries:
+            rep.ok("C21", f"{ok_entries} 条内嵌条目形状合规")
+
+        # 内嵌书的预算与关键词（与独立文件同一套判据）
+        ents = [e for e in (cb.get("entries") or []) if isinstance(e, dict)]
+        const_sum = sum(len(str(e.get("content") or "")) for e in ents if e.get("constant"))
+        if const_sum > CONST_BUDGET:
+            rep.fail("C22", f"内嵌常驻条目合计 {const_sum} 字，超过预算 {CONST_BUDGET}：每轮都要付这个钱")
+        elif const_sum:
+            rep.ok("C22", f"内嵌常驻条目合计 {const_sum} 字（预算 {CONST_BUDGET}）")
+        seen = {}
+        for e in ents:
+            for k in e.get("keys") or []:
+                seen.setdefault(str(k), []).append(e.get("comment") or "无注释")
+        dup = {k: v for k, v in seen.items() if len(v) > 1}
+        if dup:
+            example = list(dup.items())[0]
+            rep.fail("C23", f"关键词重复 {len(dup)} 处，例如 {example[0]!r} 同时属于 {example[1]}："
+                            "一个名字只该归一条")
+        elif seen:
+            rep.ok("C23", f"{len(seen)} 个关键词无重复")
+        for e in ents:
+            if e.get("constant"):
+                continue
+            n = len(e.get("keys") or [])
+            if n == 0:
+                rep.fail("C23", f"条目「{e.get('comment') or '无注释'}」非常驻却没有关键词：永远不会被触发")
+            elif n < 8:
+                rep.warn("C23", f"条目「{e.get('comment') or '无注释'}」只有 {n} 个关键词（建议 8–15）")
+            if str(e.get("comment") or "").strip().endswith("—") or len(str(e.get("comment") or "")) > 40:
+                rep.warn("C23", f"条目名过长：{str(e.get('comment'))[:40]!r}")
 
     # 内嵌正则
     scripts = nested_get(data, "extensions.regex_scripts")[0]
@@ -551,6 +630,21 @@ def find_files(arg: str) -> tuple[Path | None, Path | None]:
 
 def main(argv: list[str]) -> int:
     as_json = "--json" in argv
+    contract = None
+    if "--contract" in argv:
+        idx = argv.index("--contract")
+        try:
+            cpath = Path(argv[idx + 1])
+        except IndexError:
+            print("--contract 后面要跟契约路径", file=sys.stderr)
+            return 2
+        try:
+            import yaml
+            contract = yaml.safe_load(cpath.read_text(encoding="utf-8"))
+        except Exception as exc:
+            print(f"读不到契约 {cpath}：{exc}", file=sys.stderr)
+            return 2
+        argv = argv[:idx] + argv[idx + 2:]
     args = [a for a in argv if not a.startswith("--")]
     if not args:
         print(__doc__)
@@ -585,19 +679,66 @@ def main(argv: list[str]) -> int:
                 rep.fail("W00", "世界书顶层必须是对象")
                 book = None
 
-    validate_card(card, card_path, book_path if book is not None else None, rep)
+    validate_card(card, card_path, book_path if book is not None else None, rep, contract)
     if book is not None:
         validate_worldbook(book, book_path, rep)
     else:
-        rep.warn("W00", "没给世界书文件：只校了卡片。酒馆包里两个文件都要过")
+        if isinstance((card.get("data") or {}).get("character_book"), dict):
+            rep.ok("W00", "只用内嵌世界书，没有独立文件（本包默认形态）")
+        else:
+            rep.warn("W00", "没给世界书文件，卡里也没有内嵌书：这条交付在酒馆里没有设定")
 
     # 跨文件：轴名、势力名等是否在卡片的 description 里（本包自己的交付门第 5 条）
-    if book is not None:
-        desc = str((card.get("data") or {}).get("description", ""))
-        if desc.strip():
-            rep.ok("X01", f"description {len(desc)} 字")
+    data_obj = card.get("data") or {}
+    desc = str(data_obj.get("description", ""))
+    if not desc.strip():
+        rep.fail("X01", "data.description 为空：卡里没有设定正文")
+    elif len(desc) > DESC_HARD:
+        rep.fail("X01", f"description {len(desc)} 字，超过硬上限 {DESC_HARD}："
+                        "群像卡的主要篇幅应在内嵌世界书的人物条目里")
+    elif len(desc) > DESC_SOFT:
+        rep.warn("X01", f"description {len(desc)} 字，超过建议值 {DESC_SOFT}")
+    else:
+        rep.ok("X01", f"description {len(desc)} 字（上限 {DESC_HARD}）")
+
+    # 轴名必须能在卡里找到（description 或内嵌条目），否则数值在扮演里不存在
+    axis_names = []
+    if contract is not None:
+        naming = (contract.get("naming") or {}) if isinstance(contract, dict) else {}
+        for ax in naming.get("axes") or []:
+            if isinstance(ax, dict) and str(ax.get("name") or "").strip():
+                axis_names.append(str(ax["name"]).strip())
+    if not axis_names:
+        rep.warn("X02", "没给契约（--contract）或契约里没有 naming.axes：轴名完整性与占位符之外的设定检查跳过")
+    else:
+        blob = desc
+        if isinstance(data_obj.get("character_book"), dict):
+            blob += " " + " ".join(str(e.get("content") or "")
+                                   for e in data_obj["character_book"].get("entries") or []
+                                   if isinstance(e, dict))
+        miss = [a for a in axis_names if a not in blob]
+        if miss:
+            rep.fail("X02", f"轴名在卡里找不到：{'、'.join(miss)}。"
+                            "数值系统没有进包，慢热/阈值在扮演里等于不存在")
         else:
-            rep.fail("X01", "data.description 为空：卡里没有设定正文")
+            rep.ok("X02", f"{len(axis_names)} 个轴名都在卡里")
+
+    # 构建期占位符不许漏进运行时
+    probes = ["【AI补全·可替换】", "[待定", "【未知】"]
+    hits = []
+    scan = [desc, str(data_obj.get("system_prompt") or ""), str(data_obj.get("creator_notes") or "")]
+    if isinstance(data_obj.get("character_book"), dict):
+        scan += [str(e.get("content") or "") for e in data_obj["character_book"].get("entries") or []
+                 if isinstance(e, dict)]
+    for chunk in scan:
+        for ph in probes:
+            if ph in chunk:
+                hits.append(ph)
+    if hits:
+        rep.fail("X03", f"正文里有构建期占位符 {len(hits)} 处（{'、'.join(sorted(set(hits)))}）："
+                        "模型会把它当设定读，甚至写进回复")
+    else:
+        rep.ok("X03", "正文无构建期占位符")
 
     rep.dump(as_json)
     return 0 if not rep.failures else 1

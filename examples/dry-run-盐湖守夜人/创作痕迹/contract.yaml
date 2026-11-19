@@ -20,7 +20,7 @@ stages:
 delivery:                  # 收尾问一次：交付到哪
   route: "both"
   st_name: "白潮"
-  files: ["白潮.json", "白潮 世界书.json"]
+  files: ["白潮.json"]          # 单文件：卡 + 内嵌世界书 + 内嵌正则
 
 content_boundaries:
   nsfw: true

@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - **自包含**：`SKILL.md`、`references/**`、`templates/**` 中不得出现任何指向包外文件的路径，不得出现源文件名（`RP 世界观设计助手.md`、`AI-RP 角色架构师.md`、`AI-RP 系统架构师.md`、`RP场景生成器.md`、`非变量的HTML状态栏.md`）。源文件在验证通过后会被删除（spec §3.2）。
-- **体量**：`SKILL.md` ≤ 120 行；每个 `references/stage-*.md` ≤ 200 行；`references/pipeline.md` ≤ 150 行。
+- **体量**：`SKILL.md` ≤ 150 行（原 120，加阶段门与自创字段门后放宽）；每个 `references/stage-*.md` ≤ 200 行；`references/pipeline.md` ≤ 150 行。
 - **占位符只有 7 个**，定义在 `references/pipeline.md`，别处只引用不自造：`【未知】`、`【AI补全·可替换】`、`[待定]`、`[待定：<内容>]`、`[推断：<内容>](待确认)`、`[不适用]`、`[用户跳过]`。
 - **产物 type 只有 4 个**：`world-bible`、`rolecard`、`scene-sheet`、`axis-system`。
 - **门名只有 5 个**：`开工门`、`边界门`、`收敛门`、`自检门`、`命名门`。
@@ -714,3 +714,35 @@ python scripts/validate-st-package.py "examples/dry-run-盐湖守夜人/最终�
 Expected: `0 失败，0 警告`，退出码 0。
 
 **Ruling**：不新增第 8 个阶段——"调好世界书"不是新产物，是阶段 7 的参数质量；写成独立 reference 是因为它同时被 stage-7（生成）与交付门（校验）引用，塞进 stage-7 会让那份文件同时承担两件事。
+
+### Task 17: 打包形态改成单文件（卡内嵌世界书）
+
+**Files**: Modify `references/stage-7-delivery.md`（整份重写三层分法）、`templates/st-card.json`、`scripts/validate-st-package.py`、`examples/dry-run-盐湖守夜人/最终产物/st/白潮.json`；Create `templates/st-character-book-entry.json`。
+
+**Step 1**: stage-7 改三层（`description` ≤8000 / `character_book` / `system_prompt`），切法表补"每个角色一条、每个地点一条、数值与判定一条"，两形状对照表。
+**Step 2**: `st-card.json` 加 `character_book`；新增 v2 条目骨架模板。
+**Step 3**: 校验器加 C19–C23、X01–X03，`--contract` 读轴名；预算 8000。
+**Step 4**: dry-run 重生成（`description` 13,632 → 5,998；内嵌 12 条；单独世界书文件删除），README 第六节与创作记录同步。
+
+```
+python scripts/validate-st-package.py "examples/dry-run-盐湖守夜人/最终产物/st/白潮.json" --contract "examples/dry-run-盐湖守夜人/创作痕迹/contract.yaml"
+```
+
+Expected: `0 失败，0 警告`，17 项。
+
+**Ruling**：默认只出单文件。独立世界书文件仅在用户明确要"能单独改 / 拿去别处"时生成，且在交付说明写明"导了卡别再导它，重名会覆盖"——两个文件同源是纪律，不是可选。
+
+### Task 18: 流程门（阶段门 / 联网门 / NSFW / 自创字段）
+
+**Files**: Modify `SKILL.md`、`references/pipeline.md`、`references/stage-2-rolecard.md`、`references/stage-4-axis-system.md`、`templates/rolecard.yaml`、`examples/rolecard-minimal.yaml`；Create `scripts/validate-rolecard.py`。
+
+**Step 1**: `SKILL.md` 加硬门 9（阶段门）与 10（自创字段门），开工前第 6 条，NSFW 与联网两段改口径。
+**Step 2**: `pipeline.md` 加阶段门、联网门加"必须有新增条目"。
+**Step 3**: stage-2 加"先抄模板再填"、NSFW 块必写、退出跑校验器；stage-4 加多目标三选一。
+**Step 4**: 新增 `validate-rolecard.py`，模板与示例的 `unknown_handling` 改运行时口径，示例 `never` 改中文以对齐 `taboos`。
+
+```
+python scripts/validate-rolecard.py examples/rolecard-minimal.yaml
+```
+
+Expected: 0 失败（WARN 可带着走），退出码 0。

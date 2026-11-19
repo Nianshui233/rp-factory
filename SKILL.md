@@ -52,7 +52,7 @@ disable-model-invocation: true
 **问三：启用 NSFW 内容吗**
 
 - **否** → `nsfw: false`，`rating` 写一般向，`hard_no` 加「任何性描写」；阶段 2 不写 `nsfw` 块，自检门的内容边界层整类跳过。
-- **是** → `nsfw: true`，`rating` 须给明确档位（`R15` / `R18`），`hard_no` 至少一条硬底线；阶段 2 可写 `nsfw` 块，内容边界层必执行。
+- **是** → `nsfw: true`，`rating` 须给明确档位（`R15` / `R18`），`hard_no` 至少一条硬底线。**阶段 2 每张角色卡必须有 `nsfw` 块且七键齐全**——卡里没有块视为这一阶段没做完，自检门的内容边界层直接判失败，不是跳过。
 - 不答 → 按「否」锁，一句告知可随时开；中途开关 → 改 `nsfw` + 重锁 `rating` + 记 `decisions`，关掉时已交付产物里的越界内容必须清掉。
 
 **问四：需要联网吗**（是/否，问这次创作要不要主动查外部资料，与是否同人无关）
@@ -60,6 +60,7 @@ disable-model-invocation: true
 - **否** → `project.web_research: false`，全程不检索，也不许顺手搜。
 - **是** → `project.web_research: true`，**不再问任何东西**。此后不管创作什么（世界观、角色、场景、数值、界面，含局部修改），落笔前都先检索再用；每条记进 `创作痕迹/检索来源.md`（骨架 `templates/research-log.md`）。查什么由阶段内容自己判断，冲突怎么裁、没网怎么降级、版权边界，全在 `references/web-research.md`——**进入任何阶段前先读它**。
 - 不答 → 按「否」锁，一句告知可随时开。中途要开 → 回填开关、建检索记录、从当前阶段起开始查，记 `decisions`。
+- **开了这个开关，检索就是每个阶段的前置动作**，不是想起来才做：动笔前按 `references/web-research.md` 第一节的逐阶段检索量查完并落条；交付前 `创作痕迹/检索来源.md` 必须比进入本阶段时多出至少 1 条，否则不许交付、不许进下一阶段。
 
 四问用结构化选项，**不用** `references/interview-protocol.md` 的问题块格式。写回细节见 `references/contract-schema.md` 第七节。
 
@@ -70,6 +71,7 @@ disable-model-invocation: true
 3. `project.web_research: true` → 先读 `references/web-research.md`，再进阶段（否则跳过，也不许搜）。
 4. 定出**目标阶段**与**当前产物 type**（八选一：`world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `opening-ui` / `statusbar-ui` / `st-card` / `st-worldbook`）；文本还是工程文件按 `references/dual-mode.md` 判，默认文本模态。
 5. **收尾一步不要忘**：`stages_requested` 里的阶段全部结束后问一次交付形态（原生 / 酒馆包 / 两者都要），选酒馆包进阶段 7；用户没答按原生收尾，不自作主张打包。
+6. **一次只做一个阶段**：做完就停——汇总这一轮落下什么、把产物摆出来、写清「下一步是哪一阶段、等你说一声」。**不在同一条回复里连着做下一个阶段**，也不在交付后用选项弹窗替用户按下一步（见第六节第 9 条）。
 
 ## 四、做主 skill 的三件事
 
@@ -86,10 +88,13 @@ disable-model-invocation: true
 2. **命名门**：交付前按 `references/pipeline.md` 四步核对契约与产物，名字不一致就停下问用户。
 3. **补采访问**：上游缺项先补采访问（≤3 问），问不到才写 `[待定：<缺什么>]`。
 4. **零回溯**：不引用任何包外路径、不登记源文件名。本包自包含，删掉任何外部文件都不影响运行。
-5. **自检门**：每份设定产物交付前内部执行四类检查，不向用户展示检查过程。
+5. **自检门**：每份设定产物交付前内部执行四类检查，不向用户展示检查过程。**产物正文里不许出现构建期占位符**（`【AI补全·可替换】` / `[待定]` / `【未知】` 只允许出现在给用户的补全清单与契约 `pending` 里，落进 YAML 值域即失败）。
 6. **联网门（仅 `web_research: true`）**：每次落笔前先检索（不限阶段、含局部改动）、交付前复核一遍外部专名；查不到就记 `未检索到` 并改走确认清单，**不编造外部事实**。
 7. **前端门（仅阶段 5 / 6）**：交付前按 `references/frontend-conventions.md` 第六节八条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽、无外链无 `eval`、无标签时留白、脏值转义。
-8. **交付门（仅阶段 7）**：先跑 `python scripts/validate-st-package.py <卡> <世界书>`，退出码 0 才算过；脚本查六件事——两个 JSON 可解析且 `spec == "chara_card_v2"`；世界书条目 `content` 非空 / `key` 是数组 / `position` ∈ 0–7 / `uid` 与键一致；`extensions.world` == 世界书文件名；每条 `findRegex` 能用 JS 编译且 `$1` 与捕获组对得上；`first_mes` 的标签能被某个正则接住；常驻条目 ≤ 5000 字、关键词无重复。脚本挡不住的再肉眼过两条（`description` 的实体名都在 `naming` 里、导入四步齐全）。
+9. **阶段门**：一次只推进一个阶段。阶段做完 → 停下、汇总（本轮落下什么 / 哪些是你替我定的 / 下一步是什么）→ **等用户回话**。用户说「全都要」也只按顺序一阶段一阶段做，每段之间必须停。禁止在同一条回复里既交付本阶段又发起下一阶段的第一轮提问，禁止交付后立刻弹「要不要继续」的选项——那是在替用户按按钮。
+10. **自创字段门**：新增模板里没有的键之前先问用户，得到同意后写进 `contract.decisions`（记：新增了什么、为什么要、不加会丢什么），并在交付说明里点名。**不许用自创块替换模板既有块**（例如另起 `intimacy` 顶替 `nsfw`）；模板已有的键不够用时，优先把信息塞进扩展位（`lore` / `relationships` / `growth_arc`）而不是新造顶层键。
+
+8. **交付门（仅阶段 7）**：先跑 `python scripts/validate-st-package.py <卡> --contract <契约>`，退出码 0 才算过；脚本查的事——卡可解析且 `spec == "chara_card_v2"`；**卡里有 `data.character_book`，`entries` 非空，`name` == `extensions.world`**；条目 `content` 非空 / `keys` 是数组 / `position` ∈ `before_char`·`after_char` / `insertion_order` 是数字；每条 `findRegex` 能用 JS 编译且 `$1` 与捕获组对得上；`first_mes` 的标签能被某个正则接住；`description` ≤ 8000 字且含每个轴名；正文占位符 0 命中；常驻条目 ≤ 8000 字、关键词无重复。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、导入三步齐全）。
 
 ## 七、文件索引
 
@@ -107,7 +112,7 @@ disable-model-invocation: true
 | `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 7 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning（三灯、套餐、8–15 关键词、位置、预算、递归、概率、十二条自查） |
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
-| `templates/st-card.json` / `st-worldbook.json` · `scripts/validate-st-package.py` | 酒馆包两个 JSON 骨架 + 校验器（交付门用它把关） |
+| `templates/st-card.json` / `st-character-book-entry.json` / `st-worldbook.json` · `scripts/validate-*.py` | 酒馆包骨架（卡 / 内嵌条目 / 独立世界书）+ 两个校验器（交付门与阶段 2 用它把关） |
 
 ## 八、阶段文件约定
 

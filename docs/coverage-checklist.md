@@ -158,3 +158,19 @@
 | D20 | 交付 | 先位置后 `order`、按重要性排布、首尾 0.9% 强记忆区 | references/worldbook-tuning.md | [x] |
 | D21 | 交付 | 分档设定：阶段词当关键词（含两条代价说明） | references/worldbook-tuning.md · references/stage-7-delivery.md | [x] |
 | D22 | 交付 | 中文世界书名与 `extensions.world` 的匹配（本机已修，老版本重命名补救） | references/stage-7-delivery.md | [x] |
+
+### 2026-11-20 实操复盘补项
+
+| ID | 层 | 要求 | 落在哪 | 勾 |
+|---|---|---|---|---|
+| D23 | 交付 | 卡内嵌 `character_book`，`name` == `extensions.world` | references/stage-7-delivery.md · scripts/validate-st-package.py | [x] |
+| D24 | 交付 | `description` ≤8,000 字，人物细节进条目 | references/stage-7-delivery.md | [x] |
+| D25 | 交付 | 每个角色一条、每个地点一条、数值与判定一条 | references/stage-7-delivery.md | [x] |
+| D26 | 交付 | 两种世界书形状（v2 数组 / native 映射）不混用 | references/stage-7-delivery.md · templates/st-character-book-entry.json | [x] |
+| D27 | 交付 | 正文占位符 0 命中（X03） | references/stage-7-delivery.md | [x] |
+| D28 | 数值 | 对象多于一人时必须选逐人 / 分组 / 降级 | references/stage-4-axis-system.md | [x] |
+| G01 | 流程 | 一次只做一个阶段，做完停住等回话 | SKILL.md · references/pipeline.md | [x] |
+| G02 | 流程 | 联网开启后每阶段必须有新增检索记录 | SKILL.md · references/web-research.md | [x] |
+| G03 | 流程 | `nsfw: true` 时每张卡必须有 `nsfw` 块 | references/stage-2-rolecard.md | [x] |
+| G04 | 流程 | 自创字段先问、记 `decisions`、不许替换既有块 | SKILL.md · references/stage-2-rolecard.md | [x] |
+| G05 | 流程 | 角色卡交付前跑 `validate-rolecard.py` | references/stage-2-rolecard.md · scripts/validate-rolecard.py | [x] |

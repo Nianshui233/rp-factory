@@ -137,7 +137,7 @@ D:/AI/RP创作/参考/原始提示词/rp-factory/
     dry-run-*/                      dry-run 产物
 ```
 
-**体量预算**：`SKILL.md` ≤ 120 行；每个 `stage-*.md` ≤ 200 行；`pipeline.md` ≤ 150 行。超了就往 `templates/` 挪。
+**体量预算**：`SKILL.md` ≤ 150 行（原 120，2026-11-20 加阶段门与自创字段门后放宽）；每个 `stage-*.md` ≤ 200 行；`pipeline.md` ≤ 150 行。超了就往 `templates/` 挪。
 
 **自包含**：整棵树上不得出现指向包外文件的路径（§3.2）。
 
@@ -501,3 +501,35 @@ artifacts: []              # {type, path | inline_ref, version}
 8. **中文书名乱码问题在本机已修**：`src/middleware/multerMonkeyPatch.js` 用 `Buffer.from(str,'latin1').toString('utf-8')` 把 `originalname` 转回来，所以 `extensions.world` 依赖的"文件名 = 书名"在中文下成立；老版本会变一串字符，story 里给了重命名补救。
 9. **新增第十二节「分档设定」**：拿状态栏/轴的阶段词当关键词，实现"数值到某档才解锁"。这是教程"用正则触发世界书做好感度系统"的整理版，但明确写了两条代价：格式一改就失配、字符串包含不等于数值比较。
 
+
+### 19. 打包形态修正：单文件卡 + 内嵌世界书（2026-11-20，据《爱情公寓》实操复盘）
+
+一次完整的群像实操（14 角色 / 9 场景 / 2 轴）暴露出阶段 7 的结构性错误：**产物合规，但没有玩法**。复盘见 `docs/reviews/2026-11-20-爱情公寓实操复盘.md`，这里只记设计层面的改动。
+
+**四条根因**（都指向"把单人卡的写法套到群像卡上"）：
+
+1. `description` = 世界观全文 + 全部角色卡全文，14 人时 70,134 字（≈43k token），每轮全付；32k 模型不可用。
+2. 数值系统不在这条装配线上——`description` 里"好感度/堕落度"各 0 次，而卡的 `nsfw` 块与 `creator_notes` 都在承诺这套数值。慢热闸门在包里不存在。
+3. 场景卡在 `description` 与世界书里命中 0/53——阶段 3 的产出对酒馆包零贡献。
+4. 世界书靠外挂文件 + 手动绑定；而 ST 的 `data.character_book` 本来就支持内嵌，导入时自动建书并挂载（`checkEmbeddedWorld` → `importEmbeddedWorldInfo`）。
+
+**改正后的三层**（照 `D:\AI\RP创作\参考\我，非我` 的形态）：
+
+| 层 | 放什么 | 预算 |
+|---|---|---|
+| `description` | 世界骨架 + 住户/场景/数值速查 + 核心指令 | ≤8,000 字（软 6,000） |
+| `data.character_book.entries` | 世界观细节、**每个角色一条**、每个地点一条、势力、数值与判定、状态栏协议 | 常驻合计 ≤8,000 字 |
+| `system_prompt` | 项目档案「本文档对AI的核心指令」 | 不限 |
+
+**两种世界书形状必须分开**（`convertCharacterBook` 的映射）：卡内嵌 = v2 数组（`keys` / `insertion_order` / `position: "before_char"` / 高级项在 `extensions`）；独立文件 = native 映射（`key` / `order` / `position: 0–7`）。混用会静默丢参数。
+
+**新增模板与校验**：`templates/st-character-book-entry.json`（v2 条目骨架）；`st-card.json` 加 `data.character_book`；校验器新增 C19（必须有内嵌书）/ C20（`character_book.name` == `extensions.world`）/ C21（条目形状）/ C22（常驻预算）/ C23（关键词唯一、非常驻必须有键）、X01（`description` 预算）/ X02（轴名必须在卡里，`--contract` 提供）/ X03（构建期占位符 0 命中）。
+
+**同时修的流程缺陷**（同一轮实操的反馈）：
+
+- **阶段门**：一次只做一个阶段，做完停住等用户回话；禁止同一条回复里连做两段，禁止交付后弹"继续吗"。
+- **联网门**从"想起来才查"改成"每阶段动笔前按清单查，`检索来源.md` 必须有新增条目才能交付"。
+- **NSFW 开关**贯穿生成步：`nsfw: true` 时每张卡必须有 `nsfw` 块，"有没有块"不再作为跳过检查的条件。
+- **自创字段门**：新增键先问、写进 `decisions`，不许用自创块替换模板既有块。
+- **阶段 2 加校验器** `scripts/validate-rolecard.py`（块齐、规则条数、`taboos ⊆ never`、`nsfw` 一致性、占位符）。
+- **轴的多目标**：对象多于一人时选 `targets[]` / 分组 / 降级气氛值，写进产物与 `decisions`。
