@@ -30,7 +30,7 @@ description: 把一句话 RP 构想编译成世界观、角色卡、场景卡、
 
 ```
 <工作区>/<世界名>/
-  创作痕迹/  contract.yaml（命名权威+索引） · 创作记录.md（访谈、决策、卡点）
+  创作痕迹/  contract.yaml（命名权威+索引） · 项目档案.yaml（元信息+类型基调，不进终稿） · 创作记录.md（访谈、决策、卡点）
   最终产物/  world-bible.yaml · rolecard.yaml · scene-sheet.yaml · axis-system.yaml
 ```
 
@@ -79,7 +79,7 @@ description: 把一句话 RP 构想编译成世界观、角色卡、场景卡、
 
 0. **开局门**：先问三件——工作区、跑哪几个阶段（多选）、是否启用 NSFW。三件都确认前不建目录、不落文件、不开工；NSFW 不答按「否」锁。
 
-1. **边界门**：落笔前先锁 `content_boundaries`（`rating` + `hard_no`），渠道是当前阶段的首轮提问（≤2 题）。未锁定不产出任何设定正文。
+1. **边界门**：由开局门锁定 `content_boundaries`（`nsfw` + `rating` + `hard_no`）。阶段内只在必要时补问边界细节（≤2 题）。未锁定不产出任何设定正文。
 2. **命名门**：交付前按 `references/pipeline.md` 四步核对契约与产物，名字不一致就停下问用户。
 3. **补采访问**：上游缺项先补采访问（≤3 问），问不到才写 `[待定：<缺什么>]`。
 4. **零回溯**：不引用任何包外路径、不登记源文件名。本包自包含，删掉任何外部文件都不影响运行。
@@ -97,7 +97,7 @@ description: 把一句话 RP 构想编译成世界观、角色卡、场景卡、
 | `references/stage-2-rolecard.md` | 阶段 2 角色卡 |
 | `references/stage-3-scene-sheet.md` | 阶段 3 场景卡 |
 | `references/stage-4-axis-system.md` | 阶段 4 数值系统 |
-| `templates/*.yaml` | 五份产物骨架，填完即交付 |
+| `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
 
 ## 八、阶段文件约定
 

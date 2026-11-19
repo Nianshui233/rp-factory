@@ -8,7 +8,7 @@
 
 | 阶段 | 产物 | 说明 |
 |---|---|---|
-| 0–1 | `world-bible.yaml` | 3 势力 / 3 地点 / 2 关键系统 / 3 条硬设定 |
+| 0–1 | `world-bible.yaml` | 3 势力 / 3 地点 / 2 关键系统 / 3 条硬设定（`元信息` 与 `类型与基调` 不在此文件，见 `创作痕迹/项目档案.yaml`） |
 | 2 | `rolecard.yaml` | 标准档位：祁昭，第七塔次席守夜人 |
 | 3 | `scene-sheet.yaml` | 强结构（潜入 + 推理向）：第七塔，十块全填 |
 | 4 | `axis-system.yaml` | 双轴：`wick` 灯芯（记忆余量）/ `tide` 潮压 |
@@ -28,7 +28,7 @@
 
 **3. 说「你来定」**
 
-产物里出现 `【AI补全·可替换】` 的项只有三处：`world-bible.yaml` 的 `关键历史与时间线.被遗忘或篡改的历史`、`rolecard.yaml` 的 `background.turning_point`、`scene-sheet.yaml` 的 `关键区域.地窖` 的档案柜数量。三处都在 README 之外单独列了清单交用户确认。**通过。**
+产物里出现 `【AI补全·可替换】` 的项只有三处（`元信息` / `类型与基调` 已移出终稿，不计入）：`world-bible.yaml` 的 `关键历史与时间线.被遗忘或篡改的历史`、`rolecard.yaml` 的 `background.turning_point`、`scene-sheet.yaml` 的 `关键区域.地窖` 的档案柜数量。三处都在 README 之外单独列了清单交用户确认。**通过。**
 
 **4. 要求「给我能粘贴的」**
 

@@ -51,6 +51,14 @@ hard_settings:
     text: "第七塔自十二年前熄灭后未再点燃，缺口靠巡堤人力勉强补住"
     source: "用户确认"
     locked_at_stage: 1
+  - id: H04
+    text: "本文档对AI的核心指令：严格遵守硬设定；冲突时硬设定优先；秘密信息不得被普通角色引用；盐潮的意志不可被台词化解释"
+    source: "用户确认"
+    locked_at_stage: 1
+  - id: H05
+    text: "基调红线：不可变为解谜爽文；盐潮不得被彻底解释或消灭"
+    source: "用户确认"
+    locked_at_stage: 1
 
 pending:
   - {stage: 3, item: "第七塔北侧堤墙的裂缝宽度", why: "用户未定，按可修复处理"}
