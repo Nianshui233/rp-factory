@@ -9,8 +9,8 @@ project:
   rp_form: ""              # 1v1 / 多人 / 跑团风格 / 旁白主导
   language: "zh"           # 描述性内容的语言
   stages_requested: []     # 开局多选的结果，升序，如 [1, 2, 4]；没勾的阶段在 stages 里写 skipped
-  web_research: false      # 开局第四问：是否联网检索；true 时全程走 references/web-research.md
-  source_ip: ""            # 可选：检索依据（原作名+版本 / 真实年代地点 / 专业领域），原创可留空
+  web_research: false      # 开局第四问：是否联网检索；true 时每次落笔前都先搜，走 references/web-research.md
+  source_ip: ""            # 可选：检索依据（原作名+版本 / 真实年代地点 / 专业领域）。自动记录，不为此提问
 
 stages:                    # 每阶段状态，不是标量。乱序合法。
   1: none                  # none | partial | done | skipped（未勾选的阶段写 skipped）
