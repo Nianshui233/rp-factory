@@ -1,0 +1,44 @@
+# 契约骨架 · contract.yaml
+# 复制本文件到项目根，按阶段填写。键名与 references/contract-schema.md 逐字一致，不要改。
+# 契约是索引与命名权威，不是产物正文。世界观正文、心理层、计算公式一律不进这里。
+
+project:
+  name: ""                 # 世界 / 作品名；可暂定，如「临时世界名」
+  mode: "text"             # text | engineering
+  rp_form: ""              # 1v1 / 多人 / 跑团风格 / 旁白主导
+  language: "zh"           # 描述性内容的语言
+
+stages:                    # 每阶段状态，不是标量。乱序合法。
+  1: none                  # none | partial | done | skipped
+  2: none
+  3: none
+  4: none
+
+content_boundaries:        # 边界门：任何产物落笔前必须锁定
+  rating: ""               # 全年龄 / R18 / 自定义
+  hard_no: []              # 明确不出现的元素
+  soft_no: []              # 尽量不出现，但可为叙事让步
+
+naming:                    # 命名门的事实源：同一实体在所有产物里用同一个名字
+  world: ""
+  factions: []             # - {id: "", name: "", alias: []}
+  places: []               # - {id: "", name: "", scope: ""}
+  systems: []              # 超自然 / 科技系统，- {id: "", name: "", ceiling: ""}
+  axes: []                 # - {name: "", range: [], initial: 0, provisional: true, levels: []}
+                           #   provisional 只在阶段 2/3 先行写名时为 true；阶段 4 接管后删除该键
+
+hard_settings: []          # 已锁定、不可改
+  # - id: H01
+  #   text: ""
+  #   source: "用户确认"     # 用户确认 | 推导（推导项不算锁定）
+  #   locked_at_stage: 1
+
+pending: []                # [待定…] 汇总，- {stage: 1, item: "", why: ""}
+
+decisions: []              # 用户拍的板，- {stage: 1, question: "", answer: "", why: ""}
+
+artifacts: []              # 产物索引，正文不在这里
+  # - type: world-bible    # world-bible | rolecard | scene-sheet | axis-system
+  #   path: ""             # 工程模态写文件路径；文本模态留空
+  #   inline_ref: ""       # 文本模态写产物在会话里的标识
+  #   version: 1
