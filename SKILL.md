@@ -32,14 +32,14 @@ disable-model-invocation: true
 
 **先问四件，一次问完，不分三轮。** 四件没问完，任何阶段都不动笔。
 
-**问之前先静默探一次环境**：跑 `python scripts/detect-sillytavern.py --quiet`，**不报给用户、不占问题预算**；结果写进契约 `project.sillytavern`（安装目录 / 用户目录 / 是否在跑 / 版本 / 有没有酒馆助手），探不到就写 `null`。只有阶段 5 / 6 / 7 真的要用它时才提。
+**问之前先静默探一次环境**：跑 `python scripts/detect-sillytavern.py --quiet`，**不报给用户、不占问题预算**；结果写进契约 `project.sillytavern`（安装目录 / 用户目录 / 是否在跑 / 版本 / 有没有酒馆助手），探不到就写 `null`。只有 `opening` / `statusbar` / `delivery` 真的要用它时才提。
 
 **问一：工作区在哪。** 问「项目放在哪个目录？」，给 2–3 个选项（当前目录 / 用户常用目录），每个选项说明会建成什么样，附一句「只要粘贴、不落文件也可以说一声」。确认后在其下建两层：
 
 ```
 <工作区>/<世界名>/
   创作痕迹/  contract.yaml（命名权威+索引） · 项目档案.yaml（元信息+类型基调，不进终稿） · 创作记录.md（访谈、决策、卡点） · 检索来源.md（仅联网时）
-  创作痕迹/产物/  world-bible.yaml · rolecard/ · scene/ · axis/ · 表现层 HTML 与正则（过程产物一律在这）
+  创作痕迹/产物/  world-bible.yaml · rolecard/ · scene/ · axis/ · mvu/（schema 与条目） · ejs/（控制器与改写清单） · 表现层 HTML 与正则（过程产物一律在这）
   最终产物/  全程空着，只在第十节交付时写入
 ```
 
@@ -71,11 +71,11 @@ disable-model-invocation: true
 
 ## 三、开工前
 
-1. 读 `references/pipeline.md`：阶段表、7 个占位符、十道门、输出纪律。**这是唯一的公共脊，任何阶段文件里没有的东西都回这里查。**
+1. 读 `references/pipeline.md`：阶段表、7 个占位符、十一道门、输出纪律。**这是唯一的公共脊，任何阶段文件里没有的东西都回这里查。**
 2. 有契约就读契约（`templates/contract.yaml` + `references/contract-schema.md`）；没有就先建一份。
 3. `project.web_research: true` → 先读 `references/web-research.md`，再进阶段（否则跳过，也不许搜）。
 4. 定出**目标阶段**与**当前产物 type**（十四选一：`world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `mvu-schema` / `mvu-initvar` / `mvu-entries` / `mvu-regex` / `ejs-controller` / `opening-ui` / `statusbar-ui` / `st-card` / `st-regex` / `st-worldbook`）；文本还是工程文件按 `references/dual-mode.md` 判，默认文本模态。
-5. **收尾一步不要忘**：`stages_requested` 里的阶段全部结束后问一次交付形态（原生 / 酒馆包 / 两者都要），选酒馆包进阶段 7；用户没答按原生收尾，不自作主张打包。
+5. **收尾一步不要忘**：`stages_requested` 里的阶段全部结束后问一次交付形态（原生 / 酒馆包 / 两者都要），选酒馆包进 `delivery`；用户没答按原生收尾，不自作主张打包。
 6. **一次只做一个阶段**：做完就停——汇总这一轮落下什么、把产物摆出来、写清「下一步是哪一阶段、等你说一声」。**不在同一条回复里连着做下一个阶段**，也不在交付后用选项弹窗替用户按下一步（见第六节第 9 条）。
 
 ## 四、做主 skill 的三件事
@@ -95,9 +95,9 @@ disable-model-invocation: true
 4. **零回溯**：不引用任何包外路径、不登记源文件名。本包自包含，删掉任何外部文件都不影响运行。
 5. **自检门**：每份设定产物交付前内部执行四类检查，不向用户展示检查过程。**产物正文里不许出现构建期占位符**（`【AI补全·可替换】` / `[待定]` / `【未知】` 只允许出现在给用户的补全清单与契约 `pending` 里，落进 YAML 值域即失败）。
 6. **联网门（仅 `web_research: true`）**：每次落笔前先检索（不限阶段、含局部改动）、交付前复核一遍外部专名；查不到就记 `未检索到` 并改走确认清单，**不编造外部事实**。
-7. **前端门（仅 `opening` / `statusbar`）**：交付前按 `references/frontend-conventions.md` 第六节九条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽、无外链无 `eval`、无标签时留白、脏值转义、`validate-frontend.py` 全过（内联脚本里写 HTML 实体 = 界面静默变 2px 高）。
+7. **前端门（仅 `opening` / `statusbar`）**：交付前按 `references/frontend-conventions.md` 第六节十条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽（静态 / `$1` / 聊天 API / MVU 变量四选一）、无外链无 `eval`、无标签时留白、脏值转义、走 MVU 时字段名与轴的 `range` 对齐、`validate-frontend.py` 全过（内联脚本里写 HTML 实体 = 界面静默变 2px 高）。
 
-8. **交付门（仅 `delivery`）**：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过；脚本查的事——三件齐全（纯净卡 / 正则 / 世界书）、卡里无 `character_book` 且 `extensions.regex_scripts` 为空、世界书是 native 对象形状且 `uid` 对齐、`extensions.world` == 世界书文件名、`description` ≤8000 字且含每个轴名、每个角色与每个地点都有条目、正则 `$1` 与捕获组对得上、`first_mes` 的标签能被某个正则接住、三件占位符 0 命中、常驻条目 ≤8000 字、关键词无重复。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、装配四步齐全）。
+8. **交付门（仅 `delivery`）**：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过；脚本查的事——三件齐全（纯净卡 / 正则 / 世界书）、卡里无 `character_book` 且 `extensions.regex_scripts` 为空、世界书是 native 对象形状且 `uid` 对齐、`extensions.world` == 世界书文件名、`description` ≤8000 字且含每个轴名、每个角色与每个地点都有条目、正则 `$1` 与捕获组对得上、`first_mes` 的标签能被某个正则接住、三件占位符 0 命中、关键词无重复；做了 `mvu` 还要卡内有 `tavern_helper.scripts` 且正则里有隐藏 `<UpdateVariable>` 的两条。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、装配四步齐全）。
 9. **阶段门**：一次只推进一个阶段。阶段做完 → 跑一遍 `python scripts/validate-contract.py 创作痕迹/contract.yaml` → 停下、汇总（本轮落下什么 / 哪些是你替我定的 / 下一步是什么）→ **等用户回话**。用户说「全都要」也只按顺序一阶段一阶段做，每段之间必须停。禁止在同一条回复里既交付本阶段又发起下一阶段的第一轮提问，禁止交付后立刻弹「要不要继续」的选项——那是在替用户按按钮。
 10. **变量门（仅 `mvu` / `ejs`）**：退出前跑 `python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml` 与 `python scripts/validate-ejs.py 创作痕迹/产物/ejs/<控制器>.ejs --book "<世界书>"`，两个退出码都要是 0。它查的是事故点：数值字段有没有 `.catch(初值)`（缺了，模型写个"很高"就作废整楼更新）、`[initvar]` 是否禁用、`uid` 是否与键对齐（错位会让条目在面板里静默消失）、两条隐藏 `<UpdateVariable>` 的正则是否齐、被控条目是否全部 `disable: true`。**没装酒馆助手就别开这个阶段**，别产出跑不起来的东西。
 11. **自创字段门**：新增模板里没有的键之前先问用户，得到同意后写进 `contract.decisions`（记：新增了什么、为什么要、不加会丢什么），并在交付说明里点名。**不许用自创块替换模板既有块**（例如另起 `intimacy` 顶替 `nsfw`）；模板已有的键不够用时，优先把信息塞进扩展位（`lore` / `relationships` / `growth_arc`）而不是新造顶层键。
@@ -106,13 +106,13 @@ disable-model-invocation: true
 
 | 文件 | 管什么 |
 |---|---|
-| `references/pipeline.md` | 阶段表、占位符、十道门、自检四类、命名门四步、输出纪律 |
+| `references/pipeline.md` | 阶段表、占位符、十一道门、自检四类、命名门四步、输出纪律 |
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
 | `references/dual-mode.md` | 两种模态的对照、切换、渲染、注释剥离 |
 | `references/web-research.md` | 联网检索：何时查、怎么记、冲突怎么裁、没网怎么降级 |
 | `references/frontend-conventions.md` | 表现层机制、HTML 骨架、正则 JSON、提示词条目、前端门 |
-| `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 1–4：世界观 / 角色卡 / 场景卡 / 数值系统 |
+| `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 `world` / `cast` / `scenes` / `axes`：世界观 / 角色卡 / 场景卡 / 数值系统 |
 | `references/stage-mvu.md` | 阶段 `mvu`：轴 → zod 结构 / `[initvar]` / 三条更新条目 / 两条隐藏正则 / 卡内脚本 |
 | `references/stage-ejs.md` | 阶段 `ejs`：分档控制器 + 被控条目（含"什么时候不做"的判据） |
 | `references/stage-5-opening-ui.md` | 阶段 `opening` 开局前端（登场面板 / 建卡向导两形态） |
@@ -139,7 +139,7 @@ disable-model-invocation: true
 
 `project.stages_requested` 里的阶段全部 `done` 之后，**问一次、只问一次**：原生产物（默认，把 `创作痕迹/产物/` 复制进 `最终产物/`）/ SillyTavern 三件套（`<世界名>（纯净）.json` + `正则.json` + `<世界名> 世界书.json`，用户自己装配）/ 两者都要。
 
-- 写 `delivery.route` 为 `native` / `st` / `both`；选酒馆包才进阶段 7，选原生就把 `stages.7` 写 `skipped`。
+- 写 `delivery.route` 为 `native` / `st` / `both`；选酒馆包才进 `delivery`，选原生就把 `stages.delivery` 写 `skipped`。
 - 不问名字（默认 `project.name`）、不问放哪（`最终产物/` 根下）、不生成头像。
 - 用户没说“打包 / 导入酒馆 / 要角色卡 json / 要世界书”就不要主动提，原生是默认。
 - 中途就要包也行，但必须先跑完已勾阶段；有 `partial` 先问“先打包还是补完”。
