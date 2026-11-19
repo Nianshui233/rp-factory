@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  .rp-open {
+    --rp-open-bg: #14100e;
+    --rp-open-fg: #eae2d2;
+    --rp-open-dim: #9a8f7c;
+    --rp-open-line: #3a322a;
+    --rp-open-accent: #d8a13c;
+    box-sizing: border-box;
+    font-family: "Noto Serif SC", Georgia, serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--rp-open-fg);
+    background: var(--rp-open-bg);
+    border: 1px solid var(--rp-open-line);
+    border-radius: 4px;
+    padding: 26px 22px 22px;
+    max-width: 100%;
+  }
+  .rp-open * { box-sizing: border-box; }
+  .rp-open-title { margin: 0; font-size: 26px; letter-spacing: .12em; font-weight: 600; }
+  .rp-open-sub { margin: 6px 0 0; font-size: 13px; letter-spacing: .28em; color: var(--rp-open-accent); }
+  .rp-open-line { margin: 16px 0; height: 1px; background: var(--rp-open-line); border: 0; }
+  .rp-open-say { margin: 0 0 18px; font-style: italic; color: var(--rp-open-dim); }
+  .rp-open-info { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0 0 20px; font-size: 13px; }
+  .rp-open-info dt { color: var(--rp-open-dim); font-family: system-ui, sans-serif; letter-spacing: .1em; }
+  .rp-open-info dd { margin: 0; }
+  .rp-open-entries { display: grid; gap: 8px; }
+  .rp-open-btn {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    padding: 10px 14px; font: inherit; font-size: 14px;
+    color: var(--rp-open-fg); background: transparent;
+    border: 1px solid var(--rp-open-line); border-radius: 3px;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .rp-open-btn:hover { border-color: var(--rp-open-accent); background: rgba(216, 161, 60, .08); }
+  .rp-open-btn:focus-visible { outline: 2px solid var(--rp-open-accent); outline-offset: 2px; }
+  .rp-open-btn .rp-open-send { display: block; margin-top: 3px; font-size: 11px; color: var(--rp-open-dim); font-family: system-ui, sans-serif; }
+  .rp-open-btn.is-sent { opacity: .45; cursor: default; }
+  @media (prefers-reduced-motion: reduce) { .rp-open-btn { transition: none; } }
+</style>
+</head>
+<body>
+<div class="rp-open" id="rp-open-root"></div>
+<script>
+(function () {
+  'use strict';
+
+  var TAG = '开局界面';                          // 与正则 findRegex、frontend-prompt.yaml 的 标签 逐字一致
+  var ENTRY_COUNT = 3;                           // 入口条数，与数据块一致
+  var SHOW_SEND_HINT = true;                     // 按钮下方显示"将发送的前 12 字"
+  var ROOT = document.getElementById('rp-open-root');
+  var TEXT_FIELDS = ['标题', '副标题', '一言'];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pick(block, name) {
+    var m = block.match(new RegExp('<' + name + '>([\\s\\S]*?)<\\/' + name + '>'));
+    return m ? m[1].trim() : '';
+  }
+  function parse(text) {
+    var m = String(text || '').match(new RegExp('<' + TAG + '>([\\s\\S]*?)<\\/' + TAG + '>'));
+    if (!m) return null;
+    var body = m[1], out = { entries: [] };
+    TEXT_FIELDS.concat(['角色', '场景', '时间']).forEach(function (k) { out[k] = pick(body, k); });
+    for (var i = 1; i <= ENTRY_COUNT; i++) {
+      var raw = pick(body, '入口' + i);
+      if (!raw) continue;
+      var cut = raw.search(/[|｜]/);
+      if (cut < 0) { out.entries.push({ label: raw, send: raw }); continue; }
+      out.entries.push({ label: raw.slice(0, cut).trim(), send: raw.slice(cut + 1).trim() });
+    }
+    return out;
+  }
+  function infoHtml(d) {
+    var rows = [['角色', d['角色']], ['场景', d['场景']], ['时间', d['时间']]]
+      .filter(function (p) { return p[1]; })
+      .map(function (p) { return '<dt>' + esc(p[0]) + '</dt><dd>' + esc(p[1]) + '</dd>'; });
+    return rows.length ? '<dl class="rp-open-info">' + rows.join('') + '</dl>' : '';
+  }
+  function render() {
+    var msg = getChatMessages(getCurrentMessageId())[0];
+    var d = msg ? parse(msg.message) : null;
+    if (!d || (!d['标题'] && !d.entries.length)) { ROOT.innerHTML = ''; return; }
+
+    var html = '';
+    if (d['标题']) html += '<h1 class="rp-open-title">' + esc(d['标题']) + '</h1>';
+    if (d['副标题']) html += '<p class="rp-open-sub">' + esc(d['副标题']) + '</p>';
+    if (d['标题'] || d['副标题']) html += '<hr class="rp-open-line">';
+    if (d['一言']) html += '<p class="rp-open-say">' + esc(d['一言']) + '</p>';
+    html += infoHtml(d);
+    if (d.entries.length) {
+      html += '<div class="rp-open-entries">' + d.entries.map(function (e, i) {
+        var hint = SHOW_SEND_HINT && e.send && e.send !== e.label
+          ? '<span class="rp-open-send">' + esc(e.send.slice(0, 12)) + (e.send.length > 12 ? '…' : '') + '</span>'
+          : '';
+        return '<button type="button" class="rp-open-btn" data-i="' + i + '">' + esc(e.label) + hint + '</button>';
+      }).join('') + '</div>';
+    }
+    ROOT.innerHTML = html;
+
+    Array.prototype.forEach.call(ROOT.querySelectorAll('.rp-open-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        if (btn.disabled) return;
+        var e = d.entries[Number(btn.dataset.i)];
+        btn.disabled = true;
+        btn.classList.add('is-sent');
+        if (typeof triggerSlash === 'function') {
+          triggerSlash('/send ' + e.send);
+        }
+      });
+    });
+  }
+  render();
+})();
+</script>
+</body>
+</html>

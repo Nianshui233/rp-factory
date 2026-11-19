@@ -101,3 +101,23 @@
 | A20 | 系统 | 扩展 anti_exploit | templates/axis-system.yaml | [x] |
 | A21 | 系统 | 扩展 interactions | templates/axis-system.yaml | [x] |
 | A22 | 系统 | 落地三路线（本包只做路线 C） | references/stage-4-axis-system.md | [x] |
+
+## 表现层（阶段 5 / 6）
+
+> 源：`非变量的HTML状态栏.md` 已整份出界（用户判定过时），本节不追源，追的是本包自己定的表现层规则；每条对应一个可在产物上核对的点。
+
+| # | 源 | 条目 | 落到 | 状态 |
+|---|---|---|---|---|
+| U01 | 表现层 | 正则捕获标签整块替换（`findRegex` + `replaceString`） | references/frontend-conventions.md | [x] |
+| U02 | 表现层 | 正则必须仅格式显示（`markdownOnly: true`） | references/frontend-conventions.md | [x] |
+| U03 | 表现层 | 代码块必须含 `<body>` 才被酒馆助手渲染 | references/frontend-conventions.md | [x] |
+| U04 | 表现层 | 单文件、CSS/JS 内联、无外链无 eval | references/frontend-conventions.md | [x] |
+| U05 | 表现层 | 读本楼 `getChatMessages(getCurrentMessageId())` / 跟随最新楼 + `eventOn` | references/frontend-conventions.md | [x] |
+| U06 | 表现层 | 数据块字段格式与转义、无标签时留白 | references/frontend-conventions.md | [x] |
+| U07 | 表现层 | 标签三处一致、字段两处一致（前端门） | references/frontend-conventions.md | [x] |
+| U08 | 表现层 | 提示词条目 `frontend-prompt.yaml` 结构与插入位置 | references/frontend-conventions.md | [x] |
+| U09 | 表现层 | 开局九字段、入口 `显示文本|实际发送`、`triggerSlash('/send …')` | references/stage-5-opening-ui.md | [x] |
+| U10 | 表现层 | 状态栏字段表从轴 `range`/`direction` 抄、危险区上色、变化箭头 | references/stage-6-statusbar-ui.md | [x] |
+| U11 | 表现层 | 越界值钳条、原值照显；`未知` 整条隐去 | references/stage-6-statusbar-ui.md | [x] |
+| U12 | 表现层 | 无插件不做静态版，先告知再问装不装 | references/frontend-conventions.md | [x] |
+| U13 | 表现层 | 产物 type 扩到六类、`naming.ui_tags`、七道门 | references/pipeline.md · references/contract-schema.md · SKILL.md | [x] |

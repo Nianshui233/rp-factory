@@ -1,6 +1,6 @@
 # 公共脊：阶段、门、占位符、输出纪律
 
-主 skill 与四个阶段文件都从本文件取名字。**这里定义的东西，别处只引用，不另造。**
+主 skill 与六个阶段文件都从本文件取名字。**这里定义的东西，别处只引用，不另造。**
 
 ## 一、阶段表
 
@@ -11,6 +11,8 @@
 | 2 角色卡 | `references/stage-2-rolecard.md` | `rolecard` | 有 `naming.world`，或用户直接给出角色设定 | 自检门通过 |
 | 3 场景卡 | `references/stage-3-scene-sheet.md` | `scene-sheet` | 有 `naming.world`，或用户直接给出地点构想 | 自检门通过 |
 | 4 数值系统 | `references/stage-4-axis-system.md` | `axis-system` | 有 `naming.world`，或用户直接给出可量化维度 | 自检门通过 |
+| 5 开局前端 | `references/stage-5-opening-ui.md` | `opening-ui` | 有 `naming.world`；用户要开局界面/开场面板 | 前端门通过 |
+| 6 状态栏前端 | `references/stage-6-statusbar-ui.md` | `statusbar-ui` | 有 `axis-system`（降级形态：信息卡）；用户要状态栏/每轮数值 | 前端门通过 |
 
 阶段可任意顺序进入（"我只要一张场景卡"合法）。`contract.stages` 记录每阶段实际状态，不假定前置阶段已完成。
 
@@ -28,7 +30,7 @@
 
 七个以外的标记一律不用。`[不适用]` 的模块在终稿中整段移除，不留空壳。
 
-## 三、六道门
+## 三、七道门
 
 **`开工门`（阶段 0）** 判"够不够开工"：能否定出目标阶段。不单独提问——题目并入下游首轮。
 
@@ -41,6 +43,8 @@
 **`命名门`（每次渲染产物前）** 四步，见第五节。
 
 **`联网门`（仅 `project.web_research: true`）** 每次落笔前先检索（不限阶段，含局部改动），交付前复核一遍本份产物里的全部外部专名；每条检索记进 `创作痕迹/检索来源.md`。没检索到就记 `未检索到` 并改走确认清单，不编造。细则见 `references/web-research.md`。
+
+**`前端门`（仅阶段 5 / 6）** 七条：标签三处一致（正则 ↔ HTML 的 `TAG` ↔ `frontend-prompt.yaml`）、字段两处一致且能追到产物、`markdownOnly: true`、`replaceString` 的代码块含 `<body>`、无外链无 `eval` 无 `document.write`、本楼无标签时留白不报错、脏值与越界值都安全。细则与机制事实见 `references/frontend-conventions.md`。
 
 ## 四、自检门四类
 
@@ -83,5 +87,6 @@
 - 终稿只输出模板本体，不加前言、结语、"以下是……"。
 - 移除全部 `#` 注释行与被注释掉的可选结构。
 - 文本模态是一个 ```yaml 代码块；代码块之外只允许四样：设计说明（≤ 5 句）、补全清单、待确认清单、运行示例（仅数值系统）。
+- 表现层例外（阶段 5 / 6）：交付三个代码块——完整 HTML、正则 JSON、提示词条目 YAML；HTML 必须在 ```html 块内，正则必须在 ```json 块内，不套 YAML 骨架。
 - `【AI补全·可替换】` 与 `[待定：…]` 保留在正文里，不在正文里夹解释。
 - 交付前先过自检门，再过命名门，顺序不可颠倒。

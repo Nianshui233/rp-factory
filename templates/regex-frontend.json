@@ -1,0 +1,17 @@
+[
+  {
+    "id": "rp-frontend-tag",
+    "scriptName": "RP · 标签名",
+    "findRegex": "/<标签名>[\\s\\S]*?<\\/标签名>/g",
+    "replaceString": "```html\n<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"utf-8\">\n<style></style>\n</head>\n<body>\n<div id=\"rp-root\"></div>\n<script></script>\n</body>\n</html>\n```",
+    "trimStrings": [],
+    "placement": [2],
+    "disabled": false,
+    "markdownOnly": true,
+    "promptOnly": false,
+    "runOnEdit": true,
+    "substituteRegex": 0,
+    "minDepth": null,
+    "maxDepth": null
+  }
+]

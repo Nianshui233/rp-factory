@@ -353,3 +353,54 @@ artifacts: []              # {type, path | inline_ref, version}
 | 文件数自相矛盾（五个 vs 八个）| 表现层整体出界后不再存在 |
 | 两条选路表互斥、MVU/EJS 在不在范围内 | 表现层出界 → 连带出界，§12 记录 |
 | dry-run 谁演用户 / 要不要 ST JSON | 构建者自演；不做 ST 导入层（§10）|
+
+---
+
+## 14 表现层回归（2026-11-20 追加）
+
+§12 曾判"日后重做表现层应以独立包出现"。**本条推翻该判断**，理由是当初出界的两个原因都消失了：
+
+1. 出界是因为 `非变量的HTML状态栏.md` 过时（ST 是纯文本不执行 JS）。主人明确要求「自己去看 SillyTavern 与酒馆助手的源码，不要看那份提示词」，于是按代码事实重定路线。
+2. §12 担心的"它自己的管线、自己的验收"没有被绕过，而是并入本包：表现层要终端产物（`naming` / `axis-system` 的轴与范围）才能真正画出东西，独立包反而要重新发明一遍契约。
+
+### 14.1 路线（源码事实）
+
+| 事实 | 出处 |
+|---|---|
+| 替换引擎支持 `{{match}}` / `$1…$9` / `$<组名>` / `trimStrings` | `SillyTavern/public/scripts/extensions/regex/engine.js` |
+| 替换后过 `DOMPurify.sanitize(…, { MESSAGE_SANITIZE: true, ADD_TAGS: ['custom-style'] })` → `<script>` 被删 | `SillyTavern/public/script.js` |
+| 消息内 `<style>` 被 AST 改写（加 `.mes_text ` 前缀、`.class`→`.custom-class`、删 `@import`） | `SillyTavern/public/scripts/chats.js` |
+| 导入格式 `RegexScriptData`（`placement` 1=用户 2=AI） | `SillyTavern/public/scripts/char-data.js`、`extensions/regex/index.js` |
+| `<pre>` 文本含 `html>` / `<head>` / `<body` 即渲成 iframe | `JS-Slash-Runner/src/util/is_frontend.ts` |
+| iframe 注入 `getChatMessages` / `eventOn` / `triggerSlash` / `tavern_events` | `JS-Slash-Runner/src/iframe/predefine.js`、`src/panel/render/iframe.ts` |
+| `getChatMessages(range, {role, hide_state, include_swipes})`、`getCurrentMessageId()` | `JS-Slash-Runner/@types/function/chat_message.d.ts`、`@types/iframe/util.d.ts` |
+
+**结论：纯 ST 没有 JS，"$1 注入 + 内联脚本"那条路是死的。** 表现层只能是动态版：正则把标签换成 ```html 代码块，酒馆助手渲染并执行其中 JS。主人确认：只做动态版。
+
+### 14.2 两个阶段而非一个
+
+初始设想是单个"表现层"阶段。主人要求拆成两个、由用户自己选：
+
+- **阶段 5 开局前端**（`opening-ui`）：开场一次性面板，读本楼，三个入口按钮，点击 `/send`。
+- **阶段 6 状态栏前端**（`statusbar-ui`）：每轮面板，读本楼或跟随最新楼，条 + 变化箭头 + 危险区上色。
+
+拆的理由：两者的数据源不同（前者靠开场白里的九字段，后者靠每轮末尾的字段块），进入条件不同（前者只要 `naming.world`，后者要 `axis-system`），失败模式不同（前者是入口点不动，后者是条比例错）。
+
+### 14.3 契约与门的改动
+
+- `stages` 扩到 `1..6`；`artifacts.type` 六类，新增 `opening-ui` / `statusbar-ui`。
+- `naming.ui_tags`：`{opening, status: ""}`，标签名一处写定、三处引用（正则 / HTML `TAG` / 提示词条目）。
+- 六道门 → **七道门**，新增 `前端门`（七条自检）。
+- 产物一律 YAML 的规则保留，**表现层是唯一例外**：交 HTML + 正则 JSON + 提示词条目 YAML 三份，不套 YAML 骨架（理由见 `references/dual-mode.md` 第四节）。
+
+### 14.4 不做的事
+
+- 不做无插件静态版；不点名任何外部插件条目以外的依赖。
+- 不生成 MVU 变量框架或 EJS 模板代码——状态栏的数据来自消息正文里的字段块，不来自变量系统。
+- 不在 HTML 里内联外链资源（CDN 字体、图标库、图片 URL）：酒馆消息区不能保证网络与 CSP。
+
+---
+
+## 15 覆盖清单补充
+
+`docs/coverage-checklist.md` 新增「表现层（阶段 5 / 6）」一节，U01–U13 十三条，全部已勾。

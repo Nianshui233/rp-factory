@@ -17,6 +17,8 @@ stages:                    # 每阶段状态，不是标量。乱序合法。
   2: none
   3: none
   4: none
+  5: none                  # 开局前端
+  6: none                  # 状态栏前端
 
 content_boundaries:        # 边界门：任何产物落笔前必须锁定（开局问完即可锁）
   nsfw: false              # 开局第三问；false 时 rating 写一般向，hard_no 加“任何性描写”
@@ -31,6 +33,9 @@ naming:                    # 命名门的事实源：同一实体在所有产物
   systems: []              # 超自然 / 科技系统，- {id: "", name: "", ceiling: ""}
   axes: []                 # - {name: "", range: [], initial: 0, provisional: true, levels: []}
                            #   provisional 只在阶段 2/3 先行写名时为 true；阶段 4 接管后删除该键
+  ui_tags:                 # 表现层的消息标签名；写定后不与正则、HTML 的 TAG 分离
+    opening: ""            # 阶段 5 写「开局界面」
+    status: ""             # 阶段 6 写「状态栏」
 
 hard_settings: []          # 已锁定、不可改
   # - id: H01
@@ -43,7 +48,7 @@ pending: []                # [待定…] 汇总，- {stage: 1, item: "", why: ""
 decisions: []              # 用户拍的板，- {stage: 1, question: "", answer: "", why: ""}
 
 artifacts: []              # 产物索引，正文不在这里
-  # - type: world-bible    # world-bible | rolecard | scene-sheet | axis-system
+  # - type: world-bible    # world-bible | rolecard | scene-sheet | axis-system | opening-ui | statusbar-ui
   #   path: ""             # 工程模态写文件路径；文本模态留空
   #   inline_ref: ""       # 文本模态写产物在会话里的标识
   #   version: 1

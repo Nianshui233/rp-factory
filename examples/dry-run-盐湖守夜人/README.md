@@ -1,6 +1,6 @@
 # dry-run 记录：盐湖上的守夜人
 
-**构建期产物，不随 skill 发布。** 目的：把阶段 1 → 4 真跑一遍，用产物反证规则够不够用。
+**构建期产物，不随 skill 发布。** 目的：把阶段 1 → 4 与阶段 6 真跑一遍，用产物反证规则够不够用。
 
 虚构概念一句话：盐湖每年冬末涨潮，潮水带走名字；七座灯塔守着堤线，最末一座已熄十二年。
 
@@ -12,6 +12,7 @@
 | 2 | `rolecard.yaml` | 标准档位：祁昭，第七塔次席守夜人 |
 | 3 | `scene-sheet.yaml` | 强结构（潜入 + 推理向）：第七塔，十块全填 |
 | 4 | `axis-system.yaml` | 双轴：`wick` 灯芯（记忆余量）/ `tide` 潮压 |
+| 6 | `statusbar-ui.html` + `regex-statusbar.json` + `frontend-prompt.yaml` | 状态栏：正则捕获 `<状态栏>` 换成 HTML 代码块，酒馆助手渲成 iframe，`getChatMessages` 读本楼拆字段 |
 | — | `contract.yaml` | 命名权威与索引，四份产物都指向它 |
 
 模态取 `engineering`（写文件），因为四份产物要互相读。
@@ -65,3 +66,27 @@
 - **`caps` 与 `boundaries` 的量级关系没有校验规则**：`per_session.min` 设成 `-40`、轴 `range` 是 `[0,100]`，一晚上能掉四成，合不合理靠设计者判断，规则层不拦。这一条属于"品味问题"，加规则会误伤别的系统，暂不处理。
 - **`places[].scope` 是自由文本**：`loc_seventower` 的 `scope` 写的是"堤线最末哨塔，已熄灯十二年"，这与 `hard_settings.H03` 重复。契约允许这种重复，但改名时要改两处。记下，不改结构。
 - **场景卡的 `线索` 强制 ≥3 条**：这次写了 4 条，其中第 4 条（老邵的口述）其实是 NPC 信息而非场景信息，位置勉强。规则层不区分，靠判断。
+
+## 五、阶段 6（表现层）跑出来的东西
+
+**链路**：AI 每轮末尾输出 `<状态栏>` → ST 正则（`markdownOnly: true`）整块换成 ```html 代码块 → 酒馆助手认代码块里有 `<body>`，渲染成 iframe → iframe 里 `getChatMessages(getCurrentMessageId())` 读本楼原文，拆字段，画条。
+
+**产物对应**：`statusbar-ui.html` 的 `FIELDS`（灯芯 0–100 `dir:down` warn 34 / danger 15；潮压 0–100 `dir:up` warn 60 / danger 82）逐项抄自 `axis-system.yaml` 的 `range` 与 `direction`；`regex-statusbar.json` 的 `replaceString` 内嵌同一份 HTML；`frontend-prompt.yaml` 的 `一致性` 段登记 `标签: 状态栏` 与四字段。
+
+**跑过的验证**（本地 node + DOM 桩，不是真酒馆）：
+
+| 情形 | 期望 | 实际 |
+|---|---|---|
+| 本楼 72 / 上一楼 80 | 条 72%、`↓8` | 一致 |
+| 潮压 42 / 上一楼 30 | 条 42%、`↑12`，不上色（up 轴，42 < 60） | 一致 |
+| 越界 140 | 条钳满 100%，数字照写 140 | 一致；`灯芯 140` 按 down 轴判不危险，`潮压 140` 判危险 |
+| 脏值 `<b>x</b>` | 显示字面文本 | 一致（`esc()` 在拼 `innerHTML` 前生效） |
+| `未知` | 整条隐去 | 一致 |
+| 本楼无 `<状态栏>` | 留白，不报错 | 一致（`root.innerHTML=''`） |
+| 正则与 HTML 一致性 | `TAG` / `findRegex` / `一致性.标签` 三处相同；`FIELDS` 与 `一致性.字段` 两组相同 | 一致（脚本逐项比对） |
+
+**暴露的问题（已写进规则）**
+
+1. **我按名字猜单位，猜错了。** 先写成 `潮压 0–1 小数`，`axis-system.yaml` 里其实是 `range: [0, 100]`、`initial: 22`。若不逐项抄 `range`，同一根轴在界面里的比例会是错的。→ 阶段 6 的「判断标准」与「退出」都写明：`FIELDS` 的 `min/max` 必须逐项对 `range`，不一致就改界面、不改产物。
+2. **越界值该不该擦干净？** 决定照原样显示数字、只把条钳住：数字漂移是模型的问题，界面替它抹平就看不见了。→ 写进阶段 6「退出」。
+3. **无插件版从一开始就不成立。** ST 在 `messageFormatting` 后要过 `DOMPurify.sanitize()`，`ADD_TAGS` 只有 `custom-style`，`<script>` 一律被删。所以"$1 注入 + 内联脚本解析"那条路是死的。→ 表现在 `references/frontend-conventions.md` 开头的三条硬规矩里，第一条就是"正则必须仅格式显示"。

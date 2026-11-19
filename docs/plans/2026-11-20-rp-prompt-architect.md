@@ -596,3 +596,46 @@ Expected: `SKILL.md` ≤120；各 `stage-*.md` ≤200；`pipeline.md` ≤150。
 ```bash
 git add -A && git commit -m "test: dry-run 盐湖守夜人 + 自包含扫描通过"
 ```
+
+---
+
+# 追加任务（2026-11-20）：表现层
+
+依据：`docs/specs/2026-11-20-rp-prompt-architect-design.md` §14。只做动态版（酒馆助手 + ST 正则），拆成阶段 5 / 6 两个独立阶段。
+
+## 追加 Global Constraints
+
+- 正则必须 `markdownOnly: true`（仅格式显示），否则 `getChatMessages` 读到的是 HTML 而不是数据。
+- 代码块必须含 `<body>`，否则酒馆助手不渲染成 iframe。
+- HTML 单文件、无外链、无 `eval` / `document.write`、class 全带命名空间前缀。
+- 标签三处一致、字段两处一致（`前端门` 七条，见 `references/frontend-conventions.md` 第六节）。
+- 产物一律 YAML 的规则对表现层不适用：交 HTML / JSON / YAML 三份。
+
+### Task 12: 表现层公约 + 两个阶段文件
+
+- [x] **Step 1: 写 `references/frontend-conventions.md`**（机制事实表、数据流、HTML 骨架、正则 JSON、`frontend-prompt.yaml`、前端门七条）
+- [x] **Step 2: 写 `references/stage-5-opening-ui.md`**（九字段、入口 `显示文本|实际发送`、`triggerSlash('/send …')`）
+- [x] **Step 3: 写 `references/stage-6-statusbar-ui.md`**（字段表抄轴 `range`/`direction`、危险区、变化箭头、越界钳条）
+- [x] **Step 4: 头部核验**：两份 stage 文件各六节，`grep -c '^## '` = 6
+
+### Task 13: 骨架与接线
+
+- [x] **Step 1: `templates/statusbar.html` / `templates/opening-ui.html` / `templates/regex-frontend.json` / `templates/frontend-prompt.yaml`**
+- [x] **Step 2: 契约接线**：`stages: 1..6`、`naming.ui_tags`、`artifacts.type` 六类（`templates/contract.yaml` + `references/contract-schema.md`）
+- [x] **Step 3: 公共脊**：`pipeline.md` 阶段表 5/6、六道门→七道门、输出纪律表现层例外
+- [x] **Step 4: 路由与预算**：`SKILL.md` 路由两行、开局第二问六项、硬门第 7 条、文件索引；`interview-protocol.md` 预算表 5/6 行；`dual-mode.md` 第四节表现层例外
+- [x] **Step 5: 核验**：`grep -n '六道门' -r .` 无输出；`grep -c '^## ' references/stage-5-opening-ui.md references/stage-6-statusbar-ui.md` 各 6
+
+### Task 14: dry-run 阶段 6
+
+- [x] **Step 1: `examples/dry-run-盐湖守夜人/最终产物/statusbar-ui.html`**（灯芯 0–100 `down` warn 34 / danger 15；潮压 0–100 `up` warn 60 / danger 82）
+- [x] **Step 2: `regex-statusbar.json`**（`replaceString` 内嵌同一份 HTML，由脚本生成，避免手抄漂移）
+- [x] **Step 3: `frontend-prompt.yaml`**（四字段 + `一致性` 段）
+- [x] **Step 4: 三种误数据 + 一致性脚本**：缺字段 / 越界 140 / 脏值 `<b>x</b>` / 无标签留白；`TAG` 三处、`FIELDS` 两处逐项比对
+- [x] **Step 5: 写回契约**：`stages.6: done`、`stages.5: skipped`、`ui_tags.status`、`H06`、三条 `decisions`、三条 `artifacts`
+- [x] **Step 6: README 第五节 + 创作记录阶段 6**，记录三条暴露的问题
+- [x] **Step 7: 提交**
+
+```bash
+git add -A && git commit -m "feat: 表现层——阶段 5 开局前端 / 阶段 6 状态栏前端（动态版）"
+```
