@@ -2,6 +2,7 @@ project:
   name: "白潮"
   workspace: "examples/dry-run-盐湖守夜人"
   mode: "engineering"
+  stages_requested: [1, 2, 3, 4]
   rp_form: "1v1 长线"
   language: "zh"
 
@@ -12,6 +13,7 @@ stages:
   4: done
 
 content_boundaries:
+  nsfw: true
   rating: "R15"
   hard_no:
     - "对未成年角色的性描写"

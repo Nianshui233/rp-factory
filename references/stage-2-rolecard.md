@@ -115,11 +115,11 @@
 - `stages.2` → `partial` / `done`。
 - 用户提到可量化维度（"他在意好感度""堕落值会变"）→ 写 `naming.axes` 并标 `provisional: true`，同时在 `decisions` 记"由阶段 4 接管确认"。阶段 4 接手后删除 `provisional`。
 - `hard_settings[]`：用户明确确认的角色底线追加为硬设定，`source: 用户确认`。
-- `content_boundaries`：角色卡最容易越界，落笔前必须已锁定 `rating` 与 `hard_no`；锁不进去就说明边界门没完成，先回去锁。
+- `content_boundaries`：落笔前必须已锁定 `nsfw` / `rating` / `hard_no`（开局就锁了，缺则回边界门）。`nsfw: false` → 卡里不写 `nsfw` 块，`taboos` 与 `anti_ooc.never` 里加一条"不做任何性行为"。
 
 ## 退出
 
-- 自检门四类（见 `references/pipeline.md`）全通过；内容边界层那一类仅在卡里有 `nsfw` 块时执行。
+- 自检门四类（见 `references/pipeline.md`）全通过；内容边界层那一类仅当 `content_boundaries.nsfw: true` 且卡里有 `nsfw` 块时执行，`nsfw: false` 时整类跳过。
 - `【AI补全·可替换】` 逐条列出，交用户确认。
 - 命名门四步通过（角色名、势力名、地点名与契约一致）→ 交付 → 回写契约 → 阶段结束。
 - 用户只要精简档位时不强推标准档；只在交付时一句说明精简档会让 AI 即兴补全更多。

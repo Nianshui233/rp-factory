@@ -15,9 +15,9 @@
 
 | 键区 | 装什么 |
 |---|---|
-| `project` | 名字（`name` = 项目文件夹名）、**工作区绝对路径**（`workspace`）、模态（`text` / `engineering`）、RP 形式、语言 |
-| `stages` | 每阶段状态：`none` / `partial` / `done` / `skipped` |
-| `content_boundaries` | `rating`、`hard_no`、`soft_no` |
+| `project` | 名字（`name` = 项目文件夹名）、**工作区绝对路径**（`workspace`）、模态（`text` / `engineering`）、RP 形式、语言、**本次要跑的阶段**（`stages_requested`） |
+| `stages` | 每阶段状态：`none` / `partial` / `done` / `skipped`（未勾选写 `skipped`） |
+| `content_boundaries` | `nsfw`（开局第三问）、`rating`、`hard_no`、`soft_no` |
 | `naming` | `world`、`factions[]`、`places[]`、`systems[]`、`axes[]` |
 | `hard_settings` | 已锁定的硬设定，`source` 必须标 `用户确认` 或 `推导` |
 | `pending` | 待定项汇总 |
@@ -28,7 +28,7 @@
 
 | 键区 | 独占写者 |
 |---|---|
-| `project.*`、`content_boundaries.*` | 主 skill（工作区门与边界门） |
+| `project.*`（含 `stages_requested`）、`content_boundaries.*`（含 `nsfw`） | 主 skill（开局门与边界门） |
 | `naming.world` / `factions` / `places` / `systems` | 阶段 1 |
 | `naming`（角色相关新增项） | 阶段 2 |
 | `naming.axes` | 阶段 4 接管；阶段 2 / 3 可写 `provisional: true` 的临时项 |
@@ -55,4 +55,12 @@
 
 - 用户明确说过的规则 → `source: 用户确认`
 - 系统按判断推出来的 → `source: 推导`。推导项不享受"不可改"待遇，后续阶段可以推翻。
-- 内容边界（`rating` / `hard_no`）不叫硬设定，它们是边界门的一部分，优先级更高。
+- 内容边界（`nsfw` / `rating` / `hard_no`）不叫硬设定，它们是边界门的一部分，优先级更高。
+
+## 七、开局的三个值怎么锁
+
+| 值 | 来源 | 变了怎么办 |
+|---|---|---|
+| `project.stages_requested` | 开局多选 | 追加就追加，把该阶段 `skipped` 改 `none`，记 `decisions`。已 `done` 的阶段不受影响 |
+| `stages.n: skipped` | 没勾的阶段 | 只是"本次不跑"，不等于"不需要"；下游阶段缺输入时照旧走补采访问 |
+| `content_boundaries.nsfw` + `rating` | 开局第三问 | 开关一次就重锁 `rating` 并记 `decisions`；关掉时必须清掉已交付产物里的越界内容，只改开关不算数 |
