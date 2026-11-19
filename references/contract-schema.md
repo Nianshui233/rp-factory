@@ -1,6 +1,6 @@
 # 契约规范
 
-骨架在 `templates/contract.yaml`。本文件说明它是什么、谁写、冲突怎么办。
+位置：`<工作区>/<世界名>/创作痕迹/contract.yaml`。骨架在 `templates/contract.yaml`。本文件说明它是什么、谁写、冲突怎么办。
 
 ## 一、定位
 
@@ -15,7 +15,7 @@
 
 | 键区 | 装什么 |
 |---|---|
-| `project` | 名字、模态（`text` / `engineering`）、RP 形式、语言 |
+| `project` | 名字（`name` = 项目文件夹名）、**工作区绝对路径**（`workspace`）、模态（`text` / `engineering`）、RP 形式、语言 |
 | `stages` | 每阶段状态：`none` / `partial` / `done` / `skipped` |
 | `content_boundaries` | `rating`、`hard_no`、`soft_no` |
 | `naming` | `world`、`factions[]`、`places[]`、`systems[]`、`axes[]` |
@@ -28,13 +28,15 @@
 
 | 键区 | 独占写者 |
 |---|---|
-| `project.*`、`content_boundaries.*` | 主 skill（边界门） |
+| `project.*`、`content_boundaries.*` | 主 skill（工作区门与边界门） |
 | `naming.world` / `factions` / `places` / `systems` | 阶段 1 |
 | `naming`（角色相关新增项） | 阶段 2 |
 | `naming.axes` | 阶段 4 接管；阶段 2 / 3 可写 `provisional: true` 的临时项 |
 | `hard_settings` | 各阶段追加，只有用户确认的才 `locked` |
 
-`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。
+`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`最终产物/world-bible.yaml`），不用绝对路径。
+
+`project.workspace` 与 `project.name` 必须同时更新：前者是用户确认的**工作区**（父目录）绝对路径，后者是子文件夹名（= 世界名，未定时为 `未命名项目`）。项目实际路径 = `<workspace>/<name>/`。只改一个 = 指向一个不存在的目录。
 
 ## 四、冲突规则
 

@@ -1,5 +1,6 @@
 project:
   name: "白潮"
+  workspace: "examples/dry-run-盐湖守夜人"
   mode: "engineering"
   rp_form: "1v1 长线"
   language: "zh"
@@ -58,7 +59,7 @@ decisions:
   - {stage: 4, question: "灯芯值是否可回升", answer: "不可回升，只能靠他人代烧", why: "用户要'烧掉就没有'的压迫感"}
 
 artifacts:
-  - {type: "world-bible", path: "world-bible.yaml", version: 1}
-  - {type: "rolecard", path: "rolecard.yaml", version: 1}
-  - {type: "scene-sheet", path: "scene-sheet.yaml", version: 1}
-  - {type: "axis-system", path: "axis-system.yaml", version: 1}
+  - {type: "world-bible", path: "最终产物/world-bible.yaml", version: 1}
+  - {type: "rolecard", path: "最终产物/rolecard.yaml", version: 1}
+  - {type: "scene-sheet", path: "最终产物/scene-sheet.yaml", version: 1}
+  - {type: "axis-system", path: "最终产物/axis-system.yaml", version: 1}

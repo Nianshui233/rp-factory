@@ -1,9 +1,10 @@
 # 契约骨架 · contract.yaml
-# 复制本文件到项目根，按阶段填写。键名与 references/contract-schema.md 逐字一致，不要改。
+# 放到 <工作区>/<世界名>/创作痕迹/contract.yaml，按阶段填写。键名与 references/contract-schema.md 逐字一致，不要改。
 # 契约是索引与命名权威，不是产物正文。世界观正文、心理层、计算公式一律不进这里。
 
 project:
-  name: ""                 # 世界 / 作品名；可暂定，如「临时世界名」
+  name: ""                 # 项目文件夹名 = 世界 / 作品名；未定名时写「未命名项目」
+  workspace: ""            # 用户确认的工作区绝对路径；项目路径 = <workspace>/<name>/
   mode: "text"             # text | engineering
   rp_form: ""              # 1v1 / 多人 / 跑团风格 / 旁白主导
   language: "zh"           # 描述性内容的语言
