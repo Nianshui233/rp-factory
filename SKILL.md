@@ -57,8 +57,8 @@ disable-model-invocation: true
 
 是 / 否，问的是"这次创作要不要主动查外部资料"，与是否同人无关。
 
-- **否** → `project.web_research: false`，全程不检索，也不许顺手搜。**是** → 再问一句**查什么方向**（例：基于哪部作品 / 哪个真实年代或地点 / 哪个专业领域），需要时把作品名与版本写进 `project.source_ip`。
-- 是 → 从这一刻起**全程主动联网检索**：每阶段开头先查外部事实底盘与专名，查完才落笔；每条记进 `创作痕迹/检索来源.md`（骨架 `templates/research-log.md`）。查什么按项目类型分（已有作品 / 真实年代地点 / 专业领域），冲突怎么裁、没网怎么降级、版权边界，全在 `references/web-research.md`——**进入任何阶段前先读它**。
+- **否** → `project.web_research: false`，全程不检索，也不许顺手搜。
+- **是** → 再问一句**查什么方向**（基于哪部作品 / 哪个真实年代或地点 / 哪个专业领域），需要时把作品名与版本写进 `project.source_ip`；并从这一刻起**全程主动联网检索**：每阶段开头先查外部事实底盘与专名，查完才落笔；每条记进 `创作痕迹/检索来源.md`（骨架 `templates/research-log.md`）。查什么按项目类型分（已有作品 / 真实年代地点 / 专业领域），冲突怎么裁、没网怎么降级、版权边界，全在 `references/web-research.md`——**进入任何阶段前先读它**。
 - 不答 → 按「否」锁，一句告知可随时开。中途要开 → 回填开关、补建检索记录、从当前阶段起开始查，记 `decisions`。
 
 四问用结构化选项，**不用** `references/interview-protocol.md` 的问题块格式。写回细节见 `references/contract-schema.md` 第七节。
