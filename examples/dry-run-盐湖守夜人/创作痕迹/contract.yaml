@@ -2,7 +2,7 @@ project:
   name: "白潮"
   workspace: "examples/dry-run-盐湖守夜人"
   mode: "engineering"
-  stages_requested: [1, 2, 3, 4, 6]
+  stages_requested: [1, 2, 3, 4, 5, 6]
   web_research: false
   source_ip: ""
   rp_form: "1v1 长线"
@@ -13,7 +13,7 @@ stages:
   2: done
   3: done
   4: done
-  5: skipped
+  5: done
   6: done
 
 content_boundaries:
@@ -42,7 +42,7 @@ naming:
     - {name: "wick", range: [0, 100], initial: 68, levels: ["清醒", "磨损", "空壳"]}
     - {name: "tide", range: [0, 100], initial: 22, levels: ["静潮", "压潮", "漫潮"]}
   ui_tags:
-    opening: ""
+    opening: "建卡向导"
     status: "状态栏"
 
 hard_settings:
@@ -70,6 +70,10 @@ hard_settings:
     text: "每轮回复末尾必输出 <状态栏> 块；灯芯与潮压只写 0-100 整数，不可知写「未知」"
     source: "用户确认"
     locked_at_stage: 6
+  - id: H07
+    text: "角色卡「第一条消息」固定为 <建卡向导>；该标签由建卡向导正则吃掉，不进正文"
+    source: "用户确认"
+    locked_at_stage: 5
 
 pending:
   - {stage: 3, item: "第七塔北侧堤墙的裂缝宽度", why: "用户未定，按可修复处理"}
@@ -78,6 +82,9 @@ decisions:
   - {stage: 1, question: "盐潮是自然现象还是有意志", answer: "有意志但不可沟通", why: "用户选此项，让悬疑不落到'讲道理'上"}
   - {stage: 2, question: "角色的核心驱动", answer: "追回被拿走的记忆而非复仇", why: "用户否掉了复仇线，避免与教团冲突重复"}
   - {stage: 4, question: "灯芯值是否可回升", answer: "不可回升，只能靠他人代烧", why: "用户要'烧掉就没有'的压迫感"}
+  - {stage: 5, question: "开局前端做哪种形态", answer: "建卡向导（8 步：序章+6 组字段+总览）", why: "用户要先捏人再进故事，且要能把档案粘回去给阶段 2 重建"}
+  - {stage: 5, question: "向导怎么触发", answer: "角色卡开场白即触发词 <建卡向导>", why: "开场白是唯一必然出现的一楼，触发最稳，用户一进聊天就能看见"}
+  - {stage: 5, question: "向导配色", answer: "盐白底 + 灯黄强调", why: "与状态栏同源；向导是第一次见面，视觉先立住白潮的调"}
   - {stage: 6, question: "状态栏跟随本楼还是最新楼", answer: "本楼（每楼留快照）", why: "长线回看时能看出灯芯是何时掉的"}
   - {stage: 6, question: "变化要不要显示箭头", answer: "显示", why: "灯芯只降不升，箭头是最省字的压迫感来源"}
   - {stage: 6, question: "面板形态与配色", answer: "细长横条 + 夜蓝底暗黄光", why: "与场景卡的夜战与盐晶灯同调；不做折叠，免得用户多点一次"}
@@ -87,6 +94,8 @@ artifacts:
   - {type: "rolecard", path: "最终产物/rolecard.yaml", version: 1}
   - {type: "scene-sheet", path: "最终产物/scene-sheet.yaml", version: 1}
   - {type: "axis-system", path: "最终产物/axis-system.yaml", version: 1}
+  - {type: "opening-ui", path: "最终产物/wizard-ui.html", version: 1}
+  - {type: "opening-ui", path: "最终产物/regex-opening.json", version: 1}
   - {type: "statusbar-ui", path: "最终产物/statusbar-ui.html", version: 1}
   - {type: "statusbar-ui", path: "最终产物/regex-statusbar.json", version: 1}
   - {type: "statusbar-ui", path: "最终产物/frontend-prompt.yaml", version: 1}

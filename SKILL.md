@@ -18,7 +18,7 @@ disable-model-invocation: true
 | 「设计一个角色 / 角色卡 / 人设」 | 阶段 2 | `references/stage-2-rolecard.md` |
 | 「生成场景 / 地点卡 / 地图」 | 阶段 3 | `references/stage-3-scene-sheet.md` |
 | 「好感度 / 堕落值 / 理智值 / 数值系统」 | 阶段 4 | `references/stage-4-axis-system.md` |
-| 「开局界面 / 开场面板 / 首页 / 目录页」 | 阶段 5 | `references/stage-5-opening-ui.md` |
+| 「开局界面 / 开场面板 / 首页 / 建卡向导 / 捏人」 | 阶段 5 | `references/stage-5-opening-ui.md` |
 | 「状态栏 / 面板 / 每轮显示数值 / 血条」 | 阶段 6 | `references/stage-6-statusbar-ui.md` |
 | 「做一张完整卡 / 一整套设定」 | 按 `project.stages_requested` 依次 | 按需逐个加载 |
 | 只有模糊概念 | 阶段 0 判定后进入 | 先 `references/interview-protocol.md` |
@@ -93,7 +93,7 @@ disable-model-invocation: true
 4. **零回溯**：不引用任何包外路径、不登记源文件名。本包自包含，删掉任何外部文件都不影响运行。
 5. **自检门**：每份设定产物交付前内部执行四类检查，不向用户展示检查过程。
 6. **联网门（仅 `web_research: true`）**：每次落笔前先检索（不限阶段、含局部改动）、交付前复核一遍外部专名；查不到就记 `未检索到` 并改走确认清单，**不编造外部事实**。
-7. **前端门（仅阶段 5 / 6）**：交付前按 `references/frontend-conventions.md` 第六节七条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、无外链无 `eval`、无标签时留白、脏值转义。
+7. **前端门（仅阶段 5 / 6）**：交付前按 `references/frontend-conventions.md` 第六节八条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽、无外链无 `eval`、无标签时留白、脏值转义。
 
 ## 七、文件索引
 
@@ -109,10 +109,10 @@ disable-model-invocation: true
 | `references/stage-2-rolecard.md` | 阶段 2 角色卡 |
 | `references/stage-3-scene-sheet.md` | 阶段 3 场景卡 |
 | `references/stage-4-axis-system.md` | 阶段 4 数值系统 |
-| `references/stage-5-opening-ui.md` | 阶段 5 开局前端 |
+| `references/stage-5-opening-ui.md` | 阶段 5 开局前端（登场面板 / 建卡向导两形态） |
 | `references/stage-6-statusbar-ui.md` | 阶段 6 状态栏前端 |
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
-| `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 两个界面骨架、正则导入骨架、提示词条目骨架 |
+| `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架（状态栏 / 登场面板 / 建卡向导）、正则导入骨架、提示词条目骨架 |
 
 ## 八、阶段文件约定
 

@@ -35,7 +35,7 @@
 | `naming.ui_tags` | 阶段 5 写 `opening`，阶段 6 写 `status`；写定后不兼改 |
 | `hard_settings` | 各阶段追加，只有用户确认的才 `locked` |
 
-`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`最终产物/world-bible.yaml`），不用绝对路径。表现层一份产物落三个文件：`{opening,statusbar}-ui.html`、`regex-{opening,statusbar}.json`、`frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个）。
+`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`最终产物/world-bible.yaml`），不用绝对路径。表现层一份产物落两到三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分：界面 HTML、正则 JSON，以及可选的提示词条目 `frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个；建卡向导通常不需要它）。
 
 `project.workspace` 与 `project.name` 必须同时更新：前者是用户确认的**工作区**（父目录）绝对路径，后者是子文件夹名（= 世界名，未定时为 `未命名项目`）。项目实际路径 = `<workspace>/<name>/`。只改一个 = 指向一个不存在的目录。
 

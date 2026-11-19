@@ -52,6 +52,7 @@
 </head>
 <body>
 <div class="rp-sb" id="rp-sb-root"></div>
+<textarea id="rp-sb-raw" hidden>$1</textarea>
 <script>
 (function () {
   'use strict';
@@ -94,18 +95,32 @@
     return out;
   }
 
+  /* 数据源优先级：$1 注入的隐藏 textarea > getChatMessages。
+     有 $1 时没有历史楼层，所以不算差值箭头。 */
+  function rawFromDollar1() {
+    var el = document.getElementById('rp-sb-raw');
+    var v = el ? String(el.value || '').trim() : '';
+    if (!v || v.indexOf('$1') === 0) return '';
+    return v;
+  }
+
   function messageText() {
-    var id = FOLLOW_LATEST ? -1 : getCurrentMessageId();
-    var list = getChatMessages(id);
-    return list && list.length ? list[0].message : '';
+    var injected = rawFromDollar1();
+    if (injected) return '<' + TAG + '>' + injected + '</' + TAG + '>';
+    try {
+      var list = getChatMessages(FOLLOW_LATEST ? -1 : getCurrentMessageId());
+      return list && list.length ? list[0].message : '';
+    } catch (e) { return ''; }
   }
 
   function previousData() {
-    if (FOLLOW_LATEST || typeof getCurrentMessageId !== 'function') return null;
-    var id = getCurrentMessageId();
-    if (id <= 0) return null;
-    var prev = getChatMessages(id - 1);
-    return prev && prev.length ? parse(prev[0].message) : null;
+    if (rawFromDollar1() || FOLLOW_LATEST || typeof getCurrentMessageId !== 'function') return null;
+    try {
+      var id = getCurrentMessageId();
+      if (id <= 0) return null;
+      var prev = getChatMessages(id - 1);
+      return prev && prev.length ? parse(prev[0].message) : null;
+    } catch (e) { return null; }
   }
 
   function fmt(n, f) {

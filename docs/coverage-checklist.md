@@ -121,3 +121,11 @@
 | U11 | 表现层 | 越界值钳条、原值照显；`未知` 整条隐去 | references/stage-6-statusbar-ui.md | [x] |
 | U12 | 表现层 | 无插件不做静态版，先告知再问装不装 | references/frontend-conventions.md | [x] |
 | U13 | 表现层 | 产物 type 扩到六类、`naming.ui_tags`、七道门 | references/pipeline.md · references/contract-schema.md · SKILL.md | [x] |
+| U14 | 表现层 | 开局双形态：登场面板 A / 建卡向导 B，出口不同 | references/stage-5-opening-ui.md | [x] |
+| U15 | 表现层 | 向导固定三段式（序章 / 字段分组 / 总览），字段名照角色卡 | references/stage-5-opening-ui.md · templates/wizard-ui.html | [x] |
+| U16 | 表现层 | 向导四件事：进度条可跳、`localStorage` 续填、导出可粘、必填缺口提示 | templates/wizard-ui.html | [x] |
+| U17 | 表现层 | 触发方式二选一：开场白即触发词 / 正文标签；开场白需用户手改 | references/stage-5-opening-ui.md | [x] |
+| U18 | 表现层 | 三条数据路径（静态 / `$1` 注入 / 聊天 API）与配套 `findRegex` | references/frontend-conventions.md | [x] |
+| U19 | 表现层 | 发送三级降级 + 确认框 | references/frontend-conventions.md | [x] |
+| U20 | 表现层 | 状态栏两种规模：细条 / 分页 HUD；默认路径 B | references/stage-6-statusbar-ui.md | [x] |
+| U21 | 表现层 | 前端门八条（新增数据路径自洽、字面占位符留白、交用户四句话） | references/frontend-conventions.md | [x] |

@@ -16,6 +16,7 @@
 | iframe 内容 = 那段代码块的文本，外面再包一层文档，注入 `predefine`（把 `getChatMessages`、`eventOn`、`triggerSlash`、`tavern_events` 等挂到 window）与自动高度脚本 | `src/panel/render/iframe.ts` 的 `createSrcContent`、`src/iframe/predefine.js` |
 | iframe 里可拿楼层号：`getCurrentMessageId()`；可拿 iframe 名：`getIframeName()` | `@types/iframe/util.d.ts` |
 | 有总开关 `settings.render.enabled` 与渲染深度 `depth`，关掉就全是代码块 | `src/panel/Render.vue` |
+| `replaceString` 里的 `$1`…`$9`、`$<名字>` 会被捕获组内容原样顶替（不转义），`trimStrings` 在顶替前过滤；最后整串 `replaceString` 还会过一次 `substituteParams()`（所以 HTML 里写 `{{char}}` 会被展开） | `public/scripts/extensions/regex/engine.js:391-443` |
 
 由此推出三条硬规矩：
 
@@ -29,16 +30,31 @@
 
 ## 二、数据怎么从 AI 流到界面
 
-```
-AI 每轮回复末尾输出  →  <标签> …字段… </标签>
-ST 正则（仅格式显示）  →  把整个标签替换成 ```html 代码块
-酒馆助手              →  代码块变 iframe，执行其中 JS
-HTML                  →  getChatMessages(本楼) 取原文 → 拆标签 → 渲染
+三条路径，按需选一条，别混用：
+
+| 路径 | 怎么用 | 适合 | 代价 |
+|---|---|---|---|
+| **A 静态替换** | `findRegex` 命中一个触发词，`replaceString` 是整份 HTML，无数据 | 建卡向导、纯展示面板 | 界面里的信息全靠 HTML 写死 |
+| **B `$1` 注入** | `findRegex` 带捕获组，HTML 里藏 `<textarea id="xx-raw" hidden>$1</textarea>`，JS 读 `.value` | 每轮状态栏、HUD、单楼面板 | 只能看本楼，**取不到上一层，所以做不了差值箭头** |
+| **C 聊天 API** | `getChatMessages(getCurrentMessageId())[0].message` 拆标签 | 需要跨楼历史（差值、趋势、跨楼统计） | 依赖酒馆助手注入的 API；纯预览环境下拿不到 |
+
+- B 是最稳的一条：数据与 HTML 在同一个正则脚本里，不依赖楼层 API，`runOnEdit` 一开就连手改消息也跟着重算。模板默认“先试 B、B 空则回退 C”，两种环境都能跑。
+- 选 C 就得写 `FOLLOW_LATEST`（跟随最新楼）与差值逻辑；选 B 就别写箭头，两个一起上只会互相抵销。
+- 任何一条路径都不许从 `document` 里读别的消息 DOM：iframe 是隔离的，读不到。
+
+**发送动作的三级降级**（点击按钮要发消息时才需要）：
+
+```js
+if (typeof triggerSlash === 'function') triggerSlash('/send ' + text);
+else if (typeof SillyTavern !== 'undefined' && SillyTavern.triggerSlash) SillyTavern.triggerSlash('/send ' + text);
+else {
+  var box = document.querySelector('#send_textarea');   // 最后手段：往输入框里塞并点发送
+  if (box) { box.value = text; box.dispatchEvent(new Event('input', { bubbles: true }));
+             document.querySelector('#send_but')?.click(); }
+}
 ```
 
-- 取本楼用 `getChatMessages(getCurrentMessageId())[0].message`。
-- 要"跟随最新楼"（状态栏固定在页面某处、永远显示当前状态）时，改读 `getChatMessages(-1)[0].message`，并 `eventOn(tavern_events.CHARACTER_MESSAGE_RENDERED, …)` 重新渲染。
-- 严禁从 `document` 里读别的消息 DOM：iframe 是隔离的，读不到。
+发送前弹一个确认框（展示将要发出的文本）——按钮点错就发出一句话，在 RP 里收不回来。
 
 ## 三、HTML 骨架（每个界面都照这个来）
 
@@ -95,12 +111,13 @@ HTML                  →  getChatMessages(本楼) 取原文 → 拆标签 → �
 </html>
 ```
 
-硬要求：
+**硬要求：**
 
 - 单文件，CSS 与 JS 全内联；**不引用任何外链**（CDN、字体、图片 URL 一律不用）。需要图像就用内联 SVG 或 CSS 渐变。
 - 所有 class 加命名空间前缀，避免两个界面互相串样式。
 - 不用 `eval` / `new Function` / `document.write`。
 - 数据一律先 `esc()` 再进 `innerHTML`；能不用 `innerHTML` 就不用。
+- 用 `$1` 注入时，隐藏 textarea 必须放在 `<body>` 里、且 `$1` 前后不留空白字符（空白会被当作数据）；捕获内容里不能出现 `</textarea>`，所以数据块字段值禁止含 `<` `>`。
 - 本楼没有标签时整块留白（`return`），不抛错、不显示占位红字。
 - 高度别写死：内容多时让它自然高；需要限高时用 `max-height` + `overflow:auto`，不要把 `vh` 换算写死（酒馆助手会替换 `min-height: XXvh`）。
 - 不做全屏遮罩、不夺焦点、不自动滚动外部聊天；界面在消息气泡内正常流淌。
@@ -133,11 +150,12 @@ HTML                  →  getChatMessages(本楼) 取原文 → 拆标签 → �
 
 规矩：
 
-- `findRegex` 用 `/<标签>[\s\S]*?<\/标签>/g`，**不加捕获组**（动态版不需要传数据）。
+- `findRegex` 两种写法：**不带捕获组** `/<标签>[\s\S]*?<\/标签>/g`（路径 A，数据全在 HTML 里）；**带捕获组** `/<标签>([\s\S]*?)<\/标签>/g`（路径 B，配合 HTML 里的 `<textarea hidden>$1</textarea>`）。路径 A 的 `replaceString` 里不能出现 `$1`（会被当成空串抹掉）；路径 B 必须出现且只出现一次。
 - `replaceString` 是 ```` ```html ```` 开头 + 完整 HTML + ```` ``` ```` 收尾；HTML 里不能出现三个反引号，也别在 HTML 里写注释行夹带反引号。**必须包围栏**：裸 HTML 会被 sanitize 拿掉 `<script>`（见第一节顺序那条）。
 - `placement: [2]` 只作用于 AI 输出；用户楼层也要显示时写 `[1, 2]`。
 - `markdownOnly: true`（仅格式显示），`promptOnly: false`。
 - `runOnEdit: true`，用户手改消息后界面跟着重算。
+- `substituteRegex: 0`（用原始正则）；`trimStrings` 用于把捕获内容里的多余字符裁掉，默认空数组。
 - 开关给用户一句话：正则扩展 → 导入该 JSON → 确认"仅格式显示"已开；酒馆助手 → 设置里打开"消息渲染"。
 
 ## 五、提示词条目（`frontend-prompt.yaml`）
@@ -175,7 +193,8 @@ HTML                  →  getChatMessages(本楼) 取原文 → 拆标签 → �
 1. 标签三处一致：`findRegex` 里的标签名、HTML 里的 `TAG`、`frontend-prompt.yaml` 的 `标签`。
 2. 字段两处一致：HTML 的 `FIELDS`、`frontend-prompt.yaml` 的 `字段`；并且都能在对应产物里找到来源。
 3. 正则 `markdownOnly: true`、`replaceString` 含 ```` ```html ````、HTML 含 `<body>`。
-4. HTML 无外链、无 `eval`、无 `document.write`；class 全带命名空间。
-5. 本楼无标签时留白不报错（自己造一条不含标签的消息，看是否安静）。
-6. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本。
-7. 交用户三句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里。
+4. 数据路径自洽：走 B 时 `findRegex` 有 `([\s\S]*?)` 且 HTML 里有 `<textarea … hidden>$1</textarea>`（只一处）；走 A 时 两者都没有；走 C 时无 `$1` 且 `FIELDS` 与消息里拆的字段同名。
+5. HTML 无外链、无 `eval`、无 `document.write`；class 全带命名空间。
+6. 本楼无标签时留白不报错（自己造一条不含标签的消息，看是否安静）；`$1` 未被替换（字面 `$1`）时也留白。
+7. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本；越界值不溢出。
+8. 交用户四句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里、触发词该出现在哪条消息里。

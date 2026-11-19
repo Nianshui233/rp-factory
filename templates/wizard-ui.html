@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  .rp-wz {
+    --rp-wz-bg: #12100e;
+    --rp-wz-card: #1a1714;
+    --rp-wz-fg: #e6e0d4;
+    --rp-wz-dim: #938b7d;
+    --rp-wz-line: #322c25;
+    --rp-wz-accent: #d8a13c;
+    --rp-wz-danger: #b5442f;
+    box-sizing: border-box;
+    font-family: "Noto Sans SC", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--rp-wz-fg);
+    background: var(--rp-wz-bg);
+    border: 1px solid var(--rp-wz-line);
+    border-radius: 6px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .rp-wz * { box-sizing: border-box; }
+  .rp-wz-head { padding: 18px 18px 0; }
+  .rp-wz-title { margin: 0; font-size: 20px; letter-spacing: .08em; }
+  .rp-wz-sub { margin: 4px 0 0; font-size: 12px; color: var(--rp-wz-dim); letter-spacing: .18em; }
+  .rp-wz-steps { display: flex; gap: 4px; padding: 14px 18px 0; flex-wrap: wrap; }
+  .rp-wz-pill {
+    font: inherit; font-size: 11px; cursor: pointer;
+    padding: 3px 9px; border-radius: 999px;
+    color: var(--rp-wz-dim); background: transparent;
+    border: 1px solid var(--rp-wz-line);
+  }
+  .rp-wz-pill[aria-current="true"] { color: var(--rp-wz-bg); background: var(--rp-wz-accent); border-color: var(--rp-wz-accent); }
+  .rp-wz-pill.is-done { color: var(--rp-wz-accent); border-color: var(--rp-wz-accent); }
+  .rp-wz-body { padding: 16px 18px; }
+  .rp-wz-lore { border-left: 2px solid var(--rp-wz-line); padding-left: 12px; margin: 0 0 14px; }
+  .rp-wz-lore h3 { margin: 0 0 4px; font-size: 15px; color: var(--rp-wz-accent); }
+  .rp-wz-lore p { margin: 0; font-size: 13px; color: var(--rp-wz-fg); opacity: .92; }
+  .rp-wz-field { margin: 0 0 14px; }
+  .rp-wz-label { display: block; margin: 0 0 4px; font-size: 12px; color: var(--rp-wz-dim); letter-spacing: .06em; }
+  .rp-wz-label .rp-wz-req { color: var(--rp-wz-danger); }
+  .rp-wz input[type="text"], .rp-wz select, .rp-wz textarea {
+    width: 100%; font: inherit; font-size: 13px;
+    color: var(--rp-wz-fg); background: var(--rp-wz-card);
+    border: 1px solid var(--rp-wz-line); border-radius: 3px;
+    padding: 7px 9px;
+  }
+  .rp-wz textarea { min-height: 68px; resize: vertical; }
+  .rp-wz input:focus, .rp-wz select:focus, .rp-wz textarea:focus {
+    outline: none; border-color: var(--rp-wz-accent);
+  }
+  .rp-wz-custom { margin-top: 6px; }
+  .rp-wz-nav { display: flex; gap: 8px; justify-content: space-between; padding: 0 18px 18px; }
+  .rp-wz-btn {
+    font: inherit; font-size: 13px; cursor: pointer;
+    padding: 7px 16px; border-radius: 3px;
+    color: var(--rp-wz-fg); background: transparent;
+    border: 1px solid var(--rp-wz-line);
+  }
+  .rp-wz-btn:hover { border-color: var(--rp-wz-accent); }
+  .rp-wz-btn[disabled] { opacity: .4; cursor: default; }
+  .rp-wz-btn.is-primary { color: var(--rp-wz-bg); background: var(--rp-wz-accent); border-color: var(--rp-wz-accent); }
+  .rp-wz-sum { font-size: 13px; }
+  .rp-wz-sum h3 { margin: 14px 0 6px; font-size: 12px; letter-spacing: .16em; color: var(--rp-wz-accent); }
+  .rp-wz-sum dl { margin: 0; display: grid; grid-template-columns: minmax(5em, auto) 1fr; gap: 3px 12px; }
+  .rp-wz-sum dt { color: var(--rp-wz-dim); }
+  .rp-wz-sum dd { margin: 0; }
+  .rp-wz-out {
+    margin: 12px 0 0; padding: 10px; max-height: 220px; overflow: auto;
+    font-family: ui-monospace, Consolas, monospace; font-size: 12px;
+    white-space: pre-wrap; word-break: break-word;
+    background: var(--rp-wz-card); border: 1px solid var(--rp-wz-line); border-radius: 3px;
+  }
+  .rp-wz-tip { margin: 8px 0 0; font-size: 12px; color: var(--rp-wz-dim); }
+  .rp-wz-tip.is-ok { color: var(--rp-wz-accent); }
+</style>
+</head>
+<body>
+<div class="rp-wz" id="rp-wz-root"></div>
+<!-- 路径 B（捕获组预填）才需要：本行换成带 hidden 的 textarea，内容写捕获组占位符；同时把 findRegex 改成带捕获组的写法。见 references/frontend-conventions.md 第二节。 -->
+<script>
+(function () {
+  'use strict';
+
+  /* ===== 配置：只改这几处 ===== */
+  var PROJECT = '未命名项目';          // 与 contract.project.name 一致，localStorage 键前缀用它
+  var TITLE = '角色创建';
+  var SUBTITLE = 'CHARACTER CREATION';
+  var OUTRO = '填完点「复制」，把这段粘贴进聊天即可。';
+
+  /* 每一步：kind = lore（世界观卡片）/ form（表单）/ summary（总览导出）
+     form 字段：k=键名（导出用）, label=显示名, type=text|textarea|select, options=[], custom=true 允许自定义输入, req=true 必填, ph=占位 */
+  var STEPS = [
+    {
+      key: '序章', title: '世界序章', kind: 'lore',
+      items: [
+        { h: '世界', p: '[待定：一段话讲清这是什么地方、什么时代]' },
+        { h: '规则', p: '[待定：这个世界里什么能做、什么做不到、代价是什么]' },
+        { h: '此刻', p: '[待定：故事从哪一刻开始]' }
+      ]
+    },
+    {
+      key: '基础身份', title: '基础身份', kind: 'form',
+      fields: [
+        { k: 'name', label: '角色姓名', type: 'text', req: true, ph: '你希望别人怎么称呼你' },
+        { k: 'age', label: '年龄', type: 'text', ph: '数字或大致范围' },
+        { k: 'gender', label: '性别', type: 'select', options: ['男', '女', '其他'], custom: true },
+        { k: 'identity', label: '身份 / 职业', type: 'text', ph: '在故事里的位置' }
+      ]
+    },
+    {
+      key: '性格与信念', title: '性格与信念', kind: 'form',
+      fields: [
+        { k: 'personality', label: '性格要点', type: 'textarea', ph: '两三个可观察的特征，不要形容词堆砌' },
+        { k: 'creed', label: '信条', type: 'text', ph: '一句你会为之破例的话' },
+        { k: 'goal', label: '目标', type: 'text', ph: '你最想要什么' }
+      ]
+    },
+    {
+      key: '总览', title: '角色总览', kind: 'summary'
+    }
+  ];
+
+  var ROOT = document.getElementById('rp-wz-root');
+  var STORE_DATA = 'rpwz:' + PROJECT + ':data';
+  var STORE_STEP = 'rpwz:' + PROJECT + ':step';
+  var data = load(STORE_DATA) || {};
+  var step = Number(load(STORE_STEP)) || 0;
+
+  function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* 路径 B（捕获组预填）才需要：捕获内容塞进隐藏 textarea，这里读回来预填。
+     默认路径 A 无捕获组，捕获组占位符不出现在 HTML 里——加了 textarea 就要同步改 findRegex 与前端门第 4 条。 */
+  function prefillFromDollar1() {
+    var el = document.getElementById('rp-wz-raw');
+    var raw = el ? String(el.value || '').trim() : '';
+    if (!raw || raw.charAt(0) === '$') return;
+    raw.split('\n').forEach(function (line) {
+      var m = line.match(/\[([^|]+)\|([^\]]*)\]/);
+      if (m && !data[m[1].trim()]) data[m[1].trim()] = m[2].trim();
+    });
+  }
+
+  function renderSteps() {
+    return STEPS.map(function (s, i) {
+      var cls = 'rp-wz-pill' + (i < step ? ' is-done' : '');
+      return '<button type="button" class="' + cls + '" aria-current="' + (i === step) +
+        '" data-step="' + i + '">' + esc(s.key) + '</button>';
+    }).join('');
+  }
+
+  function renderLore(s) {
+    return (s.items || []).map(function (it) {
+      return '<div class="rp-wz-lore"><h3>' + esc(it.h) + '</h3><p>' + esc(it.p) + '</p></div>';
+    }).join('');
+  }
+
+  function renderField(f) {
+    var v = data[f.k] || '';
+    var id = 'rp-wz-f-' + f.k;
+    var label = '<label class="rp-wz-label" for="' + id + '">' + esc(f.label) +
+      (f.req ? ' <span class="rp-wz-req">*</span>' : '') + '</label>';
+    var input;
+    if (f.type === 'textarea') {
+      input = '<textarea id="' + id + '" data-k="' + esc(f.k) + '" placeholder="' + esc(f.ph || '') + '">' + esc(v) + '</textarea>';
+    } else if (f.type === 'select') {
+      var opts = (f.options || []).slice();
+      var isCustom = v && opts.indexOf(v) < 0;
+      if (f.custom) opts.push('__custom__');
+      input = '<select id="' + id + '" data-k="' + esc(f.k) + '">' +
+        '<option value="">— 未选 —</option>' +
+        opts.map(function (o) {
+          var val = o === '__custom__' ? '__custom__' : o;
+          var text = o === '__custom__' ? '自定义…' : o;
+          var sel = (isCustom ? (o === '__custom__') : (o === v)) ? ' selected' : '';
+          return '<option value="' + esc(val) + '"' + sel + '>' + esc(text) + '</option>';
+        }).join('') + '</select>' +
+        (f.custom ? '<input type="text" class="rp-wz-custom" id="' + id + '-custom" placeholder="自己写一个" value="' +
+          esc(isCustom ? v : '') + '"' + (isCustom ? '' : ' hidden') + '>' : '');
+    } else {
+      input = '<input type="text" id="' + id + '" data-k="' + esc(f.k) + '" placeholder="' + esc(f.ph || '') + '" value="' + esc(v) + '">';
+    }
+    return '<div class="rp-wz-field">' + label + input + '</div>';
+  }
+
+  function markdown() {
+    var out = '# ' + (data.name || '未命名角色') + ' — 角色档案\n\n';
+    STEPS.forEach(function (s) {
+      if (s.kind !== 'form') return;
+      var rows = (s.fields || []).filter(function (f) {
+        var v = data[f.k];
+        return v && String(v).trim() && v !== '__custom__';
+      });
+      if (!rows.length) return;
+      out += '## ' + s.key + '\n\n';
+      rows.forEach(function (f) { out += '- **' + f.label + '：** ' + String(data[f.k]).trim() + '\n'; });
+      out += '\n';
+    });
+    return out.trim() + '\n';
+  }
+
+  function renderSummary() {
+    var blocks = '';
+    STEPS.forEach(function (s) {
+      if (s.kind !== 'form') return;
+      var rows = (s.fields || []).filter(function (f) { return data[f.k] && data[f.k] !== '__custom__'; });
+      if (!rows.length) return;
+      blocks += '<h3>' + esc(s.key) + '</h3><dl>' + rows.map(function (f) {
+        return '<dt>' + esc(f.label) + '</dt><dd>' + esc(data[f.k]) + '</dd>';
+      }).join('') + '</dl>';
+    });
+    if (!blocks) blocks = '<p class="rp-wz-tip">还没有填任何内容。回到前面的步骤填几项。</p>';
+    var missing = [];
+    STEPS.forEach(function (s) {
+      (s.fields || []).forEach(function (f) {
+        if (f.req && (!data[f.k] || data[f.k] === '__custom__')) missing.push(f.label);
+      });
+    });
+    var warn = missing.length
+      ? '<p class="rp-wz-tip">还差必填项：' + esc(missing.join('、')) + '。留着也能导出，但下游会当作未定。</p>'
+      : '';
+    return '<div class="rp-wz-sum">' + warn + blocks +
+      '<div class="rp-wz-out" id="rp-wz-md">' + esc(markdown()) + '</div>' +
+      '<p class="rp-wz-tip" id="rp-wz-copy-tip">' + esc(OUTRO) + '</p></div>';
+  }
+
+  function render() {
+    var s = STEPS[step];
+    var body = s.kind === 'lore' ? renderLore(s)
+      : s.kind === 'form' ? (s.fields || []).map(renderField).join('')
+        : renderSummary();
+
+    ROOT.innerHTML =
+      '<div class="rp-wz-head"><h1 class="rp-wz-title">' + esc(TITLE) + '</h1>' +
+      '<p class="rp-wz-sub">' + esc(SUBTITLE) + '</p></div>' +
+      '<div class="rp-wz-steps">' + renderSteps() + '</div>' +
+      '<div class="rp-wz-body">' + body + '</div>' +
+      '<div class="rp-wz-nav">' +
+      '<button type="button" class="rp-wz-btn" data-nav="-1"' + (step === 0 ? ' disabled' : '') + '>← 上一步</button>' +
+      (s.kind === 'summary'
+        ? '<button type="button" class="rp-wz-btn is-primary" data-copy="1">复制档案</button>'
+        : '<button type="button" class="rp-wz-btn is-primary" data-nav="1">下一步 →</button>') +
+      '</div>';
+
+    bind(s);
+  }
+
+  function bind(s) {
+    Array.prototype.forEach.call(ROOT.querySelectorAll('[data-step]'), function (el) {
+      el.addEventListener('click', function () { collect(s); go(Number(el.dataset.step)); });
+    });
+    Array.prototype.forEach.call(ROOT.querySelectorAll('[data-nav]'), function (el) {
+      el.addEventListener('click', function () { collect(s); go(step + Number(el.dataset.nav)); });
+    });
+    Array.prototype.forEach.call(ROOT.querySelectorAll('[data-k]'), function (el) {
+      el.addEventListener('input', function () { collect(s); });
+      el.addEventListener('change', function () {
+        if (el.tagName === 'SELECT' && el.value === '__custom__') {
+          var c = document.getElementById(el.id + '-custom');
+          if (c) { c.hidden = false; c.focus(); }
+        }
+        collect(s);
+      });
+    });
+    Array.prototype.forEach.call(ROOT.querySelectorAll('[data-copy]'), function (el) {
+      el.addEventListener('click', function () { collect(s); copy(markdown()); });
+    });
+  }
+
+  function collect(s) {
+    if (s.kind !== 'form') return;
+    (s.fields || []).forEach(function (f) {
+      var el = document.getElementById('rp-wz-f-' + f.k);
+      if (!el) return;
+      var v = el.value;
+      if (f.type === 'select' && v === '__custom__') {
+        var c = document.getElementById('rp-wz-f-' + f.k + '-custom');
+        v = c ? c.value.trim() : '';
+      }
+      if (v) data[f.k] = v; else delete data[f.k];
+    });
+    save(STORE_DATA, data);
+  }
+
+  function go(next) {
+    if (next < 0) next = 0;
+    if (next > STEPS.length - 1) next = STEPS.length - 1;
+    step = next;
+    save(STORE_STEP, step);
+    render();
+  }
+
+  function copy(text) {
+    var tip = document.getElementById('rp-wz-copy-tip');
+    function ok() { if (tip) { tip.textContent = '已复制，去聊天里粘贴。'; tip.classList.add('is-ok'); } }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { if (tip) tip.textContent = '复制失败，请手动选中上面的文本。'; }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, fallback);
+    } else { fallback(); }
+  }
+
+  prefillFromDollar1();
+  if (step > STEPS.length - 1) step = 0;
+  render();
+})();
+</script>
+</body>
+</html>

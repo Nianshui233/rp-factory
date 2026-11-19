@@ -44,7 +44,7 @@
 
 | | 文本模态 | 工程模态 |
 |---|---|---|
-| 开局前端 | 三个代码块：html / json / yaml 各一 | `最终产物/opening-ui.html` + `regex-opening.json` + `frontend-prompt.yaml` |
+| 开局前端 | 三个代码块：html / json / yaml 各一 | `最终产物/opening-ui.html`（登场面板）或 `wizard-ui.html`（建卡向导）+ `regex-opening.json` + `frontend-prompt.yaml` |
 | 状态栏前端 | 同上，换 statusbar 那三份 | 同名文件 |
 
 - 三个代码块合并成一份 YAML 的想法不成立：HTML 与 JSON 必须能被 ST 直接导入/贴上，包进 YAML 字符串就多一道转换。

@@ -639,3 +639,32 @@ git add -A && git commit -m "test: dry-run 盐湖守夜人 + 自包含扫描通�
 ```bash
 git add -A && git commit -m "feat: 表现层——阶段 5 开局前端 / 阶段 6 状态栏前端（动态版）"
 ```
+
+### Task 15: 开局前端双形态（照参考实现补强）
+
+**Files:**
+- Create: `templates/wizard-ui.html`
+- Modify: `references/frontend-conventions.md`、`references/stage-5-opening-ui.md`、`references/stage-6-statusbar-ui.md`、`templates/statusbar.html`
+- Test: `examples/dry-run-盐湖守夜人/最终产物/wizard-ui.html`（DOM 桩）
+
+**Interfaces:**
+- Consumes: 阶段 2 的字段分组、`axis-system.axes[].range/initial`、`contract.naming.ui_tags.opening`
+- Produces: `artifacts[type=opening-ui]` 三条（HTML / 正则 JSON / 提示词 YAML）、`hard_settings` 的触发约定
+
+- [x] **Step 1: `frontend-conventions.md` 第二节改成三条数据路径表**（A 静态 / B `$1` 注入 / C `getChatMessages`），加"发送三级降级"代码与确认框理由；硬要求补 `$1` textarea 的三条限制；第四节补两种 `findRegex` 写法与 `substituteRegex: 0`；第六节前端门 7 → 8 条
+- [x] **Step 2: `templates/wizard-ui.html`**（`PROJECT`/`TITLE`/`SUBTITLE`/`OUTRO` + `STEPS`；`kind: lore|form|summary`；字段 `{k,label,type,options,custom,req,ph}`；进度条可跳、`localStorage` 键 `rpwz:<PROJECT>:data|:step`、`select __custom__` + `-custom` 输入、总览必填缺口提示、Markdown 导出、`clipboard` → `execCommand` 兜底、`esc()`；路径 A 默认不含捕获组占位符）
+- [x] **Step 3: 阶段 5 整份重写**（A/B 双形态、进入条件、可问五类、判断标准、A 九字段与七段界面、B 三段式与必做四件事、触发二选一、写回契约、退出验项）
+- [x] **Step 4: 阶段 6 认两种规模与两条数据路径**（细条 / 分页 HUD；正则 B 带捕获组、C 不带）；示例数值由 `0.42` 改 `42`，前端门改八条
+- [x] **Step 5: `templates/statusbar.html` 与 dry-run 状态栏加 `$1` 通道**（`rawFromDollar1()` 优先、`getChatMessages` 兜底、有 `$1` 时不做箭头）
+- [x] **Step 6: dry-run 补建卡向导**（`wizard-ui.html` 8 步 + `regex-opening.json` 路径 A 静态替换）；契约写回 `stages.5: done`、`ui_tags.opening = 建卡向导`、`H07`、三条 decisions、两条 artifacts；README 第六节 + 创作记录阶段 5 补跑
+- [x] **Step 7: 核验**
+
+```bash
+node --check .tmp-js/x.js                       # 抽 <script> 后语法通过（模板与 dry-run 各一次）
+node .tmp-js/check-wizard.js examples/dry-run-盐湖守夜人/最终产物/wizard-ui.html   # 13 项断言全 PASS
+python -c "import yaml,glob;[yaml.safe_load(open(f,encoding='utf-8')) for f in glob.glob('templates/*.yaml')+glob.glob('examples/**/*.yaml',recursive=True)]"
+grep -c '$1' templates/wizard-ui.html            # 期望 0（路径 A）
+python -c "import json;d=json.load(open('examples/dry-run-盐湖守夜人/最终产物/regex-statusbar.json',encoding='utf-8'))[0];print('(' in d['findRegex'], '$1' in d['replaceString'])"   # 期望 True True（路径 B）
+```
+
+**Ruling**：`rolecard.yaml` 不含 `first_mes`，所以"开场白即向导"必须由用户在 ST 里手改一处——写进阶段 5 与 `H07`，不做角色卡 JSON 导出。
