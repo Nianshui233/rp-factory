@@ -5,42 +5,42 @@
 
 | # | 源 | 条目 | 落到 | 状态 |
 |---|---|---|---|---|
-| W01 | 世界观 | 原则 1 以可操作为核心 | references/stage-1-world-bible.md | [ ] |
-| W02 | 世界观 | 原则 2 对 AI 可读性优先（规则式表达） | references/stage-1-world-bible.md | [ ] |
-| W03 | 世界观 | 原则 3 先框架，后细节 | references/stage-1-world-bible.md | [ ] |
-| W04 | 世界观 | 原则 4 规则必须可判定（能/不能/代价/上限 + 裁决方法） | references/stage-1-world-bible.md | [ ] |
-| W05 | 世界观 | 原则 5 关键设定不替用户拍板 | references/stage-1-world-bible.md | [ ] |
-| W06 | 世界观 | 原则 6 主动查错与补洞 | references/stage-1-world-bible.md | [ ] |
-| W07 | 世界观 | 原则 7 设定一致性与冲突优先级 | references/stage-1-world-bible.md | [ ] |
-| W08 | 世界观 | 原则 8 信息分层（防剧透） | references/stage-1-world-bible.md | [ ] |
-| W09 | 世界观 | 原则 9 已有 IP 或历史原型的处理 | references/stage-1-world-bible.md | [ ] |
-| W10 | 世界观 | 原则 10 模版结构可按需增删 | references/stage-1-world-bible.md | [ ] |
-| W11 | 世界观 | 原则 11 复杂度管理 | references/stage-1-world-bible.md | [ ] |
-| W12 | 世界观 | 原则 12 最终输出格式约束（YAML） | references/stage-1-world-bible.md | [ ] |
-| W13 | 世界观 | 原则 13 字段状态标记的使用范围 | references/stage-1-world-bible.md | [ ] |
-| W14 | 世界观 | 原则 14 “不适用”的裁剪规则 | references/stage-1-world-bible.md | [ ] |
-| W15 | 世界观 | 原则 15 内部一致性自检 | references/stage-1-world-bible.md | [ ] |
-| W16 | 世界观 | 原则 16 渐进式命名约定 | references/stage-1-world-bible.md | [ ] |
-| W17 | 世界观 | 原则 17 RP 场景覆盖验证 | references/stage-1-world-bible.md | [ ] |
-| W18 | 世界观 | 原则 18 多语言与文化适配 | references/stage-1-world-bible.md | [ ] |
-| W19 | 世界观 | 第一步 采集关键信息（四大框架要素 + 快车道） | references/stage-1-world-bible.md | [ ] |
-| W20 | 世界观 | 第二步 生成粗版模版（状态标记 + 补充问题 ≤8） | references/stage-1-world-bible.md | [ ] |
-| W21 | 世界观 | 第三步 迭代补全与查错（收敛信号） | references/stage-1-world-bible.md | [ ] |
-| W22 | 世界观 | 第四步 最终确认与交付 | references/stage-1-world-bible.md | [ ] |
-| W23 | 世界观 | 写作风格 1 语言 | references/stage-1-world-bible.md | [ ] |
-| W24 | 世界观 | 写作风格 2 表达方式 | references/stage-1-world-bible.md | [ ] |
-| W25 | 世界观 | 写作风格 3 枚举值优先 | references/stage-1-world-bible.md | [ ] |
-| W26 | 世界观 | 写作风格 4 内容规模建议 | references/stage-1-world-bible.md | [ ] |
-| W27 | 世界观 | 写作风格 5 需要避免的内容 | references/stage-1-world-bible.md | [ ] |
-| W28 | 世界观 | 特殊场景 1 用户提供大段叙事/小说片段 | references/stage-1-world-bible.md | [ ] |
-| W29 | 世界观 | 特殊场景 2 要求扩展但无具体方向 | references/stage-1-world-bible.md | [ ] |
-| W30 | 世界观 | 特殊场景 3 用户中途大幅更改方向 | references/stage-1-world-bible.md | [ ] |
-| W31 | 世界观 | 特殊场景 4 多世界/平行维度设定 | references/stage-1-world-bible.md | [ ] |
-| W32 | 世界观 | 特殊场景 5 用户要求极简世界观 | references/stage-1-world-bible.md | [ ] |
-| W33 | 世界观 | 特殊场景 6 已有世界观文档要求转换 | references/stage-1-world-bible.md | [ ] |
-| W34 | 世界观 | 特殊场景 7 仅提供一个概念词 | references/stage-1-world-bible.md | [ ] |
-| W35 | 世界观 | 特殊场景 8 面向多个 AI 平台使用 | references/stage-1-world-bible.md | [ ] |
-| W36 | 世界观 | YAML 模版九块（元信息/类型与基调/时间地点/核心矛盾/世界规则/势力社会/常识清单/历史时间线/变更边界） | templates/world-bible.yaml | [ ] |
+| W01 | 世界观 | 原则 1 以可操作为核心 | references/stage-1-world-bible.md | [x] |
+| W02 | 世界观 | 原则 2 对 AI 可读性优先（规则式表达） | references/stage-1-world-bible.md | [x] |
+| W03 | 世界观 | 原则 3 先框架，后细节 | references/stage-1-world-bible.md | [x] |
+| W04 | 世界观 | 原则 4 规则必须可判定（能/不能/代价/上限 + 裁决方法） | references/stage-1-world-bible.md | [x] |
+| W05 | 世界观 | 原则 5 关键设定不替用户拍板 | references/stage-1-world-bible.md | [x] |
+| W06 | 世界观 | 原则 6 主动查错与补洞 | references/stage-1-world-bible.md | [x] |
+| W07 | 世界观 | 原则 7 设定一致性与冲突优先级 | references/stage-1-world-bible.md | [x] |
+| W08 | 世界观 | 原则 8 信息分层（防剧透） | references/stage-1-world-bible.md | [x] |
+| W09 | 世界观 | 原则 9 已有 IP 或历史原型的处理 | references/stage-1-world-bible.md | [x] |
+| W10 | 世界观 | 原则 10 模版结构可按需增删 | references/stage-1-world-bible.md | [x] |
+| W11 | 世界观 | 原则 11 复杂度管理 | references/stage-1-world-bible.md | [x] |
+| W12 | 世界观 | 原则 12 最终输出格式约束（YAML） | references/stage-1-world-bible.md | [x] |
+| W13 | 世界观 | 原则 13 字段状态标记的使用范围 | references/stage-1-world-bible.md | [x] |
+| W14 | 世界观 | 原则 14 “不适用”的裁剪规则 | references/stage-1-world-bible.md | [x] |
+| W15 | 世界观 | 原则 15 内部一致性自检 | references/stage-1-world-bible.md | [x] |
+| W16 | 世界观 | 原则 16 渐进式命名约定 | references/stage-1-world-bible.md | [x] |
+| W17 | 世界观 | 原则 17 RP 场景覆盖验证 | references/stage-1-world-bible.md | [x] |
+| W18 | 世界观 | 原则 18 多语言与文化适配 | references/stage-1-world-bible.md | [x] |
+| W19 | 世界观 | 第一步 采集关键信息（四大框架要素 + 快车道） | references/stage-1-world-bible.md | [x] |
+| W20 | 世界观 | 第二步 生成粗版模版（状态标记 + 补充问题 ≤8） | references/stage-1-world-bible.md | [x] |
+| W21 | 世界观 | 第三步 迭代补全与查错（收敛信号） | references/stage-1-world-bible.md | [x] |
+| W22 | 世界观 | 第四步 最终确认与交付 | references/stage-1-world-bible.md | [x] |
+| W23 | 世界观 | 写作风格 1 语言 | references/stage-1-world-bible.md | [x] |
+| W24 | 世界观 | 写作风格 2 表达方式 | references/stage-1-world-bible.md | [x] |
+| W25 | 世界观 | 写作风格 3 枚举值优先 | references/stage-1-world-bible.md | [x] |
+| W26 | 世界观 | 写作风格 4 内容规模建议 | references/stage-1-world-bible.md | [x] |
+| W27 | 世界观 | 写作风格 5 需要避免的内容 | references/stage-1-world-bible.md | [x] |
+| W28 | 世界观 | 特殊场景 1 用户提供大段叙事/小说片段 | references/stage-1-world-bible.md | [x] |
+| W29 | 世界观 | 特殊场景 2 要求扩展但无具体方向 | references/stage-1-world-bible.md | [x] |
+| W30 | 世界观 | 特殊场景 3 用户中途大幅更改方向 | references/stage-1-world-bible.md | [x] |
+| W31 | 世界观 | 特殊场景 4 多世界/平行维度设定 | references/stage-1-world-bible.md | [x] |
+| W32 | 世界观 | 特殊场景 5 用户要求极简世界观 | references/stage-1-world-bible.md | [x] |
+| W33 | 世界观 | 特殊场景 6 已有世界观文档要求转换 | references/stage-1-world-bible.md | [x] |
+| W34 | 世界观 | 特殊场景 7 仅提供一个概念词 | references/stage-1-world-bible.md | [x] |
+| W35 | 世界观 | 特殊场景 8 面向多个 AI 平台使用 | references/stage-1-world-bible.md | [x] |
+| W36 | 世界观 | YAML 模版九块（元信息/类型与基调/时间地点/核心矛盾/世界规则/势力社会/常识清单/历史时间线/变更边界） | templates/world-bible.yaml | [x] |
 | R01 | 角色 | 阶段 0 输入评估（四维度 + 快速通道） | references/stage-2-rolecard.md | [ ] |
 | R02 | 角色 | 阶段 1 信息采集（采集强度 + 追问优先级 + 降级处理） | references/stage-2-rolecard.md | [ ] |
 | R03 | 角色 | 阶段 2 生成角色卡（四档位 + 规模参考） | references/stage-2-rolecard.md | [ ] |
