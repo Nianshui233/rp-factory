@@ -8,7 +8,7 @@
 - 已有 `contract.naming.world`：直接进迭代，不重走采集。
 - 用户给出成品世界观文档要求转换：走"文档转换"分支。
 - 上游无契约：先建 `templates/contract.yaml`，把 `stages.1` 置 `partial`。
-- `project.fanwork: true`：先按 `references/fanwork-research.md` 检索原作的世界观硬底（世界规则、势力、专名、时间线），记进 `创作痕迹/检索来源.md`，查完才动笔。
+- `project.web_research: true`：先按 `references/web-research.md` 检索本世界的世界观底盘（已有作品则查原作规则/势力/专名/时间线，真实题材则查年代地理与制度），记进 `创作痕迹/检索来源.md`，查完才动笔。
 
 ## 追问
 

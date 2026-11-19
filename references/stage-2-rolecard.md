@@ -7,7 +7,7 @@
 - 有 `contract.naming.world`：先读语言风格、禁忌、冲突类型、势力名单，用它约束角色的 `speech` 与 `attitudes`。
 - 用户直接给出角色设定、无世界观：可按"补采访问"问一次（世界有无超常力量、社会结构大致形态），问不到就打 `[推断：…](待确认)`。
 - 用户提交已有角色卡 + 修改需求：走"迭代"分支，不重走采集。
-- `project.fanwork: true`：先按 `references/fanwork-research.md` 检索该角色的官方设定、正式关系、语言习惯、圈内高频 OOC 点，记进 `创作痕迹/检索来源.md`，查完才动笔。
+- `project.web_research: true`：先按 `references/web-research.md` 检索该角色可查的外部依据（已有作品则查官方设定/正式关系/OOC 高频点，真实题材则查身份对应的职业与年代细节），记进 `创作痕迹/检索来源.md`，查完才动笔。
 
 ## 追问
 

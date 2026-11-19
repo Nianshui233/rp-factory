@@ -31,7 +31,7 @@ disable-model-invocation: true
 
 ```
 <工作区>/<世界名>/
-  创作痕迹/  contract.yaml（命名权威+索引） · 项目档案.yaml（元信息+类型基调，不进终稿） · 创作记录.md（访谈、决策、卡点） · 检索来源.md（仅同人向）
+  创作痕迹/  contract.yaml（命名权威+索引） · 项目档案.yaml（元信息+类型基调，不进终稿） · 创作记录.md（访谈、决策、卡点） · 检索来源.md（仅联网时）
   最终产物/  world-bible.yaml · rolecard.yaml · scene-sheet.yaml · axis-system.yaml
 ```
 
@@ -53,13 +53,13 @@ disable-model-invocation: true
 - **是** → `nsfw: true`，`rating` 须给明确档位（`R15` / `R18`），`hard_no` 至少一条硬底线；阶段 2 可写 `nsfw` 块，内容边界层必执行。
 - 不答 → 按「否」锁，一句告知可随时开。中途开关 → 改 `nsfw` + 重锁 `rating` + 记 `decisions`；关掉时已交付产物里的越界内容必须清掉。
 
-**问四：是同人向项目吗**
+**问四：需要联网吗**
 
-是 / 否，否就直接跳过本问后续。
+是 / 否，问的是"这次创作要不要主动查外部资料"，与是否同人无关。
 
-- **否** → `project.fanwork: false`，原创处理，不联网检索。**是** → 再问两句：**原作是什么**（作品名 + 版本，写 `project.source_ip`）、**正典向还是 AU**（哪一点不同，写 `project.canon_stance`）。
-- 同人向从这一刻起**全程主动联网检索**：每阶段开头先查原作硬底、专名、时间线，查完才落笔；每条记进 `创作痕迹/检索来源.md`（骨架 `templates/research-log.md`）。口径冲突的裁法、没网时怎么降级、版权边界，全在 `references/fanwork-research.md`——**进入任何阶段前先读它**。
-- 不答 → 按「否」锁，一句告知可随时说是。中途才说是同人 → 回填三个值、补建检索记录、从当前阶段起开始查，记 `decisions`。
+- **否** → `project.web_research: false`，全程不检索，也不许顺手搜。**是** → 再问一句**查什么方向**（例：基于哪部作品 / 哪个真实年代或地点 / 哪个专业领域），需要时把作品名与版本写进 `project.source_ip`。
+- 是 → 从这一刻起**全程主动联网检索**：每阶段开头先查外部事实底盘与专名，查完才落笔；每条记进 `创作痕迹/检索来源.md`（骨架 `templates/research-log.md`）。查什么按项目类型分（已有作品 / 真实年代地点 / 专业领域），冲突怎么裁、没网怎么降级、版权边界，全在 `references/web-research.md`——**进入任何阶段前先读它**。
+- 不答 → 按「否」锁，一句告知可随时开。中途要开 → 回填开关、补建检索记录、从当前阶段起开始查，记 `decisions`。
 
 四问用结构化选项，**不用** `references/interview-protocol.md` 的问题块格式。写回细节见 `references/contract-schema.md` 第七节。
 
@@ -67,7 +67,7 @@ disable-model-invocation: true
 
 1. 读 `references/pipeline.md`：阶段表、7 个占位符、六道门、输出纪律。**这是唯一的公共脊，任何阶段文件里没有的东西都回这里查。**
 2. 有契约就读契约（`templates/contract.yaml` + `references/contract-schema.md`）；没有就先建一份。
-3. `project.fanwork: true` → 先读 `references/fanwork-research.md`，再进阶段（其余情况跳过）。
+3. `project.web_research: true` → 先读 `references/web-research.md`，再进阶段（否则跳过，也不许搜）。
 4. 定出**目标阶段**与**当前产物 type**（四选一：`world-bible` / `rolecard` / `scene-sheet` / `axis-system`）；文本还是工程文件按 `references/dual-mode.md` 判，默认文本模态。
 
 ## 四、做主 skill 的三件事
@@ -83,13 +83,13 @@ disable-model-invocation: true
 
 ## 六、硬门
 
-0. **开局门**：先问四件——工作区、跑哪几个阶段（多选）、是否启用 NSFW、是否同人向（是则问原作与正典立场）。四件都确认前不建目录、不落文件、不开工；NSFW 与同人向不答都按「否」锁。
+0. **开局门**：先问四件——工作区、跑哪几个阶段（多选）、是否启用 NSFW、是否需要联网。四件都确认前不建目录、不落文件、不开工；NSFW 与联网不答都按「否」锁。
 1. **边界门**：由开局门锁定 `content_boundaries`（`nsfw` + `rating` + `hard_no`）。阶段内只在必要时补问边界细节（≤2 题）。未锁定不产出任何设定正文。
 2. **命名门**：交付前按 `references/pipeline.md` 四步核对契约与产物，名字不一致就停下问用户。
 3. **补采访问**：上游缺项先补采访问（≤3 问），问不到才写 `[待定：<缺什么>]`。
 4. **零回溯**：不引用任何包外路径、不登记源文件名。本包自包含，删掉任何外部文件都不影响运行。
 5. **自检门**：每份产物交付前内部执行四类检查，不向用户展示检查过程。
-6. **检索门（仅同人向）**：`fanwork: true` 时，每阶段落笔前先检索、交付前复核一遍原作专名；查不到就记 `未检索到` 并改走确认清单，**不编造原作设定**。
+6. **联网门（仅 `web_research: true`）**：每阶段落笔前先检索、交付前复核一遍外部专名；查不到就记 `未检索到` 并改走确认清单，**不编造外部事实**。
 
 ## 七、文件索引
 
@@ -99,7 +99,7 @@ disable-model-invocation: true
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
 | `references/dual-mode.md` | 两种模态的对照、切换、渲染、注释剥离 |
-| `references/fanwork-research.md` | 同人向：何时检索、怎么记、冲突怎么裁、没网怎么降级 |
+| `references/web-research.md` | 联网检索：何时查、怎么记、冲突怎么裁、没网怎么降级 |
 | `references/stage-1-world-bible.md` | 阶段 1 世界观 |
 | `references/stage-2-rolecard.md` | 阶段 2 角色卡 |
 | `references/stage-3-scene-sheet.md` | 阶段 3 场景卡 |

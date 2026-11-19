@@ -8,7 +8,7 @@
 - `naming.axes` 里有 `provisional: true` 的项（阶段 2 / 3 先行写下的轴名）：逐条确认或改名。改名必须回写已引用它的产物并记入 `decisions`——只改契约不改产物，就是本包要消灭的那种漂移。
 - 接管 `naming.axes` 后删掉 `provisional` 键，本阶段成为该键区的独占写者。
 - 用户直接给"做一个好感度系统"也能进，不必先有世界观。
-- `project.fanwork: true`：先按 `references/fanwork-research.md` 检索原作是否有官方或圈内通行的数值口径（战力分级、好感度习惯），记进 `创作痕迹/检索来源.md`，查完才动笔。
+- `project.web_research: true`：先按 `references/web-research.md` 检索有无通行的数值口径（原作官方分级、圈内好感度习惯、真实题材对应量级），记进 `创作痕迹/检索来源.md`，查完才动笔。
 
 ## 追问
 

@@ -1,6 +1,6 @@
 # 检索来源 · <项目名>
 
-# 同人向项目专用（contract.project.fanwork: true）。一条记录一个事实，按发现顺序编号。
+# 仅 contract.project.web_research: true 时存在。一条记录一个事实，按发现顺序编号。
 # 不进最终产物，不登记进 contract.artifacts。
 
 - [S01] 来源：<站点/页面标题> · <URL> · 取用：<从这条取了什么>

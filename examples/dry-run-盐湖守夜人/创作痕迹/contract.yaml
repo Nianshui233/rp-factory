@@ -3,9 +3,8 @@ project:
   workspace: "examples/dry-run-盐湖守夜人"
   mode: "engineering"
   stages_requested: [1, 2, 3, 4]
-  fanwork: false
+  web_research: false
   source_ip: ""
-  canon_stance: ""
   rp_form: "1v1 长线"
   language: "zh"
 
