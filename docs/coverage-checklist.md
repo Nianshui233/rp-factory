@@ -154,3 +154,7 @@
 | D16 | 交付 | 预算与插入优先级：常驻 5000 字、单条 ≤1000 字、Context 25%、常驻→命中→递归 | references/worldbook-tuning.md · scripts/validate-st-package.py | [x] |
 | D17 | 交付 | 递归 / 概率 / inclusion group / 时间效果的正确用法 | references/worldbook-tuning.md | [x] |
 | D18 | 交付 | 交付说明附全局激活设置推荐表（扫描深度 / 预算 / 递归 / 整词匹配） | references/worldbook-tuning.md · references/stage-7-delivery.md | [x] |
+| D19 | 交付 | 插入位置效力阶梯（含 `2/3` 作者注档与常数 + `@D` 等价作者注） | references/worldbook-tuning.md · references/stage-7-delivery.md | [x] |
+| D20 | 交付 | 先位置后 `order`、按重要性排布、首尾 0.9% 强记忆区 | references/worldbook-tuning.md | [x] |
+| D21 | 交付 | 分档设定：阶段词当关键词（含两条代价说明） | references/worldbook-tuning.md · references/stage-7-delivery.md | [x] |
+| D22 | 交付 | 中文世界书名与 `extensions.world` 的匹配（本机已修，老版本重命名补救） | references/stage-7-delivery.md | [x] |

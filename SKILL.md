@@ -104,7 +104,7 @@ disable-model-invocation: true
 | `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 1–4：世界观 / 角色卡 / 场景卡 / 数值系统 |
 | `references/stage-5-opening-ui.md` | 阶段 5 开局前端（登场面板 / 建卡向导两形态） |
 | `references/stage-6-statusbar-ui.md` | 阶段 6 状态栏前端 |
-| `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 7 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning（三灯、套餐、8–15 关键词、位置、预算、递归、概率、十条自查） |
+| `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 7 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning（三灯、套餐、8–15 关键词、位置、预算、递归、概率、十二条自查） |
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
 | `templates/st-card.json` / `st-worldbook.json` · `scripts/validate-st-package.py` | 酒馆包两个 JSON 骨架 + 校验器（交付门用它把关） |
