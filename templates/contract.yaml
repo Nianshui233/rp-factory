@@ -9,6 +9,9 @@ project:
   rp_form: ""              # 1v1 / 多人 / 跑团风格 / 旁白主导
   language: "zh"           # 描述性内容的语言
   stages_requested: []     # 开局多选的结果，升序，如 [1, 2, 4]；没勾的阶段在 stages 里写 skipped
+  fanwork: false           # 开局第四问：是否同人向；true 时全程走 references/fanwork-research.md
+  source_ip: ""            # 同人向必填：原作/原型作品名 + 版本（如“某作 v2.1 / 动画第一季”）
+  canon_stance: ""         # 同人向必填：正典向 / AU（哪一点不同） / 混合；用户没明说就问到
 
 stages:                    # 每阶段状态，不是标量。乱序合法。
   1: none                  # none | partial | done | skipped（未勾选的阶段写 skipped）
@@ -16,7 +19,7 @@ stages:                    # 每阶段状态，不是标量。乱序合法。
   3: none
   4: none
 
-content_boundaries:        # 边界门：任何产物落笔前必须锁定（开局三问问完即可锁）
+content_boundaries:        # 边界门：任何产物落笔前必须锁定（开局问完即可锁）
   nsfw: false              # 开局第三问；false 时 rating 写一般向，hard_no 加“任何性描写”
   rating: ""               # 全年龄 / R15 / R18 / 自定义；nsfw: true 时必须给明确档位
   hard_no: []              # 明确不出现的元素；nsfw: false 时至少含“任何性描写”
