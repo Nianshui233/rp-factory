@@ -235,9 +235,13 @@ def check_naming(c):
 
 
 def check_lists(c):
-    for key, must in (('hard_settings', ('id', 'text', 'source')),
-                      ('pending', ('stage', 'item')),
-                      ('decisions', ('stage', 'question', 'answer'))):
+    # decisions 允许两种形状：阶段决策 {stage, question, answer} 与过程决策 {item, choice}
+    shapes = {
+        'hard_settings': [('id', 'text', 'source')],
+        'pending': [('stage', 'item')],
+        'decisions': [('stage', 'question', 'answer'), ('item', 'choice')],
+    }
+    for key, options in shapes.items():
         v = c.get(key)
         if v is None:
             continue
@@ -246,7 +250,13 @@ def check_lists(c):
             continue
         for i, item in enumerate(v, 1):
             item = as_dict(item)
-            for f in must:
+            if key == 'decisions':
+                def present(f):
+                    return f in item and item[f] not in (None, '')
+                if not any(all(present(f) for f in need) for need in options):
+                    fail('C12', f'`decisions` 第 {i} 条既不是 {{stage,question,answer}} 也不是 {{item,choice}}')
+                continue
+            for f in options[0]:
                 if not item.get(f):
                     fail('C12', f'`{key}` 第 {i} 条缺 `{f}`')
             if key == 'hard_settings' and item.get('source'):

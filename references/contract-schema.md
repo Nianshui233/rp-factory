@@ -22,7 +22,7 @@
 | `naming` | `world`、`factions[]`、`places[]`、`systems[]`、`axes[]`、`ui_tags`（表现层标签名） |
 | `hard_settings` | 已锁定的硬设定，`source` 必须标 `用户确认` 或 `推导` |
 | `pending` | 待定项汇总 |
-| `decisions` | 用户拍过的板 |
+| `decisions` | 用户拍过的板。两种形状都收：阶段决策 `{stage, question, answer}`、过程决策 `{date, item, choice, because}` |
 | `artifacts` | 产物索引，`type` 只能是九类之一（见第六节表） |
 
 ## 三、独占写者
