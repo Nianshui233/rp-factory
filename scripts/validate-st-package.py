@@ -77,6 +77,9 @@ BAD_FILENAME_CHARS = set('/\\:*?"<>|')
 # 本包自己的预算：常驻条目合计字数（每轮都要进上下文）
 CONST_BUDGET = 5000
 
+# 本包自己的下限：每条绿灯条目至少这么多个关键词（宁宽勿漏）
+MIN_KEYS = 8
+
 TAG_RE = re.compile(r"<([^\s<>/][^<>]{0,60})>")
 
 
@@ -471,6 +474,51 @@ def validate_worldbook(book: dict, book_path: Path, rep: Report) -> None:
         if e.get("constant"):
             const_chars += len(content)
         all_keys += [k for k in keys if isinstance(k, str) and k.strip()]
+
+    # ---- 调优项：关键词宽度、递归、整词匹配、位置风险、order 分档 ----
+    orders: list[float] = []
+    tune_issues = {"keys": [], "rec": [], "mww": [], "pos": [], "order": [], "sel": []}
+    for uid, e in entries.items():
+        if not isinstance(e, dict):
+            continue
+        content = str(e.get("content", ""))
+        keys = [k for k in e.get("key", []) if isinstance(k, str) and k.strip()]
+        is_const = e.get("constant") is True
+        if isinstance(e.get("order"), (int, float)):
+            orders.append(float(e["order"]))
+        if not is_const:
+            if e.get("selective") is False:
+                tune_issues["sel"].append(str(uid))
+            plain = [k for k in keys if not (k.startswith("/") and k.endswith("/"))]
+            if len(plain) < MIN_KEYS:
+                tune_issues["keys"].append(f"{uid}({len(plain)})")
+            if e.get("excludeRecursion") is not True:
+                tune_issues["rec"].append(str(uid))
+        if e.get("matchWholeWords") is not False and re.search(r"[一-鿿]", content + "".join(keys)):
+            tune_issues["mww"].append(str(uid))
+        if e.get("position") in (5, 6):
+            rep.fail("W13", f"条目 {uid} position={e['position']}：5/6 是示例消息位置，正文会被解析成示例对话，别用来放设定")
+        elif e.get("position") in (2, 3):
+            tune_issues["pos"].append(str(uid))
+        for k in keys:
+            if "," in k and not k.startswith("/"):
+                rep.fail("W14", f"条目 {uid} 的关键词 {k!r} 带逗号：纯文本关键词不支持逗号（逗号是分隔符），要匹配就写成 /.../ 正则")
+                break
+
+    if tune_issues["keys"]:
+        rep.warn("W10", f"关键词少于 {MIN_KEYS} 个：{', '.join(tune_issues['keys'])}。"
+                        "绿灯条目宁宽勿漏，按 8–15 个备（本名/别名/关系指代/场景指代/同义口语）")
+    if tune_issues["rec"]:
+        rep.warn("W11", f"关键词条目没设 excludeRecursion: true：{', '.join(tune_issues['rec'])}。"
+                        "常驻条目正文会点名实体，递归一开就会顺次点亮它们")
+    if tune_issues["mww"]:
+        rep.warn("W12", f"含中文但 matchWholeWords 不是 false：{', '.join(tune_issues['mww'])}")
+    if tune_issues["pos"]:
+        rep.warn("W13", f"position 2/3（作者注）的条目：{', '.join(tune_issues['pos'])}——作者注关闭时整条被忽略")
+    if tune_issues["sel"]:
+        rep.warn("W16", f"关键词条目 selective=false：{', '.join(tune_issues['sel'])}——UI 上会显示成蓝灯行为")
+    if len(orders) >= 3 and len(set(orders)) == 1:
+        rep.warn("W15", f"所有条目 order 都是 {orders[0]:g}：没分档。按 95–100 / 70–90 / 70 三档排，越靠后影响越大")
 
     dupes = sorted({k for k in all_keys if all_keys.count(k) > 1})
     if dupes:

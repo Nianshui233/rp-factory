@@ -694,3 +694,23 @@ grep -c "交付门" references/pipeline.md SKILL.md
 **Ruling 1**：世界书名取"世界书文件名"而不是卡名——ST 导入世界书用文件名当书名，写成卡名会导致"导入成功但没挂上"，而这一步用户很难自己发现。
 **Ruling 2**：不做内嵌 `character_book`。它和独立世界书只能二选一；选独立的那份，改设定时不会漏。
 **Ruling 3**：正则两条路都给（卡内嵌 + 独立 JSON），并在交付说明里写清代价：内嵌要弹窗允许，全局导入会作用于所有角色。
+
+### Task 17: 世界书调优（参数 + 校验）
+
+**Files**
+- Create: `references/worldbook-tuning.md`
+- Modify: `references/stage-7-delivery.md`, `templates/st-worldbook.json`, `scripts/validate-st-package.py`, `SKILL.md`（文件索引）
+
+**Step 1**: 写 tuning 十一节，每条规则都注明依据（官方文档 / 本机实现 / 参考包），不写"经验上最好"。
+**Step 2**: stage-7 切法表补 `order`/`depth`/`excludeRecursion`，并加一句"参数一律看 tuning"。
+**Step 3**: 模板默认值改成绿灯实体套餐。
+**Step 4**: 校验器加 W10–W16（关键词 <8 / 未 excludeRecursion / 整词匹配 / position 2·3·5·6 / 关键词含逗号 / order 全同 / selective false）。
+**Step 5**: 重生成 dry-run 世界书，跑
+
+```
+python scripts/validate-st-package.py "examples/dry-run-盐湖守夜人/最终产物/st/白潮.json" "examples/dry-run-盐湖守夜人/最终产物/st/白潮 世界书.json"
+```
+
+Expected: `0 失败，0 警告`，退出码 0。
+
+**Ruling**：不新增第 8 个阶段——"调好世界书"不是新产物，是阶段 7 的参数质量；写成独立 reference 是因为它同时被 stage-7（生成）与交付门（校验）引用，塞进 stage-7 会让那份文件同时承担两件事。

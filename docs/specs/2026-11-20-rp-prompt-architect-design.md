@@ -465,3 +465,24 @@ artifacts: []              # {type, path | inline_ref, version}
 - 不生成 PNG 头像、不生成 `.charx`：没有美术资源，角色卡 JSON 直接导入即可，ST 会给默认头像。
 - 不内嵌 `character_book`：独立世界书更好改；两者同时给会变成"两本书"，改一本漏一本。给内嵌就警告（C13）。
 - 不改 ST 的全局设置、不写 `settings.json`：正则"允许角色专属"这一步必须用户点，脚本只提醒。
+
+## 18. 世界书调优（2026-11-20 追加）
+
+阶段 7 生成世界书时原本只有"切哪几块"（§17），没有"参数怎么定"。补一份 `references/worldbook-tuning.md` 并把参数写回切法表。
+
+**资料前提**：两个飞书 wiki（`ZJ9Yw0X7JipJrlkAoT0cku54nMb`、`QKkYwUsGAivp4ukhvBRcYlf6nCd`）需要登录态，抓取工具没有 cookie，重试与检索均失败——不复用这两篇的结论。改以官方 World Info 文档 + 本机 `public/scripts/world-info.js` 实现为准，参考包 `我，非我 世界书.json`（22 条）做经验校验。
+
+**收进 skill 的硬事实**（都与"社区习惯"有出入）：
+
+1. 三个灯里不用 🔗 向量化。理由不是先进与否，而是**错触发方向错**：语义相近却指错人，AI 会照 A 的设定演 B，且难发现；绿的关键词漏了是召回不足，加词就补回来了。
+2. `matchWholeWords` 必须显式 `false`。官方文档写默认开启、本机默认 `false`；中文字符属 `\W`，整词匹配对中文只减命中不加精度。
+3. 绿灯条目一律 `excludeRecursion: true`。常驻条目正文会点名势力与地点，递归一开就顺次点亮它们，等于把关键词条目变成半个常驻。参考实现 22 条全书如此。
+4. `order` 三档：骨架 92–100 / 实体 78–90 / 状态栏协议 70。全填 100 等于没有顺序。
+5. `position` 五个位置换成风险说明：`2/3` 作者注关闭时整条被忽略、`5/6` 会被解析成示例对话、`7` outlet 未填名直接跳过。
+6. 关键词 8–15 个、纯文本 key 不支持逗号（要匹配带标点只能写 `/.../flags` 正则）、标题与关键词都不进上下文。
+7. 预算：常驻 5000 字（校验器 W09）+ 单条 ≤1000 字 + 全局 Context 25% 默认，插入优先级"常驻 → 关键词命中 → 递归带出"。
+8. 时间效果（`sticky/cooldown/delay`）与概率/互斥（`probability`、`group` + `groupWeight`、`useGroupScoring`、`prioritizeInclusion`）是"随机事件/一次性状态"的正确工具，不要写死在正文里。
+
+**改动**：新增 `references/worldbook-tuning.md`（十一节：三灯 / 参数套餐 / 关键词 / 插入位置 / 顺序与预算 / 全局设置推荐 + 本机默认值 / 递归 / 随机互斥 / 时间效果 / 附加匹配源与绑卡 / 十条自查）；`references/stage-7-delivery.md` 切法表加 `order`/`depth`/`excludeRecursion` 列并指向 tuning；`templates/st-worldbook.json` 默认值改成绿灯实体套餐（`constant: false`、`order: 80`、`excludeRecursion: true`、`matchWholeWords: false`）；校验器加 W10–W16；dry-run 世界书按新参数重生成（关键词 8 / 11 个，`order` 70–100 七档）。
+
+**不做的事**：不新增"世界书体检"阶段（用户已有世界书要改属另一件事，本 skill 只对自产包负责）；不自动改用户的全局设置（只给推荐表，改由用户动手）。

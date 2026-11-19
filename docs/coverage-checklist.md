@@ -149,3 +149,8 @@
 | D11 | 交付 | 交付门从肉眼清单改为"跑脚本、退出码 0" | SKILL.md · references/pipeline.md · scripts/validate-st-package.py | [x] |
 | D12 | 交付 | 常驻条目字数预算 5000，关键词跨条目不得重复 | scripts/validate-st-package.py | [x] |
 | D13 | 交付 | 打包不产生新设定；缺设定回对应阶段补 | references/stage-7-delivery.md · references/dual-mode.md | [x] |
+| D14 | 交付 | 世界书参数套餐：三灯取舍、`order` 三档、`position` 风险、`excludeRecursion` | references/worldbook-tuning.md · templates/st-worldbook.json | [x] |
+| D15 | 交付 | 关键词 8–15 个、纯文本 key 不支持逗号、标题与关键词不进上下文 | references/worldbook-tuning.md | [x] |
+| D16 | 交付 | 预算与插入优先级：常驻 5000 字、单条 ≤1000 字、Context 25%、常驻→命中→递归 | references/worldbook-tuning.md · scripts/validate-st-package.py | [x] |
+| D17 | 交付 | 递归 / 概率 / inclusion group / 时间效果的正确用法 | references/worldbook-tuning.md | [x] |
+| D18 | 交付 | 交付说明附全局激活设置推荐表（扫描深度 / 预算 / 递归 / 整词匹配） | references/worldbook-tuning.md · references/stage-7-delivery.md | [x] |
