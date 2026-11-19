@@ -4,14 +4,14 @@
       "uid": 0,
       "key": [],
       "keysecondary": [],
-      "comment": "条目名（面板显示用，不进上下文）",
+      "comment": "",
       "content": "",
-      "constant": false,
+      "constant": true,
       "vectorized": false,
       "selective": true,
       "selectiveLogic": 0,
       "addMemo": true,
-      "order": 80,
+      "order": 100,
       "position": 0,
       "disable": false,
       "ignoreBudget": false,
@@ -23,7 +23,7 @@
       "matchCharacterDepthPrompt": false,
       "matchScenario": false,
       "matchCreatorNotes": false,
-      "delayUntilRecursion": 0,
+      "delayUntilRecursion": false,
       "probability": 100,
       "useProbability": true,
       "depth": 4,
@@ -33,15 +33,20 @@
       "groupWeight": 100,
       "scanDepth": null,
       "caseSensitive": null,
-      "matchWholeWords": false,
+      "matchWholeWords": null,
       "useGroupScoring": null,
       "automationId": "",
-      "role": 0,
-      "sticky": null,
-      "cooldown": null,
-      "delay": null,
+      "role": null,
+      "sticky": 0,
+      "cooldown": 0,
+      "delay": 0,
       "triggers": [],
-      "displayIndex": 0
+      "displayIndex": 0,
+      "characterFilter": {
+        "isExclude": false,
+        "names": [],
+        "tags": []
+      }
     }
   }
 }

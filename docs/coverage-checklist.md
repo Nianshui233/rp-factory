@@ -187,3 +187,16 @@
 | D31 | 交付 | 路线问完、答案含酒馆包时再问「要不要我直接导入并实测」 | SKILL.md · references/stage-7-delivery.md | [x] |
 | D32 | 交付 | 答「要」→ `st-import.py` 导入 + 回读五项自检 + 白名单 WARN；不成就报错不硬试 | references/stage-7-delivery.md · scripts/st-import.py | [x] |
 | D33 | 交付 | 有界面的包再跑 `st-probe.js` 量 iframe 高度（没有 iframe / 2px 各有判定） | references/stage-7-delivery.md · scripts/st-probe.js | [x] |
+
+## 交付形态（阶段 7 三件套）
+
+- [ ] 三件齐全：`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`
+- [ ] 卡里没有 `character_book`，`extensions.regex_scripts` 是空数组
+- [ ] 世界书是 native 形状 `{"entries": {"0": …}}`，不是 `entries` 数组
+- [ ] 世界书文件名 == 卡里 `extensions.world`（导入时用文件名建书）
+- [ ] 每个角色一条、每个地点一条，关键词 8–15 个且无跨条重复
+- [ ] `description` ≤8000 字，含每个轴名与住户/地点索引
+- [ ] `first_mes` 的标签能被 `正则.json` 里某条 `findRegex` 接住
+- [ ] 正则数组里每条 `findRegex` 可编译；用 `$1` 的必须有捕获组
+- [ ] `最终产物/` 在交付前为空，交付后按路线只有该路线的文件
+- [ ] 装配四步写进 `creator_notes`：书 → 卡 → 正则 → 渲染开关

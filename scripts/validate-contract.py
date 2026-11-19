@@ -35,12 +35,12 @@ STAGE_ARTIFACT = {
     4: {'axis-system'},
     5: {'opening-ui'},
     6: {'statusbar-ui'},
-    7: {'st-card'},
+    7: {'st-card', 'st-regex', 'st-worldbook'},
 }
 
 ARTIFACT_TYPES = {
     'project-profile', 'world-bible', 'rolecard', 'scene-sheet', 'axis-system',
-    'opening-ui', 'statusbar-ui', 'st-card', 'st-worldbook',
+    'opening-ui', 'statusbar-ui', 'st-card', 'st-regex', 'st-worldbook',
 }
 # 历史漂移里出现过的错名，直接点出来，比「不在枚举内」更好用
 LEGACY_ALIASES = {
@@ -51,6 +51,8 @@ LEGACY_ALIASES = {
     'scene': 'scene-sheet',
     'axis': 'axis-system',
     'st': 'st-card',
+    'regex': 'st-regex',
+    'worldbook': 'st-worldbook',
 }
 
 NAME_LISTS = ('factions', 'places', 'systems', 'axes')
@@ -201,11 +203,39 @@ def check_delivery(c):
         else:
             for f in files:
                 if not isinstance(f, str) or f.startswith('/') or '..' in pathlib.PurePath(f).parts:
-                    fail('C10', f'`delivery.files` 里 {f!r} 必须是相对 `最终产物/st/` 的文件名')
+                    fail('C10', f'`delivery.files` 里 {f!r} 必须是相对 `最终产物/` 的文件名')
         if d.get('st_name') and c.get('naming', {}).get('world'):
             expect = f'{d["st_name"]} 世界书'
             if d.get('worldbook_name') and d['worldbook_name'] != expect:
                 warn('C10', f'`delivery.worldbook_name` = {d["worldbook_name"]!r}，默认应为 {expect!r}')
+
+
+def check_output_dirs(c, root):
+    """最终产物/ 是交付目录：交付前必须空着（C13）。"""
+    s = as_dict(c.get('stages'))
+    d = as_dict(c.get('delivery'))
+    route = d.get('route') if d else None
+    delivered = s.get(7) == 'done'
+    out = root / '最终产物'
+    items = sorted(p.name for p in out.iterdir()) if out.is_dir() else []
+    if not delivered:
+        if items:
+            fail('C13', f'`stages.7` 还没 done，但 `最终产物/` 已有 {len(items)} 项：{", ".join(items[:5])}（过程产物应放 创作痕迹/产物/）')
+        return
+    if not route:
+        fail('C13', '`stages.7: done` 但 `delivery.route` 为空')
+        return
+    if not items:
+        fail('C13', '`stages.7: done` 但 `最终产物/` 是空的')
+        return
+    if route in ('st', 'both'):
+        want = {'正则.json'}
+        names = set(items)
+        if not any(n.endswith('世界书.json') for n in names):
+            fail('C13', '酒馆路线缺 `<世界名> 世界书.json`')
+        missing = want - names
+        if missing:
+            fail('C13', f'酒馆路线缺 {", ".join(sorted(missing))}')
 
 
 def check_naming(c):
@@ -291,6 +321,7 @@ def main():
     types = check_artifacts(c, root)
     check_stage_artifacts(c, types)
     check_delivery(c)
+    check_output_dirs(c, root)
     check_naming(c)
     check_lists(c)
 
@@ -301,13 +332,14 @@ def main():
         'C03': 'stages_requested 与 web_research 类型',
         'C04': 'stages 键为 1–7、值在枚举内',
         'C05': 'artifacts 是列表且 type 非空',
-        'C06': 'artifact type 在八类枚举内',
+        'C06': 'artifact type 在枚举内',
         'C07': 'path 相对、无 ..、不重复',
         'C08': 'path 指向真实存在的产物',
         'C09': 'done 的阶段有对应产物',
         'C10': 'delivery 路线与文件自洽',
         'C11': 'naming 表与 provisional 收口',
         'C12': 'hard_settings / pending / decisions 形状',
+        'C13': '最终产物/ 交付前空、交付后三件齐',
     }
     bad = {r for r, _ in fails}
     for r, name in rules.items():

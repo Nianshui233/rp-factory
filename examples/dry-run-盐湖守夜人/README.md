@@ -14,7 +14,7 @@
 | 4 | `axis-system.yaml` | 双轴：`wick` 灯芯（记忆余量）/ `tide` 潮压 |
 | 5 | `wizard-ui.html` + `regex-opening.json` | 建卡向导：序章 6 张卡 + 6 组字段 + 总览导出（8 步），开场白触发词 `<建卡向导>` |
 | 6 | `statusbar-ui.html` + `regex-statusbar.json` + `frontend-prompt.yaml` | 状态栏：正则捕获 `<状态栏>` 换成 HTML 代码块，酒馆助手渲成 iframe，`$1` 注入优先、`getChatMessages` 兜底 |
-| 7 | `st/白潮.json` | 酒馆包：单文件——角色卡 v2 + 内嵌世界书 12 条 + 两条正则（`extensions.regex_scripts`） |
+| 7 | `最终产物/白潮（纯净）.json` + `正则.json` + `白潮 世界书.json` | 酒馆三件套：卡（无内嵌）/ 正则数组（2 条）/ native 世界书（15 条），用户自己装配 |
 | — | `contract.yaml` | 命名权威与索引，四份产物都指向它 |
 
 模态取 `engineering`（写文件），因为四份产物要互相读。
@@ -61,7 +61,7 @@
 **4. 开工时没有问工作区这一步（已补）**
 
 原本 `SKILL.md` 一上来就是"开工前读 pipeline"，没说产物往哪里落；`templates/contract.yaml` 只写"复制到项目根"；工程模态又把目标定成 `contract.project.name` 命名的目录。同一件事三处说法不一致，也没人先问用户一句。
-改法：`SKILL.md` 新开第二节「工作区（第一步）」+ 硬门第 0 条「工作区门」；`dual-mode.md` 工程模态路径改为 `<工作区>/<世界名>/最终产物/`；`contract-schema.md` 补 `project.workspace` 与 `artifacts[].path` 相对项目根的写法；`interview-protocol.md` 新增第五节「痕迹记录」定义 `创作痕迹/创作记录.md` 的四节格式。
+改法：`SKILL.md` 新开第二节「工作区（第一步）」+ 硬门第 0 条「工作区门」；`dual-mode.md` 工程模态路径改为 `<工作区>/<世界名>/创作痕迹/产物/`；`contract-schema.md` 补 `project.workspace` 与 `artifacts[].path` 相对项目根的写法；`interview-protocol.md` 新增第五节「痕迹记录」定义 `创作痕迹/创作记录.md` 的四节格式。
 
 ## 四、没修但记下
 
@@ -120,26 +120,27 @@
 
 ## 六、阶段 7（交付）跑出来的东西
 
-**收尾只问一句**：原生 / 酒馆包 / 两者都要。这次选「两者都要」，但**酒馆包只落一个文件**：`最终产物/st/白潮.json`（卡 + 内嵌世界书 + 内嵌正则），原生 YAML 与 HTML 原样不动。
+**收尾只问一句**：原生 / 酒馆三件套 / 两者都要。这次选「酒馆三件套」，于是 `最终产物/` 里只有三个文件，其余全在 `创作痕迹/产物/`——**交付前 `最终产物/` 一直是空的**，那是交付目录不是工作目录。
 
-**三层怎么分**：
+**三件各管一件事**：
 
-| 层 | 内容 | 字数 |
+| 文件 | 内容 | 为什么分开 |
 |---|---|---|
-| `description` | 世界骨架（时间地点 / 信息分层 / 张力从哪来 / 世界规则 / 势力 / 即兴约束 / 变更边界）+ 住户·场景·数值速查 + 一句"以上是设定" | 5,998 |
-| `data.character_book` | 12 条：世界观 10 条（7 常驻 / 2 关键词 / 1 状态栏协议）+ 祁昭（关键词 8 个）+ 数值与判定（常驻 depth 2） | 常驻 7,880 |
-| `system_prompt` | 项目档案的「本文档对AI的核心指令」 | 59 |
+| `白潮（纯净）.json` | 卡 v2：`description` 5,943 字（世界骨架 + 住户/场景/数值速查 + 一句"以上是设定"）、`first_mes = <建卡向导>`、`system_prompt` = 项目档案「本文档对AI的核心指令」、**无 `character_book`、`extensions.regex_scripts = []`** | 设定每轮都在场，但不再是"把整张卡塞进描述"：人物与细节交给世界书按需加载 |
+| `正则.json` | 数组 2 条：`/·建卡向导/`（无捕获组，静态替换 15 KB）与 `/<状态栏>([\s\S]*?)<\/状态栏>/g`（捕获组 + `$1` 注入） | 界面迭代不用重导卡；酒馆的正则导入认数组，一次导完 |
+| `白潮 世界书.json` | native 形状 `{"entries": {"0": …}}`，15 条：8 常驻（世界观 + 数值与判定 + 状态栏协议）、7 关键词（祁昭 + 6 地点） | 文件名就是酒馆里的书名；卡里 `extensions.world` 与它同名，导完自动挂上 |
 
-**为什么不再把整张角色卡与整份数值塞进 `description`**：那样 13.6 KB，每轮都付；而且十四人卡按这个算法会到 5 万 token。现在人物进关键词条目（被点名才加载），数值进常驻条目（每轮都在），`description` 只留"立刻要知道的事"。
+**为什么不做单文件内嵌卡**：内嵌的确少一步，但改一条设定就要重导整张卡，世界书与正则也没法单独迭代；用户还得在两个入口之间来回找。三份分开交，用户自己装配，每件都能单独换。
 
-**内嵌而不是外挂**：世界书放在 `data.character_book`（v2 形状：`keys` / `insertion_order` / `position: "before_char"` / 高级项在 `extensions`）。导入时 ST 会问「这张卡内嵌了世界书，要现在导入吗」，点 Yes 就按 `character_book.name` 建书并自动绑定——**用户不需要先导世界书、再导卡、再手动选绑定**。
+**装配四步**（写进 `creator_notes`）：世界书 → 卡 → 正则 → 打开"消息渲染"。
 
-**校验**：`python scripts/validate-st-package.py "最终产物/st/白潮.json" --contract "创作痕迹/contract.yaml"` → 17 项全过（0 失败 0 警告），`description` 5,998 字（上限 8,000），常驻合计 7,880 字（预算 8,000）。
+**校验**：`python scripts/validate-st-package.py "最终产物" --contract "创作痕迹/contract.yaml"` → 19 项 0 失败 0 警告（三件齐全、卡纯净、书是 native 且 `uid` 对齐、`extensions.world` == 文件名、`first_mes` 被正则接住、占位符 0 命中）；`validate-contract.py` → 14 项 0 失败（含 C13「最终产物交付前空、交付后三件齐」）。
 
 **暴露的问题（已修）**
 
-1. **`extensions.world` 与书名必须一致**：世界书名 = `character_book.name` = `extensions.world`，默认 `<世界名> 世界书`；卡片名 `st_name` 是另一个值。不一致时 ST 建完书不会自动挂。校验器 C20 盯这一条。
-2. **两种世界书形状别混**：卡内是数组（`keys` / `insertion_order` / `before_char`），独立文件是映射（`key` / `order` / `position: 0`）。混用会在导入后把参数全丢掉。模板分成 `st-character-book-entry.json` 与 `st-worldbook.json` 两份。
-3. **占位符会漏进运行时**：早期 `description` 里有 15 处 `【AI补全·可替换】`，模型会把它当设定读。现在 X03 强制 0 命中，模板里那句 `unknown_handling` 也改成了运行时口径。
-4. **常驻预算定得太死**：原 5,000，数值条目一进来就爆。改法：预算提到 8,000（单条 ≤1,500），超了先看作息"真的每轮都要吗"。
+1. **`extensions.world` 与书名必须一致**：世界书名 = 世界书**文件名** = `extensions.world`，默认 `<世界名> 世界书`；卡片名 `st_name` 是另一个值（卡文件名带「（纯净）」）。不一致时 ST 建完书不会自动挂。校验器 X03 盯这一条。
+2. **世界书只认 native 形状**：`{"entries": {"0": …}}` 映射、`key` / `order` / `position: 0–7`。卡内 v2 数组形状（`keys` / `insertion_order` / `before_char`）导进世界书面板会把参数全丢掉，校验器 W01 直接判 FAIL。
+3. **占位符会漏进运行时**：早期 `description` 里有 15 处 `【AI补全·可替换】`，模型会把它当设定读。现在 X05 对三件一起扫、强制 0 命中，模板里那句 `unknown_handling` 也改成了运行时口径。
+4. **常驻预算定得太死**：原 5,000，数值条目一进来就爆。改法：预算提到 8,000（单条 ≤1,000），超了先问自己"真的每轮都要吗"。
+5. **单文件卡是错的形**：内嵌世界书 + 内嵌正则看着省事，实际改一条设定就要重导整卡。→ 改成三件套（`docs/specs` §23）。
 

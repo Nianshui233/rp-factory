@@ -28,9 +28,9 @@ stages:                    # 每阶段状态，不是标量。乱序合法。
   7: none                  # 交付/打包：只在最后一次进入；选原生路线写 skipped
 
 delivery:                  # 收尾问一次：交付到哪（不选就按 native）
-  route: "native"          # native（只留最终产物/）| st（酒馆包）| both
+  route: "native"          # native（把 创作痕迹/产物/ 复制进 最终产物/）| st（三件套）| both
   st_name: ""              # 角色卡名，默认 = project.name；世界书名 = "<st_name> 世界书"（= 文件名）
-  files: []                # 相对 最终产物/st/ 的文件名列表
+  files: []                # 相对 最终产物/ 的文件名列表：<st_name>（纯净）.json / 正则.json / <st_name> 世界书.json
 
 content_boundaries:        # 边界门：任何产物落笔前必须锁定（开局问完即可锁）
   nsfw: false              # 开局第三问；false 时 rating 写一般向，hard_no 加“任何性描写”
@@ -61,7 +61,7 @@ decisions: []              # 用户拍的板，- {stage: 1, question: "", answer
 
 artifacts: []              # 产物索引，正文不在这里
   # - type: world-bible    # project-profile | world-bible | rolecard | scene-sheet | axis-system
-  #                        # | opening-ui | statusbar-ui | st-card | st-worldbook
-  #   path: ""             # 相对项目根；文本模态留空（多文件产物写目录，如 最终产物/角色卡/）
+  #                        # | opening-ui | statusbar-ui | st-card | st-regex | st-worldbook
+  #   path: ""             # 相对项目根，运行期一律在 创作痕迹/产物/ 下；文本模态留空（多文件产物写目录，如 创作痕迹/产物/rolecard/）
   #   inline_ref: ""       # 文本模态写产物在会话里的标识
   #   version: 1

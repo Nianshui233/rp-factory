@@ -120,7 +120,7 @@ YAML 里只写本世界自己的版本，不引用原作名词人名，除非用
 2. **迭代**：按"追问"节的每轮结构推进；每轮只动 1–3 个模块；出完整版按"完整版输出触发"判断。
 3. **收敛**：收敛门（见 `references/pipeline.md`）全部满足后，主动提议出终稿。
 4. **终稿前一轮**（自然语言）：列 3–10 条已锁定硬设定要点、仍可留白部分、未决但不影响开局的点；跑原则 15 + 原则 17 自检并简报；报统计（势力/种族/关键系统/历史事件数量，硬设定与未决条数）；问"立刻出终稿还是先微调"。
-5. **终稿**：用户明确确认后才输出。渲染按 `references/dual-mode.md`：文本模态一个 yaml 代码块、块外无字；工程模态写 `最终产物/world-bible.yaml`。未决项写进 `未决事项`。
+5. **终稿**：用户明确确认后才输出。渲染按 `references/dual-mode.md`：文本模态一个 yaml 代码块、块外无字；工程模态写 `创作痕迹/产物/world-bible.yaml`。未决项写进 `未决事项`。
 
 ## 写回契约
 
@@ -128,7 +128,7 @@ YAML 里只写本世界自己的版本，不引用原作名词人名，除非用
 - `naming.factions[]` = 势力列表的 `{id, name, alias}`；`naming.places[]` = 主要地点的 `{id, name, scope}`；`naming.systems[]` = 关键系统的 `{id, name, ceiling}`
 - `stages.1` → `partial` / `done`
 - `hard_settings[]`：只在用户确认时追加，`source: 用户确认`，`locked_at_stage: 1`；其中必含从 `项目档案.yaml` 提上来的两条——`本文档对AI的核心指令` 与 `基调红线`
-- `artifacts[]`：`{type: world-bible, path: 最终产物/world-bible.yaml}`；项目档案不进 `artifacts`（它不是交付物），只在 `decisions` 记一条「元信息与类型基调归档于 创作痕迹/项目档案.yaml」
+- `artifacts[]`：`{type: world-bible, path: 创作痕迹/产物/world-bible.yaml}`；项目档案不进 `artifacts`（它不是交付物），只在 `decisions` 记一条「元信息与类型基调归档于 创作痕迹/项目档案.yaml」
 - `content_boundaries`：开局已锁；本阶段若补问了边界细节（RP 形式、额外禁区）就追加 `hard_no` / `soft_no`，不重写 `nsfw`。`nsfw: false` 时本阶段产物不得出现任何性描写，`AI即兴角色约束` 里要把它写成禁区
 - `pending[]`：终稿仍留的 `[待定：…]` 全部登记
 - 已存在的键被改写 = 冲突，停下问用户（见 `references/contract-schema.md`）

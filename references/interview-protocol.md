@@ -89,7 +89,7 @@
 - 建议 A（复仇），用户选 B（找人）——下游影响：`internal_conflict` 从“恨与怕”改成“找与放弃”
 
 ### 本轮落下什么
-- `contract.decisions` +2 条；`stages.2: partial`；`最终产物/rolecard.yaml` 尚未写（本轮只采集）
+- `contract.decisions` +2 条；`stages.2: partial`；`创作痕迹/产物/rolecard/` 尚未写（本轮只采集）
 ```
 
 追加规则：

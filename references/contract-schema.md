@@ -17,7 +17,7 @@
 |---|---|
 | `project` | 名字（`name` = 项目文件夹名）、**工作区绝对路径**（`workspace`）、模态（`text` / `engineering`）、RP 形式、语言、**本次要跑的阶段**（`stages_requested`）、**是否联网检索**（`web_research` / `source_ip`）、**SillyTavern 探测结果**（`sillytavern`） |
 | `stages` | 每阶段状态（1–7）：`none` / `partial` / `done` / `skipped`（未勾选写 `skipped`） |
-| `delivery` | `route`（`native` / `st` / `both`）、`st_name`（角色卡名，默 = `project.name`；世界书名另行取 `<st_name> 世界书`）、`files[]`（相对 `最终产物/st/`） |
+| `delivery` | `route`（`native` / `st` / `both`）、`st_name`（角色卡名，默 = `project.name`；世界书名另行取 `<st_name> 世界书`）、`files[]`（相对 `最终产物/`） |
 | `content_boundaries` | `nsfw`（开局第三问）、`rating`、`hard_no`、`soft_no` |
 | `naming` | `world`、`factions[]`、`places[]`、`systems[]`、`axes[]`、`ui_tags`（表现层标签名） |
 | `hard_settings` | 已锁定的硬设定，`source` 必须标 `用户确认` 或 `推导` |
@@ -39,7 +39,7 @@
 
 `artifacts[].type` 只有九类：`project-profile` / `world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `opening-ui` / `statusbar-ui` / `st-card` / `st-worldbook`。不许自造（一次实操里出现过 `role-cards`、`secret-layer`——前者该写 `rolecard`，后者根本不是产物）。
 
-`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`最终产物/world-bible.yaml`），不用绝对路径、不许含 `..`、同一路径不许出现两次。多张角色卡或有多张场景卡时，`path` 指向目录（`最终产物/角色卡/`），`type` 仍是 `rolecard` / `scene-sheet`——文件数不改变产物类别，别为"有 14 张卡"另起一个类型。表现层一份产物落两到三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分：界面 HTML、正则 JSON，以及可选的提示词条目 `frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个；建卡向导通常不需要它）。酒馆包同理：两个文件都写阶段 7，`type` 分别是 `st-card` / `st-worldbook`，`path` 在 `最终产物/st/` 下；正则与 HTML 不重复记，它们仍属阶段 5 / 6 的产物。
+`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`创作痕迹/产物/world-bible.yaml`），不用绝对路径、不许含 `..`、同一路径不许出现两次。**运行期所有产物都在 `创作痕迹/产物/` 下**；`最终产物/` 是交付目录，交付前必须为空（校验器 C13 盯着）。多张角色卡或有多张场景卡时，`path` 指向目录（`创作痕迹/产物/rolecard/`），`type` 仍是 `rolecard` / `scene-sheet`——文件数不改变产物类别，别为"有 14 张卡"另起一个类型。表现层一份产物落两到三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分：界面 HTML、正则 JSON，以及可选的提示词条目 `frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个；建卡向导通常不需要它）。酒馆三件套同理：三个文件都写阶段 7，`type` 分别是 `st-card` / `st-regex` / `st-worldbook`，`path` 在 `最终产物/` 根下；`正则.json` 是装配用的导出件，阶段 5 / 6 的 HTML 与正则草稿仍记在 `创作痕迹/产物/` 下。
 
 `project.workspace` 与 `project.name` 必须同时更新：前者是用户确认的**工作区**（父目录）绝对路径，后者是子文件夹名（= 世界名，未定时为 `未命名项目`）。项目实际路径 = `<workspace>/<name>/`。只改一个 = 指向一个不存在的目录。
 

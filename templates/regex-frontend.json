@@ -1,9 +1,24 @@
 [
   {
-    "id": "rp-frontend-tag",
-    "scriptName": "RP · 标签名",
-    "findRegex": "/<标签名>[\\s\\S]*?<\\/标签名>/g",
-    "replaceString": "```html\n<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"utf-8\">\n<style></style>\n</head>\n<body>\n<div id=\"rp-root\"></div>\n<script></script>\n</body>\n</html>\n```",
+    "id": "rp-0001",
+    "scriptName": "RP · 建卡向导",
+    "findRegex": "/<建卡向导>/g",
+    "replaceString": "```html\n<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"utf-8\">\n<style>body{margin:0}</style>\n</head>\n<body>\n<div id=\"rp-root\"></div>\n<script>/* 界面脚本：字符串里需要实体时用 \\u0026 拼，不要写 &amp; */</script>\n</body>\n</html>\n```",
+    "trimStrings": [],
+    "placement": [2],
+    "disabled": false,
+    "markdownOnly": true,
+    "promptOnly": false,
+    "runOnEdit": true,
+    "substituteRegex": 0,
+    "minDepth": null,
+    "maxDepth": null
+  },
+  {
+    "id": "rp-0002",
+    "scriptName": "RP · 状态栏",
+    "findRegex": "/<状态栏>([\\s\\S]*?)<\\/状态栏>/g",
+    "replaceString": "```html\n<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"utf-8\">\n<style>body{margin:0}</style>\n</head>\n<body>\n<textarea id=\"rp-sb-raw\" hidden>$1</textarea>\n<div id=\"rp-root\"></div>\n<script>/* 读 #rp-sb-raw 的文本，按 [字段|值] 分节解析 */</script>\n</body>\n</html>\n```",
     "trimStrings": [],
     "placement": [2],
     "disabled": false,

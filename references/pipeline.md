@@ -13,7 +13,7 @@
 | 4 数值系统 | `references/stage-4-axis-system.md` | `axis-system` | 有 `naming.world`，或用户直接给出可量化维度 | 自检门通过 |
 | 5 开局前端 | `references/stage-5-opening-ui.md` | `opening-ui` | 有 `naming.world`；用户要开局界面/开场面板/建卡向导（两形态选一） | 前端门通过 |
 | 6 状态栏前端 | `references/stage-6-statusbar-ui.md` | `statusbar-ui` | 有 `axis-system`（降级形态：信息卡）；用户要状态栏/每轮数值 | 前端门通过 |
-| 7 交付 | `references/stage-7-delivery.md` | `st-card` / `st-worldbook` | 需求阶段全部 `done`；用户要打包 / 导入酒馆 / 要角色卡 json | 交付门通过；用户点头就导入并实测 |
+| 7 交付 | `references/stage-7-delivery.md` | `st-card` / `st-regex` / `st-worldbook` | 需求阶段全部 `done`；用户要打包 / 导入酒馆 / 要角色卡 json | 交付门通过；用户点头就导入并实测 |
 
 阶段可任意顺序进入（"我只要一张场景卡"合法）。`contract.stages` 记录每阶段实际状态，不假定前置阶段已完成。**阶段 7 例外**：它只能在最后一次进入，是整条流程的收尾，不与前六个阶段抢顺序。
 
@@ -49,7 +49,7 @@
 
 **`阶段门`（贯穿全程）** 一次只做一个阶段：做完就停，汇总本轮落下什么 + 哪些是替用户定的 + 下一步是哪一阶段，然后等用户回话。不许在同一条回复里连做两个阶段，不许交付后直接弹「继续吗」的选项。用户说「全流程」也只代表不用逐段问，不代表可以一口气做完。
 
-**`交付门`（仅阶段 7）** 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "<卡>.json" --contract 创作痕迹/contract.yaml`，退出码 0 才算过。它查 C01–C23 / X01–X03，其中几条是本包专为踩过的坑加的：卡必须是单文件（`data.character_book` 内嵌、`name == extensions.world`，否则导入后建完书不绑卡）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点或场景一条（否则界面上的实体在包里查无此人）；常驻合计 ≤8000；正文占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、导入三步齐全。细则见 `references/stage-7-delivery.md`。 交付门过了、用户也说「帮我导」，就接着跑 `scripts/st-import.py`（导入 + 回读自检）与 `scripts/st-probe.js`（量 iframe 高度）；这三步是流水线，不额外收门。
+**`交付门`（仅阶段 7）** 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过。查的事：三件齐全（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`）；卡里不许有 `character_book`、`extensions.regex_scripts` 必须为空（否则又回到「改一条设定重导整卡」）；世界书是 native 对象形状、`uid` 与键对齐；`extensions.world` == 世界书文件名（不一致卡不会自动挂书）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点一条；常驻合计 ≤8000；三件占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、装配四步齐全。细则见 `references/stage-7-delivery.md`。交付门过了、用户也说「帮我导」，就接着跑 `scripts/st-import.py --pkg`（三件逐件导入 + 回读自检）与 `scripts/st-probe.js`（量 iframe 高度）；这三步是流水线，不额外收门。
 
 **`前端门`（仅阶段 5 / 6）** 九条：标签三处一致（正则 ↔ HTML 的 `TAG` ↔ `frontend-prompt.yaml`）、字段两处一致且能追到产物、`markdownOnly: true`、`replaceString` 的代码块含 `<body>`、数据路径自洽（走 `$1` 注入就必须有捕获组与隐藏 textarea，走静态或聊天 API 就必须都没有）、无外链无 `eval` 无 `document.write`、本楼无标签或占位符未被替换时留白不报错、脏值与越界值都安全、跑过 `python scripts/validate-frontend.py <界面.html>` 全过（它专抓内联脚本里的 HTML 实体——那种写法会让整个界面静默变成 2px 高）。细则与机制事实见 `references/frontend-conventions.md`。
 
@@ -91,6 +91,7 @@
 
 ## 六、输出纪律
 
+- **写哪**：运行期所有产物写 `创作痕迹/产物/`（`world-bible.yaml` / `rolecard/` / `scene/` / `axis/` / 界面 HTML 与正则草稿）；`最终产物/` 是交付目录，**选定路线之前必须空着**（校验器 C13 盯着）。阶段 7 才把它填上：原生路线复制 `产物/` 的树，酒馆路线只放三件套。
 - 终稿只输出模板本体，不加前言、结语、"以下是……"。
 - 移除全部 `#` 注释行与被注释掉的可选结构。
 - 文本模态是一个 ```yaml 代码块；代码块之外只允许四样：设计说明（≤ 5 句）、补全清单、待确认清单、运行示例（仅数值系统）。

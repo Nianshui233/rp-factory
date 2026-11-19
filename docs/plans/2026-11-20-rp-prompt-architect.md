@@ -780,3 +780,18 @@ Expected: 0 失败（WARN 可带着走），退出码 0。
 - [x] 真机验证：探测出 `D:/AI/SillyTavern` 1.19.0 + 运行中 8000 + 酒馆助手有；`st-import.py` 导入 dry-run 的 `白潮.json` 五项 PASS（另有一条白名单 WARN 属预期）；`st-probe.js` 对 `爱情公寓` 量到 674px、iframe 内有住户登记向导文字
 
 **Ruling**：探测放在开局而不是阶段 5——阶段 5/6 要知道"有没有装酒馆助手"，阶段 7 要知道"有没有在跑的实例"，两次探测会有两次不确定；开局一次写进契约，后面只读。
+
+### Task 22: 交付改三件套 + 最终产物空目录规则
+
+- [x] `references/stage-7-delivery.md` 整份重写：三件各管一件事、卡必须纯净、世界书 native 形状、正则数组、装配四步、`最终产物` 空规则、校验器新口径
+- [x] `templates/st-card.json` 去掉 `character_book`；`templates/regex-frontend.json` 改数组（两条骨架）；`templates/st-worldbook.json` 改 native 42 字段骨架；删 `templates/st-character-book-entry.json`
+- [x] `scripts/validate-st-package.py` 重写为三件模式（P01 / C09–C11 / W01–W16 / R01–R06 / X01–X05），支持传目录自动认件
+- [x] `scripts/validate-contract.py` 新增 C13（最终产物交付前空、交付后三件齐）、`st-regex` 类型、`STAGE_ARTIFACT[7]` 三选一
+- [x] `scripts/st-import.py` 加 `--pkg` 三件逐件导入（卡 / 书 / 正则），正则走 settings 读写并备份
+- [x] 路径总迁移：运行期产物一律 `创作痕迹/产物/`（`SKILL.md` / `pipeline.md` / `dual-mode.md` / `contract-schema.md` / `stage-1·3·5·6` / `interview-protocol.md` / `frontend-conventions.md`）
+- [x] dry-run 重构：产物挪进 `创作痕迹/产物/`，`最终产物/` 只剩三件；契约 `route: st`、三条 artifacts
+- [x] 验证：`validate-st-package.py examples/dry-run-盐湖守夜人/最终产物 --contract …` → 19 项 0 失败 0 警告；`validate-contract.py` → 14 项 0 失败
+
+**Ruling**：`最终产物/` 严格空——不是"只放终稿"，是"交付前什么都没有"。理由：一旦允许半成品进去，"这是终稿还是草稿"就没人分得清，而 `创作痕迹/` 本来就是给过程用的，多一层目录比多一次判断便宜。
+- [x] 追记：`st-import.py` 的正则改为"只校验不写设置"，`references/stage-7-delivery.md` 与 `frontend-conventions.md` 写明原因（运行中的客户端会盖掉 `settings.json`）
+

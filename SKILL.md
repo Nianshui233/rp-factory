@@ -37,7 +37,8 @@ disable-model-invocation: true
 ```
 <工作区>/<世界名>/
   创作痕迹/  contract.yaml（命名权威+索引） · 项目档案.yaml（元信息+类型基调，不进终稿） · 创作记录.md（访谈、决策、卡点） · 检索来源.md（仅联网时）
-  最终产物/  world-bible.yaml · rolecard.yaml · scene-sheet.yaml · axis-system.yaml · 表现层文件（按需）· st/（选了酒馆包才有）
+  创作痕迹/产物/  world-bible.yaml · rolecard/ · scene/ · axis/ · 表现层 HTML 与正则（过程产物一律在这）
+  最终产物/  全程空着，只在第十节交付时写入
 ```
 
 - 名字未定 → 先建 `未命名项目/`，定名后重命名一次并回写 `project.name` 与 `project.workspace`；说「只要粘贴」→ `project.mode = text`，不建目录，此后不再问。
@@ -94,7 +95,7 @@ disable-model-invocation: true
 6. **联网门（仅 `web_research: true`）**：每次落笔前先检索（不限阶段、含局部改动）、交付前复核一遍外部专名；查不到就记 `未检索到` 并改走确认清单，**不编造外部事实**。
 7. **前端门（仅阶段 5 / 6）**：交付前按 `references/frontend-conventions.md` 第六节九条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽、无外链无 `eval`、无标签时留白、脏值转义、`validate-frontend.py` 全过（内联脚本里写 HTML 实体 = 界面静默变 2px 高）。
 
-8. **交付门（仅阶段 7）**：先跑 `python scripts/validate-st-package.py "<卡>.json" --contract 创作痕迹/contract.yaml`，退出码 0 才算过；脚本查的事——单文件卡（`data.character_book` 内嵌且 `name` == `extensions.world`）、条目形状完整、`description` ≤8000 字且含每个轴名、每个角色与每个地点都有条目、正则 `$1` 与捕获组对得上、`first_mes` 的标签能被某个正则接住、正文占位符 0 命中、常驻条目 ≤8000 字、关键词无重复。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、导入三步齐全）。
+8. **交付门（仅阶段 7）**：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过；脚本查的事——三件齐全（纯净卡 / 正则 / 世界书）、卡里无 `character_book` 且 `extensions.regex_scripts` 为空、世界书是 native 对象形状且 `uid` 对齐、`extensions.world` == 世界书文件名、`description` ≤8000 字且含每个轴名、每个角色与每个地点都有条目、正则 `$1` 与捕获组对得上、`first_mes` 的标签能被某个正则接住、三件占位符 0 命中、常驻条目 ≤8000 字、关键词无重复。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、装配四步齐全）。
 9. **阶段门**：一次只推进一个阶段。阶段做完 → 跑一遍 `python scripts/validate-contract.py 创作痕迹/contract.yaml` → 停下、汇总（本轮落下什么 / 哪些是你替我定的 / 下一步是什么）→ **等用户回话**。用户说「全都要」也只按顺序一阶段一阶段做，每段之间必须停。禁止在同一条回复里既交付本阶段又发起下一阶段的第一轮提问，禁止交付后立刻弹「要不要继续」的选项——那是在替用户按按钮。
 10. **自创字段门**：新增模板里没有的键之前先问用户，得到同意后写进 `contract.decisions`（记：新增了什么、为什么要、不加会丢什么），并在交付说明里点名。**不许用自创块替换模板既有块**（例如另起 `intimacy` 顶替 `nsfw`）；模板已有的键不够用时，优先把信息塞进扩展位（`lore` / `relationships` / `growth_arc`）而不是新造顶层键。
 
@@ -114,7 +115,7 @@ disable-model-invocation: true
 | `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 7 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning（三灯、套餐、8–15 关键词、位置、预算、递归、概率、十二条自查） |
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
-| `templates/st-card.json` / `st-character-book-entry.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` | 酒馆包骨架（卡 / 内嵌条目 / 独立世界书）+ 四个校验器（契约门 / 阶段 2 / 前端门 / 交付门） |
+| `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 四个校验器（契约门 / 阶段 2 / 前端门 / 交付门） |
 | `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（探测静默跑；导入与验收只在用户点头后跑） |
 
 ## 八、阶段文件约定
@@ -123,17 +124,17 @@ disable-model-invocation: true
 
 ## 九、交付形态
 
-- 文本模态：设定产物是一个 ```yaml 代码块，块外只允许设计说明、补全清单、待确认清单、运行示例；工程模态写进 `<工作区>/<世界名>/最终产物/`，每个产物一个文件。
+- 文本模态：设定产物是一个 ```yaml 代码块，块外只允许设计说明、补全清单、待确认清单、运行示例；工程模态写进 `<工作区>/<世界名>/创作痕迹/产物/`，每个产物一个文件。**`最终产物/` 在交付前必须空着**——那是交付目录，不是工作目录。
 - 表现层例外：两个前端交付 **HTML（完整文档）+ 正则 JSON + 提示词条目 YAML** 三个代码块 / 三个文件；HTML 与 JSON 是对 ST 与酒馆助手的落地件，不套 YAML 骨架。
-- 打包例外：阶段 7 的 `st-card` / `st-worldbook` 是 JSON，落在 `最终产物/st/`，两个文件加四步导入说明；原生路线不受影响，YAML 与 HTML 原样保留。
+- 打包例外：阶段 7 交**三件 JSON**（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`），落在 `最终产物/` 根下，用户自己装配；`创作痕迹/产物/` 里的 YAML 与 HTML 原样保留。
 细节在 `references/dual-mode.md`；改模态只换渲染目标，不重跑阶段。
 
 ## 十、收尾问（最后才问）
 
-`project.stages_requested` 里的阶段全部 `done` 之后，**问一次、只问一次**：原生产物（默认，维持 `最终产物/` 现状）/ SillyTavern 包（`<世界名>.json` 角色卡 v2 + `<世界名> 世界书.json`，外带 `regex-*.json` 与 HTML）/ 两者都要。
+`project.stages_requested` 里的阶段全部 `done` 之后，**问一次、只问一次**：原生产物（默认，把 `创作痕迹/产物/` 复制进 `最终产物/`）/ SillyTavern 三件套（`<世界名>（纯净）.json` + `正则.json` + `<世界名> 世界书.json`，用户自己装配）/ 两者都要。
 
 - 写 `delivery.route` 为 `native` / `st` / `both`；选酒馆包才进阶段 7，选原生就把 `stages.7` 写 `skipped`。
-- 不问名字（默认 `project.name`）、不问放哪（`最终产物/st/`）、不生成头像。
+- 不问名字（默认 `project.name`）、不问放哪（`最终产物/` 根下）、不生成头像。
 - 用户没说“打包 / 导入酒馆 / 要角色卡 json / 要世界书”就不要主动提，原生是默认。
 - 中途就要包也行，但必须先跑完已勾阶段；有 `partial` 先问“先打包还是补完”。
 

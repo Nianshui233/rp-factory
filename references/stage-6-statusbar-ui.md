@@ -94,8 +94,8 @@
 
 ## 退出
 
-- 前端门九条逐条过（`references/frontend-conventions.md` 第六节），并跑 `python scripts/validate-frontend.py 最终产物/statusbar-ui.html`。
+- 前端门九条逐条过（`references/frontend-conventions.md` 第六节），并跑 `python scripts/validate-frontend.py 创作痕迹/产物/statusbar-ui.html`。
 - 三种误数据各试一次：**缺字段**（删掉一根轴）→ 该条隐去且不报错；**越界值**（把 72 写成 140）→ 条钳到满格、数字照原样显示（便于发现模型漂移，不帮它擦屁股）；**脏值**（`<b>x</b>`）→ 显示字面文本。
 - 数值一致性：把 `FIELDS` 的 `min/max` 与 `axis-system.yaml` 的 `range` 逐项对照，不一致就改界面，不改产物。
 - 交付时三句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里；另加一句"轴上没有的字段不要往状态栏塞"。
-- 用户只要粘贴版 → 三个代码块给全；文件模态下三份产物写进 `最终产物/`。
+- 用户只要粘贴版 → 三个代码块给全；文件模态下三份产物写进 `创作痕迹/产物/`。

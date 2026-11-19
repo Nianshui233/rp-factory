@@ -18,9 +18,9 @@ stages:
   7: done
 
 delivery:                  # 收尾问一次：交付到哪
-  route: "both"
+  route: "st"
   st_name: "白潮"
-  files: ["白潮.json"]          # 单文件：卡 + 内嵌世界书 + 内嵌正则
+  files: ["白潮（纯净）.json", "正则.json", "白潮 世界书.json"]   # 三件套，用户自己装配
 
 content_boundaries:
   nsfw: true
@@ -99,13 +99,15 @@ decisions:
   - {stage: 7, question: "正则怎么带", answer: "卡内嵌 + 独立 regex-*.json 都给", why: "内嵌省事但要弹窗允许；全局导入不弹窗但作用于所有角色，两条路都留"}
 
 artifacts:
-  - {type: "world-bible", path: "最终产物/world-bible.yaml", version: 1}
-  - {type: "rolecard", path: "最终产物/rolecard.yaml", version: 1}
-  - {type: "scene-sheet", path: "最终产物/scene-sheet.yaml", version: 1}
-  - {type: "axis-system", path: "最终产物/axis-system.yaml", version: 1}
-  - {type: "opening-ui", path: "最终产物/wizard-ui.html", version: 1}
-  - {type: "opening-ui", path: "最终产物/regex-opening.json", version: 1}
-  - {type: "statusbar-ui", path: "最终产物/statusbar-ui.html", version: 1}
-  - {type: "statusbar-ui", path: "最终产物/regex-statusbar.json", version: 1}
-  - {type: "statusbar-ui", path: "最终产物/frontend-prompt.yaml", version: 1}
-  - {type: "st-card", path: "最终产物/st/白潮.json", version: 1}
+  - {type: "world-bible", path: "创作痕迹/产物/world-bible.yaml", version: 1}
+  - {type: "rolecard", path: "创作痕迹/产物/rolecard.yaml", version: 1}
+  - {type: "scene-sheet", path: "创作痕迹/产物/scene-sheet.yaml", version: 1}
+  - {type: "axis-system", path: "创作痕迹/产物/axis-system.yaml", version: 1}
+  - {type: "opening-ui", path: "创作痕迹/产物/wizard-ui.html", version: 1}
+  - {type: "opening-ui", path: "创作痕迹/产物/regex-opening.json", version: 1}
+  - {type: "statusbar-ui", path: "创作痕迹/产物/statusbar-ui.html", version: 1}
+  - {type: "statusbar-ui", path: "创作痕迹/产物/regex-statusbar.json", version: 1}
+  - {type: "statusbar-ui", path: "创作痕迹/产物/frontend-prompt.yaml", version: 1}
+  - {type: "st-card", path: "最终产物/白潮（纯净）.json", version: 1}
+  - {type: "st-regex", path: "最终产物/正则.json", version: 1}
+  - {type: "st-worldbook", path: "最终产物/白潮 世界书.json", version: 1}

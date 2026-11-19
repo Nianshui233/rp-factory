@@ -583,3 +583,26 @@ artifacts: []              # {type, path | inline_ref, version}
 **为什么不让用户自己导**：这次的教训是"静态校验全过、真机一片空白"。`validate-st-package.py` 能证明 JSON 结构对，证明不了 ST 的渲染管线认它。中间隔着一个只有跑起来才知道的环节，所以把它做成可选的一步，而不是留给用户踩。
 
 **边界**：导入只碰两样东西——角色卡（同名覆盖）、可选的世界书文件；不动设置、不动已有聊天记录、不自动改 `character_allowed_regex`（那是用户的授权，只能他自己点）。失败就停，不换端口反复试。
+
+## 23. 交付形态改回三件套（2026-11-20 追加，推翻 §19）
+
+用户要的是"三件分开、我自己装配"：`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`。§19 的单文件内嵌卡（`data.character_book` + `extensions.regex_scripts`）被推翻。
+
+**推翻的理由**：单文件省一步导入，代价是改一条设定要重导整卡；世界书和正则都没法单独迭代；用户还得在"卡设置"和"正则面板"两个入口之间来回找。三件分开后，每件都能单独换，装配顺序写在 `creator_notes` 里。
+
+| | 单文件（旧） | 三件套（新） |
+|---|---|---|
+| 卡 | 卡 + 内嵌书 + 内嵌正则 | 只装 `description` + `first_mes` + `system_prompt`；`character_book` 不写、`extensions.regex_scripts: []` |
+| 世界书 | `character_book.entries`（v2 数组） | native `{"entries": {"0": …}}`，**文件名即书名** |
+| 正则 | `extensions.regex_scripts` | `正则.json`（数组，ST 的 `onRegexImportFileChange` 认数组，一次导完） |
+| 绑定 | `character_book.name` == `extensions.world` | 世界书文件名 == `extensions.world` |
+| 用户动作 | 导卡 → 弹窗 Yes → 允许正则 | 导书 → 导卡 → 导正则 → 开渲染 |
+
+**同时定的目录规则**：`最终产物/` 是**交付目录**，选定路线之前必须为空；运行期所有产物（含 HTML 与正则草稿）写 `创作痕迹/产物/`。交付时按路线填：原生 → 复制 `产物/` 的树；酒馆 → 只放三件。
+
+**校验器同步重写**（`validate-st-package.py` → 三件模式）：P01 三件齐全；C09 卡里不许有 `character_book`、C10 `regex_scripts` 必须为空、C11 `extensions.world` 非空；W01 世界书必须是 native 对象（数组 = FAIL）、W02 `uid` 对齐、W03 字段类型（`role` 允许 `null`，与 ST 默认一致）；R01 正则数组、R05 `findRegex` 可编译、R06 `$1` 必须有捕获组；X03 书名三处一致、X04 `first_mes` 被某条正则接住、X05 三件占位符 0 命中。契约侧新增 C13：`stages.7` 未 done 时 `最终产物/` 必须为空，done 时酒馆路线必须三件齐。
+
+**导入脚本同步**（`st-import.py --pkg`）：卡走 `/api/characters/import`；书走 `/api/worldinfo/import`（字段名 `avatar`，文件名即书名）；正则走"读全量设置 → 往 `extension_settings.regex` 追加 → `POST /api/settings/save`"，写前把原设置备份到临时目录。全局正则不需要白名单，用户选"角色专属"导入时才需要点一次允许。
+
+**追记：正则这一件脚本代不了**。写 `settings.json` 是通的（`POST /api/settings/save` 就是 `writeFileAtomicSync`），但运行中的酒馆由**客户端**持有 `extension_settings`：实测写完 2 条、磁盘能查到，打开一次角色卡后磁盘又变回 0 条——页面刷新或自动保存会用内存里的旧数组覆盖文件。所以 `st-import.py` 对正则只做校验（结构 + `node --eval` 编译 + `$1` 捕获组），把"设置 → 扩展 → 正则 → 导入"这一步留给用户；文档里也不许写"正则已经导好了"。
+

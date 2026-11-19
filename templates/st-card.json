@@ -37,10 +37,6 @@
         "role": "system"
       },
       "regex_scripts": []
-    },
-    "character_book": {
-      "name": "",
-      "entries": []
     }
   }
 }

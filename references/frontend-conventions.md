@@ -134,7 +134,7 @@ else {
 1. **正文与 CSS 里不写实体**。要 `&` 就直接写 `&`（浏览器容忍），要空格用 `white-space: pre-wrap` 或 `\u00a0`，不要 `&nbsp;`。
 2. **JS 字符串里的实体用 `\x26` 拼**：`'\x26amp;'`、`'\x26lt;'`、`'\x26gt;'`、`'\x26quot;'`、`'\x26#39;'`。`\x26` 在 JS 求值时才变 `&`，源码里没有字面 `&`，管线就没东西可吃。
 
-自查：`python scripts/validate-frontend.py 最终产物/xxx.html` 的 F04 专抓这条。
+自查：`python scripts/validate-frontend.py 创作痕迹/产物/xxx.html` 的 F04 专抓这条。
 
 ## 四、正则脚本 JSON
 
@@ -169,6 +169,7 @@ else {
 - `runOnEdit: true`，用户手改消息后界面跟着重算。
 - `substituteRegex: 0`（用原始正则）；`trimStrings` 用于把捕获内容里的多余字符裁掉，默认空数组。
 - 开关给用户一句话：正则扩展 → 导入该 JSON → 确认"仅格式显示"已开；酒馆助手 → 设置里打开"消息渲染"。
+- **草稿与交付分开**：阶段 5 / 6 各自写一份草稿（`创作痕迹/产物/regex-opening.json` / `regex-statusbar.json`，单对象即可）；阶段 7 交付时合并成一份 `最终产物/正则.json`（数组，一条界面一个对象）。合并只做拼装，不改 `findRegex` 与 `replaceString`。
 
 ## 五、提示词条目（`frontend-prompt.yaml`）
 
@@ -211,3 +212,7 @@ else {
 7. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本；越界值不溢出。
 8. 交用户四句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里、触发词该出现在哪条消息里。
 9. 跑 `python scripts/validate-frontend.py <界面.html>`：F01–F08 全过（F04 专抓 `<script>` 里的 HTML 实体，那是唯一会让界面整份静默不显示的写法）。
+
+## 九、正则只能界面导入
+
+`extension_settings` 属于运行中的客户端：脚本 `POST /api/settings/save` 写进 `settings.json` 的正则，会在页面刷新或下一次自动保存时被内存里的旧数组覆盖。所以 `正则.json` 交出去就完了，别代用户装好——最多校验结构可编译。
