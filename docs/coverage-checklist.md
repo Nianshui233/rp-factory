@@ -174,3 +174,9 @@
 | G03 | 流程 | `nsfw: true` 时每张卡必须有 `nsfw` 块 | references/stage-2-rolecard.md | [x] |
 | G04 | 流程 | 自创字段先问、记 `decisions`、不许替换既有块 | SKILL.md · references/stage-2-rolecard.md | [x] |
 | G05 | 流程 | 角色卡交付前跑 `validate-rolecard.py` | references/stage-2-rolecard.md · scripts/validate-rolecard.py | [x] |
+| G06 | 流程 | 每阶段收尾跑 `validate-contract.py`（契约门） | SKILL.md · references/pipeline.md · scripts/validate-contract.py | [x] |
+| G07 | 契约 | `done` 的阶段必须有对应产物；`partial` 必须挂 `pending[]` | references/contract-schema.md · scripts/validate-contract.py | [x] |
+| G08 | 契约 | `artifact.type` 九类白名单，不许自造（`role-cards` / `secret-layer`） | references/contract-schema.md | [x] |
+| G09 | 世界观 | 沙盒/喜剧题材用「多源日常」+ `世界怎么运转`，不硬造总引擎 | templates/world-bible.yaml · references/stage-1-world-bible.md | [x] |
+| G10 | 数值 | 多目标轴落到 `targets` 模板字段 | templates/axis-system.yaml · references/stage-4-axis-system.md | [x] |
+

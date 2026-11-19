@@ -54,7 +54,8 @@ pending: []                # [待定…] 汇总，- {stage: 1, item: "", why: ""
 decisions: []              # 用户拍的板，- {stage: 1, question: "", answer: "", why: ""}
 
 artifacts: []              # 产物索引，正文不在这里
-  # - type: world-bible    # world-bible | rolecard | scene-sheet | axis-system | opening-ui | statusbar-ui
-  #   path: ""             # 工程模态写文件路径；文本模态留空
+  # - type: world-bible    # project-profile | world-bible | rolecard | scene-sheet | axis-system
+  #                        # | opening-ui | statusbar-ui | st-card | st-worldbook
+  #   path: ""             # 相对项目根；文本模态留空（多文件产物写目录，如 最终产物/角色卡/）
   #   inline_ref: ""       # 文本模态写产物在会话里的标识
   #   version: 1

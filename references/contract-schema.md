@@ -23,7 +23,7 @@
 | `hard_settings` | 已锁定的硬设定，`source` 必须标 `用户确认` 或 `推导` |
 | `pending` | 待定项汇总 |
 | `decisions` | 用户拍过的板 |
-| `artifacts` | 产物索引，`type` 只能是八类之一 |
+| `artifacts` | 产物索引，`type` 只能是九类之一（见第六节表） |
 
 ## 三、独占写者
 
@@ -37,7 +37,9 @@
 | `delivery.*` | 阶段 7（收尾那一问）；写定后改路线只改 `route`，不重命名 `st_name` |
 | `hard_settings` | 各阶段追加，只有用户确认的才 `locked` |
 
-`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`最终产物/world-bible.yaml`），不用绝对路径。表现层一份产物落两到三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分：界面 HTML、正则 JSON，以及可选的提示词条目 `frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个；建卡向导通常不需要它）。酒馆包同理：两个文件都写阶段 7，`type` 分别是 `st-card` / `st-worldbook`，`path` 在 `最终产物/st/` 下；正则与 HTML 不重复记，它们仍属阶段 5 / 6 的产物。
+`artifacts[].type` 只有九类：`project-profile` / `world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `opening-ui` / `statusbar-ui` / `st-card` / `st-worldbook`。不许自造（一次实操里出现过 `role-cards`、`secret-layer`——前者该写 `rolecard`，后者根本不是产物）。
+
+`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`最终产物/world-bible.yaml`），不用绝对路径、不许含 `..`、同一路径不许出现两次。多张角色卡或有多张场景卡时，`path` 指向目录（`最终产物/角色卡/`），`type` 仍是 `rolecard` / `scene-sheet`——文件数不改变产物类别，别为"有 14 张卡"另起一个类型。表现层一份产物落两到三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分：界面 HTML、正则 JSON，以及可选的提示词条目 `frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个；建卡向导通常不需要它）。酒馆包同理：两个文件都写阶段 7，`type` 分别是 `st-card` / `st-worldbook`，`path` 在 `最终产物/st/` 下；正则与 HTML 不重复记，它们仍属阶段 5 / 6 的产物。
 
 `project.workspace` 与 `project.name` 必须同时更新：前者是用户确认的**工作区**（父目录）绝对路径，后者是子文件夹名（= 世界名，未定时为 `未命名项目`）。项目实际路径 = `<workspace>/<name>/`。只改一个 = 指向一个不存在的目录。
 
@@ -68,3 +70,13 @@
 | `stages.n: skipped` | 没勾的阶段 | 只是"本次不跑"，不等于"不需要"；下游阶段缺输入时照旧走补采访问 |
 | `project.web_research`（+ 需要时 `source_ip`） | 开局第四问 | 中途开/关都要记 `decisions`；开启时建 `创作痕迹/检索来源.md` 并从当前阶段起按 `references/web-research.md` 检索；关闭时停止检索，不补查旧账 |
 | `content_boundaries.nsfw` + `rating` | 开局第三问 | 开关一次就重锁 `rating` 并记 `decisions`；关掉时必须清掉已交付产物里的越界内容，只改开关不算数 |
+
+## 八、写完就跑校验器
+
+```
+python scripts/validate-contract.py <创作痕迹/contract.yaml>
+```
+
+它查 C01–C12：`project` 必填与 `stages_requested` 枚举、`stages.1–7` 值在 `none/partial/done/skipped` 内、`artifact.type` 在九类枚举内、`path` 相对且真实存在、**`done` 的阶段有对应产物**、`delivery.route` 与 `files` 自洽、`naming` 收口（阶段 4 完成后 `axes` 不许再带 `provisional`）、`hard_settings.source` 以 `用户确认`/`推导` 开头。
+
+`partial` 不会被判失败，但必须出现在 `pending[]` 里（哪一项、为什么、缺什么才到 `done`）——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。

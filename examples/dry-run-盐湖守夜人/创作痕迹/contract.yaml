@@ -109,4 +109,3 @@ artifacts:
   - {type: "statusbar-ui", path: "最终产物/regex-statusbar.json", version: 1}
   - {type: "statusbar-ui", path: "最终产物/frontend-prompt.yaml", version: 1}
   - {type: "st-card", path: "最终产物/st/白潮.json", version: 1}
-  - {type: "st-worldbook", path: "最终产物/st/白潮 世界书.json", version: 1}

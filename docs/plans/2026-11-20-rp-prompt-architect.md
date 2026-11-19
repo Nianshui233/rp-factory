@@ -746,3 +746,16 @@ python scripts/validate-rolecard.py examples/rolecard-minimal.yaml
 ```
 
 Expected: 0 失败（WARN 可带着走），退出码 0。
+
+### Task 19: 模板与契约收口
+
+- [x] `templates/world-bible.yaml`：`核心矛盾` → `张力从哪来`（含 `张力形态` 与三类张力）；新增 `世界怎么运转`、`日常生活的质地`
+- [x] `references/stage-1-world-bible.md`：四大要素第 ③ 改「张力形态」；新增「题材分支」表；原则 3/5/11 与极简版措辞同步
+- [x] `templates/axis-system.yaml`：轴加 `targets` / `targets_initial`
+- [x] 新建 `scripts/validate-contract.py`（C01–C12）
+- [x] `references/contract-schema.md` 补第八节；`pipeline.md` 十道门 + 契约门；`SKILL.md` 阶段门加跑校验器
+- [x] dry-run 补三个场景条目、删 `场景速查`、契约去掉 `st-worldbook`
+- [x] 验证：`validate-contract.py` 0 失败；`validate-st-package.py` 0 失败 0 警告；全部 YAML/JSON 可解析
+
+**Ruling**：`核心矛盾` 只改名不删字段——旧的 `矛盾各方` / `升级路径` 原样保留在块内，因为单一引擎题材（战争、生存、悬疑）确实需要它们；改名是为了让"多源日常"这种形态在模板里有位置，而不是为了否定旧形态。
+

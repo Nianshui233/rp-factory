@@ -533,3 +533,21 @@ artifacts: []              # {type, path | inline_ref, version}
 - **自创字段门**：新增键先问、写进 `decisions`，不许用自创块替换模板既有块。
 - **阶段 2 加校验器** `scripts/validate-rolecard.py`（块齐、规则条数、`taboos ⊆ never`、`nsfw` 一致性、占位符）。
 - **轴的多目标**：对象多于一人时选 `targets[]` / 分组 / 降级气氛值，写进产物与 `decisions`。
+
+## 20. 模板与契约的收口（2026-11-20 追加）
+
+复盘里剩下的两类问题——模板本身写歪、契约没人管——不改代码路径，只改模板与口径。
+
+**模板**：
+
+1. `templates/world-bible.yaml` 的 `核心矛盾` 改名 `张力从哪来`，块内新增 `张力形态`（单一引擎 / 多源日常 / 任务线）、`日常张力` / `关系张力` / `外部张力`；新增两个一等公民块 `世界怎么运转`（沙盒还是任务、AI 的职责、世界自发的动静、卡住时的兜底、不做什么）与 `日常生活的质地`（一天的节奏、吃什么、钱怎么周转、怎么玩、传闻怎么流）。`stage-1` 新增「题材分支」表：沙盒 / 日常 / 情景喜剧必须用 `多源日常` + `世界怎么运转`，不许为统一感硬造总引擎。判错题材是一次实操里最贵的错——情景喜剧被写成"全员围绕某物的审判世界"，用户连否两版。
+2. `templates/axis-system.yaml` 的轴加 `targets` / `targets_initial`，把 `stage-4` 的"多目标三选一"落到模板里（原来只有文字规则，模板没有落点）。
+
+**契约**：
+
+3. 新增 `scripts/validate-contract.py`（C01–C12）：`stages` 枚举、`artifact.type` 九类白名单（并点名历史错名 `role-cards` / `secret-layer`）、`path` 相对且真实存在、**`done` 的阶段必须有对应产物**、`delivery` 与 `files` 自洽、`naming.axes` 阶段 4 后不许再 `provisional`、`hard_settings.source` 前缀。
+4. `references/contract-schema.md` 补第八节「写完就跑校验器」，并写清 `partial` 必须挂进 `pending[]`；`pipeline.md` 九道门 → 十道门，新增 `契约门`；`SKILL.md` 硬门第 9 条（阶段门）要求每阶段收尾跑一次。
+5. 多文件产物（14 张角色卡）用目录形式的 `path`，`type` 仍是 `rolecard`——文件数不改变产物类别。
+
+**示例同步**：dry-run 的 `白潮.json` 内嵌条目从 12 条增至 15 条（补三个场景条目），`description` 删掉 `场景速查`（避免与场景条目重复），5,943 字；契约去掉已删除的 `st-worldbook` 产物记录。校验：`validate-contract.py` 0 失败（2 条示例目录的预期警告）、`validate-st-package.py` 17 项 0 失败 0 警告。
+

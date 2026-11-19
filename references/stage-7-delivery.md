@@ -72,7 +72,8 @@
 - **人物条目写什么**：该卡的 `psychology` + `behavior` + `attitudes` + `speech`（删掉 `identity.appearance` 以外的外貌细节、删 `nsfw` 块——`nsfw` 块留一份在「数值与判定」条目里按轴分档写，避免 14 份重复）。`content` 用 YAML 片段，键名保留、缩进减 2 格。
 - **地点条目写什么**：`概览` + `空间结构` + `关键区域.现场可见` + `出入口与安防` 的可判定物。这是"客厅只有一张长沙发""卫生间只有一个"能进上下文的唯一通道。
 - **数值与判定条目写什么**：每条轴的 `range` / `initial` / `direction` / 各级 `label` 与 `behavioral_signs`（每级压成一句）+ `calc_mod` + `evaluation_order` + `anti_exploit`。多目标轴（`targets[]`）把每人一行初始值列在条目末尾。**没有这一条，数值系统在角色扮演里等于不存在。**
-- 常驻条目总字数 ≤5000（校验器 W09），单条 ≤1000 字，超了拆条；`未决事项` 不进任何一层（它是台账，留在 `创作痕迹/`）。
+- 常驻条目总字数 ≤8000（校验器 C22），单条 ≤1000 字，超了拆条；`未决事项` 不进任何一层（它是台账，留在 `创作痕迹/`）。
+- 场景条目的 `keys` 用场景名与别名；与地点条目撞名时合并成一条（地点条目 `content` 追加场景细节），一个名字只归一条。
 
 ### 四、两个形状，别混
 
@@ -154,7 +155,8 @@
 **跑校验器，别肉眼对：**
 
 ```
-python scripts/validate-st-package.py "最终产物/st/<世界名>.json"
+python scripts/validate-st-package.py "最终产物/st/<世界名>.json" --contract 创作痕迹/contract.yaml
+python scripts/validate-contract.py 创作痕迹/contract.yaml
 ```
 
 脚本在**本 skill 包**的 `scripts/` 下，不在用户项目里；当前目录不是包根时用脚本的绝对路径。出了独立世界书就再跟一个路径，脚本会顺带查两份是否同源。

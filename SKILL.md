@@ -66,7 +66,7 @@ disable-model-invocation: true
 
 ## 三、开工前
 
-1. 读 `references/pipeline.md`：阶段表、7 个占位符、八道门、输出纪律。**这是唯一的公共脊，任何阶段文件里没有的东西都回这里查。**
+1. 读 `references/pipeline.md`：阶段表、7 个占位符、十道门、输出纪律。**这是唯一的公共脊，任何阶段文件里没有的东西都回这里查。**
 2. 有契约就读契约（`templates/contract.yaml` + `references/contract-schema.md`）；没有就先建一份。
 3. `project.web_research: true` → 先读 `references/web-research.md`，再进阶段（否则跳过，也不许搜）。
 4. 定出**目标阶段**与**当前产物 type**（八选一：`world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `opening-ui` / `statusbar-ui` / `st-card` / `st-worldbook`）；文本还是工程文件按 `references/dual-mode.md` 判，默认文本模态。
@@ -91,16 +91,16 @@ disable-model-invocation: true
 5. **自检门**：每份设定产物交付前内部执行四类检查，不向用户展示检查过程。**产物正文里不许出现构建期占位符**（`【AI补全·可替换】` / `[待定]` / `【未知】` 只允许出现在给用户的补全清单与契约 `pending` 里，落进 YAML 值域即失败）。
 6. **联网门（仅 `web_research: true`）**：每次落笔前先检索（不限阶段、含局部改动）、交付前复核一遍外部专名；查不到就记 `未检索到` 并改走确认清单，**不编造外部事实**。
 7. **前端门（仅阶段 5 / 6）**：交付前按 `references/frontend-conventions.md` 第六节八条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽、无外链无 `eval`、无标签时留白、脏值转义。
-9. **阶段门**：一次只推进一个阶段。阶段做完 → 停下、汇总（本轮落下什么 / 哪些是你替我定的 / 下一步是什么）→ **等用户回话**。用户说「全都要」也只按顺序一阶段一阶段做，每段之间必须停。禁止在同一条回复里既交付本阶段又发起下一阶段的第一轮提问，禁止交付后立刻弹「要不要继续」的选项——那是在替用户按按钮。
-10. **自创字段门**：新增模板里没有的键之前先问用户，得到同意后写进 `contract.decisions`（记：新增了什么、为什么要、不加会丢什么），并在交付说明里点名。**不许用自创块替换模板既有块**（例如另起 `intimacy` 顶替 `nsfw`）；模板已有的键不够用时，优先把信息塞进扩展位（`lore` / `relationships` / `growth_arc`）而不是新造顶层键。
 
-8. **交付门（仅阶段 7）**：先跑 `python scripts/validate-st-package.py <卡> --contract <契约>`，退出码 0 才算过；脚本查的事——卡可解析且 `spec == "chara_card_v2"`；**卡里有 `data.character_book`，`entries` 非空，`name` == `extensions.world`**；条目 `content` 非空 / `keys` 是数组 / `position` ∈ `before_char`·`after_char` / `insertion_order` 是数字；每条 `findRegex` 能用 JS 编译且 `$1` 与捕获组对得上；`first_mes` 的标签能被某个正则接住；`description` ≤ 8000 字且含每个轴名；正文占位符 0 命中；常驻条目 ≤ 8000 字、关键词无重复。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、导入三步齐全）。
+8. **交付门（仅阶段 7）**：先跑 `python scripts/validate-st-package.py "<卡>.json" --contract 创作痕迹/contract.yaml`，退出码 0 才算过；脚本查的事——单文件卡（`data.character_book` 内嵌且 `name` == `extensions.world`）、条目形状完整、`description` ≤8000 字且含每个轴名、每个角色与每个地点都有条目、正则 `$1` 与捕获组对得上、`first_mes` 的标签能被某个正则接住、正文占位符 0 命中、常驻条目 ≤8000 字、关键词无重复。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、导入三步齐全）。
+9. **阶段门**：一次只推进一个阶段。阶段做完 → 跑一遍 `python scripts/validate-contract.py 创作痕迹/contract.yaml` → 停下、汇总（本轮落下什么 / 哪些是你替我定的 / 下一步是什么）→ **等用户回话**。用户说「全都要」也只按顺序一阶段一阶段做，每段之间必须停。禁止在同一条回复里既交付本阶段又发起下一阶段的第一轮提问，禁止交付后立刻弹「要不要继续」的选项——那是在替用户按按钮。
+10. **自创字段门**：新增模板里没有的键之前先问用户，得到同意后写进 `contract.decisions`（记：新增了什么、为什么要、不加会丢什么），并在交付说明里点名。**不许用自创块替换模板既有块**（例如另起 `intimacy` 顶替 `nsfw`）；模板已有的键不够用时，优先把信息塞进扩展位（`lore` / `relationships` / `growth_arc`）而不是新造顶层键。
 
 ## 七、文件索引
 
 | 文件 | 管什么 |
 |---|---|
-| `references/pipeline.md` | 阶段表、占位符、八道门、自检四类、命名门四步、输出纪律 |
+| `references/pipeline.md` | 阶段表、占位符、十道门、自检四类、命名门四步、输出纪律 |
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
 | `references/dual-mode.md` | 两种模态的对照、切换、渲染、注释剥离 |
@@ -112,7 +112,7 @@ disable-model-invocation: true
 | `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 7 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning（三灯、套餐、8–15 关键词、位置、预算、递归、概率、十二条自查） |
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
-| `templates/st-card.json` / `st-character-book-entry.json` / `st-worldbook.json` · `scripts/validate-*.py` | 酒馆包骨架（卡 / 内嵌条目 / 独立世界书）+ 两个校验器（交付门与阶段 2 用它把关） |
+| `templates/st-card.json` / `st-character-book-entry.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` | 酒馆包骨架（卡 / 内嵌条目 / 独立世界书）+ 三个校验器（契约门 / 阶段 2 / 交付门） |
 
 ## 八、阶段文件约定
 

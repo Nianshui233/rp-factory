@@ -17,6 +17,9 @@ axes:
     initial: 0                      # 必须在 range 内
     direction: ""                   # bidirectional 可升可降 / ascending 只升不降 / descending 只降不升
     description: ""                 # 下限含义 ↔ 上限含义
+    targets: []                     # 对象多于一人时才填：["char_a", "char_b"]（阶段 4 的「多目标」）
+                                    # 填了就表示每个 target 各有一份值；不填 = 全局一个值
+    targets_initial: {}             # 例：{"char_a": 12, "char_b": 0}；只在 targets 非空时使用
 
 thresholds:                        # 按轴名分键：一个轴一套阈值；多轴就多套
   <轴名>:
