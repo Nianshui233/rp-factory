@@ -13,8 +13,9 @@
 | 4 数值系统 | `references/stage-4-axis-system.md` | `axis-system` | 有 `naming.world`，或用户直接给出可量化维度 | 自检门通过 |
 | 5 开局前端 | `references/stage-5-opening-ui.md` | `opening-ui` | 有 `naming.world`；用户要开局界面/开场面板/建卡向导（两形态选一） | 前端门通过 |
 | 6 状态栏前端 | `references/stage-6-statusbar-ui.md` | `statusbar-ui` | 有 `axis-system`（降级形态：信息卡）；用户要状态栏/每轮数值 | 前端门通过 |
+| 7 交付 | `references/stage-7-delivery.md` | `st-card` / `st-worldbook` | 需求阶段全部 `done`；用户要打包 / 导入酒馆 / 要角色卡 json | 交付门通过 |
 
-阶段可任意顺序进入（"我只要一张场景卡"合法）。`contract.stages` 记录每阶段实际状态，不假定前置阶段已完成。
+阶段可任意顺序进入（"我只要一张场景卡"合法）。`contract.stages` 记录每阶段实际状态，不假定前置阶段已完成。**阶段 7 例外**：它只能在最后一次进入，是整条流程的收尾，不与前六个阶段抢顺序。
 
 ## 二、占位符（只有 7 个）
 
@@ -30,7 +31,7 @@
 
 七个以外的标记一律不用。`[不适用]` 的模块在终稿中整段移除，不留空壳。
 
-## 三、七道门
+## 三、八道门
 
 **`开工门`（阶段 0）** 判"够不够开工"：能否定出目标阶段。不单独提问——题目并入下游首轮。
 
@@ -43,6 +44,8 @@
 **`命名门`（每次渲染产物前）** 四步，见第五节。
 
 **`联网门`（仅 `project.web_research: true`）** 每次落笔前先检索（不限阶段，含局部改动），交付前复核一遍本份产物里的全部外部专名；每条检索记进 `创作痕迹/检索来源.md`。没检索到就记 `未检索到` 并改走确认清单，不编造。细则见 `references/web-research.md`。
+
+**`交付门`（仅阶段 7）** 六条：两个 JSON 可解析且 `spec == "chara_card_v2"`；世界书条目 `content` 非空、`key` 是数组、`position` ∈ {0,1,4}、`uid` 连号；`data.extensions.world`、`st_name`、两个文件名四者同源；`first_mes` 里的标签能在某个正则的 `findRegex` 里找到，找不到就换普通开场白；`description` 里的实体名逐个能在 `naming` 找到；交付说明四步齐全且写明「内嵌正则要允许」。细则见 `references/stage-7-delivery.md`。
 
 **`前端门`（仅阶段 5 / 6）** 八条：标签三处一致（正则 ↔ HTML 的 `TAG` ↔ `frontend-prompt.yaml`）、字段两处一致且能追到产物、`markdownOnly: true`、`replaceString` 的代码块含 `<body>`、数据路径自洽（走 `$1` 注入就必须有捕获组与隐藏 textarea，走静态或聊天 API 就必须都没有）、无外链无 `eval` 无 `document.write`、本楼无标签或占位符未被替换时留白不报错、脏值与越界值都安全。细则与机制事实见 `references/frontend-conventions.md`。
 

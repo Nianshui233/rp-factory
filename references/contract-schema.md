@@ -16,13 +16,14 @@
 | 键区 | 装什么 |
 |---|---|
 | `project` | 名字（`name` = 项目文件夹名）、**工作区绝对路径**（`workspace`）、模态（`text` / `engineering`）、RP 形式、语言、**本次要跑的阶段**（`stages_requested`）、**是否联网检索**（`web_research` / `source_ip`） |
-| `stages` | 每阶段状态：`none` / `partial` / `done` / `skipped`（未勾选写 `skipped`） |
+| `stages` | 每阶段状态（1–7）：`none` / `partial` / `done` / `skipped`（未勾选写 `skipped`） |
+| `delivery` | `route`（`native` / `st` / `both`）、`st_name`（角色卡名，默 = `project.name`；世界书名另行取 `<st_name> 世界书`）、`files[]`（相对 `最终产物/st/`） |
 | `content_boundaries` | `nsfw`（开局第三问）、`rating`、`hard_no`、`soft_no` |
 | `naming` | `world`、`factions[]`、`places[]`、`systems[]`、`axes[]`、`ui_tags`（表现层标签名） |
 | `hard_settings` | 已锁定的硬设定，`source` 必须标 `用户确认` 或 `推导` |
 | `pending` | 待定项汇总 |
 | `decisions` | 用户拍过的板 |
-| `artifacts` | 产物索引，`type` 只能是六类之一 |
+| `artifacts` | 产物索引，`type` 只能是八类之一 |
 
 ## 三、独占写者
 
@@ -33,9 +34,10 @@
 | `naming`（角色相关新增项） | 阶段 2 |
 | `naming.axes` | 阶段 4 接管；阶段 2 / 3 可写 `provisional: true` 的临时项 |
 | `naming.ui_tags` | 阶段 5 写 `opening`，阶段 6 写 `status`；写定后不兼改 |
+| `delivery.*` | 阶段 7（收尾那一问）；写定后改路线只改 `route`，不重命名 `st_name` |
 | `hard_settings` | 各阶段追加，只有用户确认的才 `locked` |
 
-`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`最终产物/world-bible.yaml`），不用绝对路径。表现层一份产物落两到三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分：界面 HTML、正则 JSON，以及可选的提示词条目 `frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个；建卡向导通常不需要它）。
+`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`最终产物/world-bible.yaml`），不用绝对路径。表现层一份产物落两到三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分：界面 HTML、正则 JSON，以及可选的提示词条目 `frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个；建卡向导通常不需要它）。酒馆包同理：两个文件都写阶段 7，`type` 分别是 `st-card` / `st-worldbook`，`path` 在 `最终产物/st/` 下；正则与 HTML 不重复记，它们仍属阶段 5 / 6 的产物。
 
 `project.workspace` 与 `project.name` 必须同时更新：前者是用户确认的**工作区**（父目录）绝对路径，后者是子文件夹名（= 世界名，未定时为 `未命名项目`）。项目实际路径 = `<workspace>/<name>/`。只改一个 = 指向一个不存在的目录。
 

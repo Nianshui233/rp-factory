@@ -15,6 +15,12 @@ stages:
   4: done
   5: done
   6: done
+  7: done
+
+delivery:                  # 收尾问一次：交付到哪
+  route: "both"
+  st_name: "白潮"
+  files: ["白潮.json", "白潮 世界书.json"]
 
 content_boundaries:
   nsfw: true
@@ -88,6 +94,9 @@ decisions:
   - {stage: 6, question: "状态栏跟随本楼还是最新楼", answer: "本楼（每楼留快照）", why: "长线回看时能看出灯芯是何时掉的"}
   - {stage: 6, question: "变化要不要显示箭头", answer: "显示", why: "灯芯只降不升，箭头是最省字的压迫感来源"}
   - {stage: 6, question: "面板形态与配色", answer: "细长横条 + 夜蓝底暗黄光", why: "与场景卡的夜战与盐晶灯同调；不做折叠，免得用户多点一次"}
+  - {stage: 7, question: "交付形态", answer: "两者都要（原生产物 + 酒馆包）", why: "用户要能直接在酒馆里跑，也要留 YAML 方便自己改"}
+  - {stage: 7, question: "first_mes 取什么", answer: "<建卡向导>", why: "阶段 5 做的是向导形态，开场白即触发词，与 regex-opening.json 的 findRegex 对得上"}
+  - {stage: 7, question: "正则怎么带", answer: "卡内嵌 + 独立 regex-*.json 都给", why: "内嵌省事但要弹窗允许；全局导入不弹窗但作用于所有角色，两条路都留"}
 
 artifacts:
   - {type: "world-bible", path: "最终产物/world-bible.yaml", version: 1}
@@ -99,3 +108,5 @@ artifacts:
   - {type: "statusbar-ui", path: "最终产物/statusbar-ui.html", version: 1}
   - {type: "statusbar-ui", path: "最终产物/regex-statusbar.json", version: 1}
   - {type: "statusbar-ui", path: "最终产物/frontend-prompt.yaml", version: 1}
+  - {type: "st-card", path: "最终产物/st/白潮.json", version: 1}
+  - {type: "st-worldbook", path: "最终产物/st/白潮 世界书.json", version: 1}

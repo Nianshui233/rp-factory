@@ -1,6 +1,6 @@
 # dry-run 记录：盐湖上的守夜人
 
-**构建期产物，不随 skill 发布。** 目的：把阶段 1 → 6 真跑一遍，用产物反证规则够不够用。
+**构建期产物，不随 skill 发布。** 目的：把阶段 1 → 7 真跑一遍，用产物反证规则够不够用。
 
 虚构概念一句话：盐湖每年冬末涨潮，潮水带走名字；七座灯塔守着堤线，最末一座已熄十二年。
 
@@ -14,6 +14,7 @@
 | 4 | `axis-system.yaml` | 双轴：`wick` 灯芯（记忆余量）/ `tide` 潮压 |
 | 5 | `wizard-ui.html` + `regex-opening.json` | 建卡向导：序章 6 张卡 + 6 组字段 + 总览导出（8 步），开场白触发词 `<建卡向导>` |
 | 6 | `statusbar-ui.html` + `regex-statusbar.json` + `frontend-prompt.yaml` | 状态栏：正则捕获 `<状态栏>` 换成 HTML 代码块，酒馆助手渲成 iframe，`$1` 注入优先、`getChatMessages` 兜底 |
+| 7 | `st/白潮.json` + `st/白潮 世界书.json` | 酒馆包：角色卡 v2（设定进 `description`、两条正则进 `extensions.regex_scripts`）+ 世界书 10 条（7 常驻 / 2 关键词 / 1 状态栏协议） |
 | — | `contract.yaml` | 命名权威与索引，四份产物都指向它 |
 
 模态取 `engineering`（写文件），因为四份产物要互相读。
@@ -116,3 +117,30 @@
 1. **向导和"接回正文"之间缺一步。** 向导导出的是一段 Markdown 档案，用户得自己粘回聊天让 AI 建卡；若只是给了 HTML 而没说这句，向导就是个孤岛。→ 阶段 5 的 `OUTRO` 与交付说明都写明"把这段粘进聊天，让 AI 按它建卡"。
 2. **向导的必填项不该硬拦。** 用户可能故意先空着（等剧情里再定）。→ 总览顶部只提示缺哪几项，按钮仍可点，缺的值按 `[待定]` 语义交给下游。
 3. **"开场白即向导"要用户手工改一处。** 本 skill 的 `rolecard.yaml` 是人物设定，不含 `first_mes`；不去 ST 角色卡编辑页把「第一条消息」改成 `<建卡向导>`，正则永远不触发。→ 写进阶段 5 的"触发方式"与契约 `hard_settings`（`H07`）。
+
+## 六、阶段 7（交付）跑出来的东西
+
+**收尾只问一句**：原生 / 酒馆包 / 两者都要。这次选「两者都要」，于是 `最终产物/st/` 落两个文件，原生 YAML 与 HTML 原样不动。
+
+**世界书怎么切的**（`world-bible.yaml` 一个 section 一条，不拆字段）：
+
+| 条目 | 来源 | 触发 |
+|---|---|---|
+| 世界规则 / 变更边界 / AI即兴角色约束 | 同名 section | 常驻，角色卡前 |
+| 核心矛盾 / 常识清单 / 关键历史与时间线 | 同名 section | 常驻，角色卡后 |
+| 信息分层 | 同名 section | 常驻，depth 2（防剧透） |
+| 时间地点与世界范围 | 同名 section | 关键词：白盐镇 / 第七塔 / 湖心盐岛 |
+| 势力与社会结构 | 同名 section | 关键词：守夜所 / 灯所 / 拾盐人公行 / 湖心教团 |
+| 状态栏协议 | 阶段 6 的标签与字段 | 常驻，depth 0 |
+
+`未决事项` 不进世界书（它是建构期台账，还在说明设定没写完）。
+
+**卡片怎么填的**：`description` = 世界观 YAML 全文 + 角色卡 YAML 全文 + 数值系统（供旁白计账），13.6 KB；`first_mes = <建卡向导>`；`system_prompt` = 项目档案的「本文档对AI的核心指令」；`personality` / `scenario` / `mes_example` 留空（内容都在 `description`，重复写等于翻倍烧 token）；`extensions.world = "白潮 世界书"`（= 世界书文件名，导入即自动挂载）。
+
+**校验**：`python scripts/validate-st-package.py "最终产物/st/白潮.json" "最终产物/st/白潮 世界书.json"` → 12 项全通过（0 失败 0 警告），常驻条目合计 4715 字（预算 5000）。
+
+**暴露的问题（已修）**
+
+1. **`extensions.world` 到底写什么**：一开始按直觉写成 `st_name`（`白潮`），但 ST 导入世界书时用**文件名**当书名（`src/endpoints/worldinfo.js` 的 `path.parse(request.file.originalname).name`），于是 `白潮` ≠ `白潮 世界书`，自动挂载失效。改法：世界书名 = 世界书文件名 = `extensions.world`，卡片名单独是 `st_name`；校验器 C11 专门盯这一条。
+2. **只靠肉眼对不上 ST 的规则**：手写清单漏了 `data` 十四个必填字段、`character_book.entries` 必须是数组、`placement` 的合法值（1/2/3/5/6）。改法：把 `TavernCardValidator.js`、`newWorldInfoEntryDefinition`、`regexFromString` 的判定抄成 `scripts/validate-st-package.py`，交付门改成"跑脚本，退出码 0 才算过"。
+3. **常驻预算定得太死**：原写 3000 字，这份世界书光规则就 4715 字。改法：预算提到 5000，超了警告并提示"把可省的段落挪成关键词条目"。

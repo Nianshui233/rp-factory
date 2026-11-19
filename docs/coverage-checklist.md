@@ -120,7 +120,7 @@
 | U10 | 表现层 | 状态栏字段表从轴 `range`/`direction` 抄、危险区上色、变化箭头 | references/stage-6-statusbar-ui.md | [x] |
 | U11 | 表现层 | 越界值钳条、原值照显；`未知` 整条隐去 | references/stage-6-statusbar-ui.md | [x] |
 | U12 | 表现层 | 无插件不做静态版，先告知再问装不装 | references/frontend-conventions.md | [x] |
-| U13 | 表现层 | 产物 type 扩到六类、`naming.ui_tags`、七道门 | references/pipeline.md · references/contract-schema.md · SKILL.md | [x] |
+| U13 | 表现层 | 产物 type 扩到八类、`naming.ui_tags`、八道门 | references/pipeline.md · references/contract-schema.md · SKILL.md | [x] |
 | U14 | 表现层 | 开局双形态：登场面板 A / 建卡向导 B，出口不同 | references/stage-5-opening-ui.md | [x] |
 | U15 | 表现层 | 向导固定三段式（序章 / 字段分组 / 总览），字段名照角色卡 | references/stage-5-opening-ui.md · templates/wizard-ui.html | [x] |
 | U16 | 表现层 | 向导四件事：进度条可跳、`localStorage` 续填、导出可粘、必填缺口提示 | templates/wizard-ui.html | [x] |
@@ -129,3 +129,23 @@
 | U19 | 表现层 | 发送三级降级 + 确认框 | references/frontend-conventions.md | [x] |
 | U20 | 表现层 | 状态栏两种规模：细条 / 分页 HUD；默认路径 B | references/stage-6-statusbar-ui.md | [x] |
 | U21 | 表现层 | 前端门八条（新增数据路径自洽、字面占位符留白、交用户四句话） | references/frontend-conventions.md | [x] |
+
+## 交付（阶段 7）
+
+> 源：用户给的参考包 `我，非我`（角色卡 JSON + 世界书 JSON + 两条正则 + 两个 HTML）；规则对齐 `D:\AI\SillyTavern` 本体的校验与导入路径。
+
+| # | 源 | 条目 | 落到 | 状态 |
+|---|---|---|---|---|
+| D01 | 交付 | 收尾只问一次交付路线（原生 / 酒馆包 / 两者都要） | SKILL.md · references/stage-7-delivery.md | [x] |
+| D02 | 交付 | 阶段 7 只在所有 `stages_requested` 都 `done` 后进入 | references/pipeline.md · references/stage-7-delivery.md | [x] |
+| D03 | 交付 | 卡片 v2 必填：`spec` / `spec_version` / `data` 十四字段 / 数组与对象类型 | scripts/validate-st-package.py · templates/st-card.json | [x] |
+| D04 | 交付 | 顶层与 `data` 同名字段一致（`readFromV2` 用 data 覆盖顶层） | scripts/validate-st-package.py · references/stage-7-delivery.md | [x] |
+| D05 | 交付 | 世界书 `{entries:{uid: …}}` native 形 + 41 个条目字段 | templates/st-worldbook.json · scripts/validate-st-package.py | [x] |
+| D06 | 交付 | 世界书名 = 文件名 = `extensions.world`（否则不自动挂载） | references/stage-7-delivery.md · scripts/validate-st-package.py | [x] |
+| D07 | 交付 | `world-bible` 每 section 一条；规则类常驻、势力/地点走关键词、未决事项不进 | references/stage-7-delivery.md | [x] |
+| D08 | 交付 | `first_mes` 三条取法（向导 / 面板 / 无前端开场白），且标签必须被正则接住 | references/stage-7-delivery.md · scripts/validate-st-package.py | [x] |
+| D09 | 交付 | 正则两条路（卡内嵌需允许 / 全局导入），`$1` 与捕获组必须对应 | references/stage-7-delivery.md · scripts/validate-st-package.py | [x] |
+| D10 | 交付 | 导入四步 + `creator_notes` 写同一份 | references/stage-7-delivery.md | [x] |
+| D11 | 交付 | 交付门从肉眼清单改为"跑脚本、退出码 0" | SKILL.md · references/pipeline.md · scripts/validate-st-package.py | [x] |
+| D12 | 交付 | 常驻条目字数预算 5000，关键词跨条目不得重复 | scripts/validate-st-package.py | [x] |
+| D13 | 交付 | 打包不产生新设定；缺设定回对应阶段补 | references/stage-7-delivery.md · references/dual-mode.md | [x] |

@@ -668,3 +668,29 @@ python -c "import json;d=json.load(open('examples/dry-run-盐湖守夜人/最终
 ```
 
 **Ruling**：`rolecard.yaml` 不含 `first_mes`，所以"开场白即向导"必须由用户在 ST 里手改一处——写进阶段 5 与 `H07`，不做角色卡 JSON 导出。
+
+### Task 16: 收尾交付（阶段 7 · 酒馆包）
+
+**Files**
+- Create: `references/stage-7-delivery.md`、`templates/st-card.json`、`templates/st-worldbook.json`、`scripts/validate-st-package.py`
+- Modify: `SKILL.md`（路由 / 开工第 5 步 / 硬门 8 / 文件索引 / 第十节）、`references/pipeline.md`（阶段表、八道门、交付门）、`references/contract-schema.md`（`stages: 1..7`、`delivery`）、`templates/contract.yaml`、`references/interview-protocol.md`、`references/dual-mode.md`
+- Test: dry-run 两个 JSON + 校验器
+
+- [x] **Step 1: 阶段表加第 7 行、门 7 → 8**（交付门；阶段 7 例外：只能最后进）
+- [x] **Step 2: `stage-7-delivery.md` 六节**（收尾一问 / 世界书切法 / 卡片字段表 / 正则两条路 / 导入四步 / 交付门）
+- [x] **Step 3: 两个 JSON 骨架**（`st-card.json` 全字段空值；`st-worldbook.json` 用 ST 的 `newWorldInfoEntryDefinition` 默认值）
+- [x] **Step 4: 契约扩到 `stages: 1..7` + `delivery{route,st_name,files}`**
+- [x] **Step 5: `validate-st-package.py`**（C01–C18 / W01–W09 / X01；node 实测正则；退出码 0/1/2）
+- [x] **Step 6: dry-run 出包**（`最终产物/st/白潮.json`、`白潮 世界书.json`；10 条世界书；两条正则内嵌）
+- [x] **Step 7: 核验**
+
+```bash
+python scripts/validate-st-package.py "examples/dry-run-盐湖守夜人/最终产物/st/白潮.json" "examples/dry-run-盐湖守夜人/最终产物/st/白潮 世界书.json"   # 12 项全过，exit 0
+python -c "import json;d=json.load(open('templates/st-card.json',encoding='utf-8'));print(d['spec'],len(d['data']))"                                                     # chara_card_v2 14
+python -c "import json;d=json.load(open('templates/st-worldbook.json',encoding='utf-8'));print(len(d['entries']['0']))"                                               # 41
+grep -c "交付门" references/pipeline.md SKILL.md
+```
+
+**Ruling 1**：世界书名取"世界书文件名"而不是卡名——ST 导入世界书用文件名当书名，写成卡名会导致"导入成功但没挂上"，而这一步用户很难自己发现。
+**Ruling 2**：不做内嵌 `character_book`。它和独立世界书只能二选一；选独立的那份，改设定时不会漏。
+**Ruling 3**：正则两条路都给（卡内嵌 + 独立 JSON），并在交付说明里写清代价：内嵌要弹窗允许，全局导入会作用于所有角色。

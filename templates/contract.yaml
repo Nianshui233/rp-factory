@@ -19,6 +19,12 @@ stages:                    # 每阶段状态，不是标量。乱序合法。
   4: none
   5: none                  # 开局前端
   6: none                  # 状态栏前端
+  7: none                  # 交付/打包：只在最后一次进入；选原生路线写 skipped
+
+delivery:                  # 收尾问一次：交付到哪（不选就按 native）
+  route: "native"          # native（只留最终产物/）| st（酒馆包）| both
+  st_name: ""              # 角色卡名，默认 = project.name；世界书名 = "<st_name> 世界书"（= 文件名）
+  files: []                # 相对 最终产物/st/ 的文件名列表
 
 content_boundaries:        # 边界门：任何产物落笔前必须锁定（开局问完即可锁）
   nsfw: false              # 开局第三问；false 时 rating 写一般向，hard_no 加“任何性描写”
