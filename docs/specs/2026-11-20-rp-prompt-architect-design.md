@@ -115,7 +115,7 @@
 ## 5 目录结构
 
 ```
-D:/AI/RP创作/参考/原始提示词/rp-prompt-architect/
+D:/AI/RP创作/参考/原始提示词/rp-factory/
   SKILL.md                          主 skill：触发 → 判阶段 → 读契约 → 派发 → 回写
   references/
     pipeline.md                     公共脊：阶段与门、占位约定、保真登记、输出纪律、命名交叉核对

@@ -1,4 +1,4 @@
-# RP 设定编译系统（rp-prompt-architect）实现计划
+# RP 设定编译系统（rp-factory）实现计划
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** Markdown + YAML。无代码、无依赖、无脚本。验证靠 `wc -l` / `grep` / dry-run 推演。
 
-**Spec:** `D:/AI/RP创作/参考/原始提示词/rp-prompt-architect/docs/specs/2026-11-20-rp-prompt-architect-design.md`
+**Spec:** `D:/AI/RP创作/参考/原始提示词/rp-factory/docs/specs/2026-11-20-rp-prompt-architect-design.md`
 
 ## Global Constraints
 
@@ -35,7 +35,7 @@
 ### Task 1: 覆盖清单与版本库
 
 **Files:**
-- Create: `D:/AI/RP创作/参考/原始提示词/rp-prompt-architect/docs/coverage-checklist.md`
+- Create: `D:/AI/RP创作/参考/原始提示词/rp-factory/docs/coverage-checklist.md`
 
 **Interfaces:**
 - Produces: 一份逐条编号的核对清单，后续每个 stage 任务结束时要回来打勾；Task 11 用它做终审。
@@ -43,7 +43,7 @@
 - [ ] **Step 1: 建版本库**
 
 ```bash
-cd "D:/AI/RP创作/参考/原始提示词/rp-prompt-architect"
+cd "D:/AI/RP创作/参考/原始提示词/rp-factory"
 git init
 git add -A && git commit -m "chore: 设计文档入版本库"
 ```
@@ -300,7 +300,7 @@ git add -A && git commit -m "feat: 双模态渲染规则"
 
 ```yaml
 ---
-name: rp-prompt-architect
+name: rp-factory
 description: 把一句话 RP 构想编译成世界观、角色卡、场景卡、数值系统四类设定产物，跨产物命名与硬设定保持一致；支持输出可粘贴进酒馆的提示词条目，也支持直接落成工程文件。用户说「帮我做个世界观」「设计一张角色卡」「生成场景卡」「做一套好感度系统」「我只有个概念」时使用。
 ---
 ```
