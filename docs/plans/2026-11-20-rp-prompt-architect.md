@@ -608,7 +608,7 @@ git add -A && git commit -m "test: dry-run 盐湖守夜人 + 自包含扫描通�
 - 正则必须 `markdownOnly: true`（仅格式显示），否则 `getChatMessages` 读到的是 HTML 而不是数据。
 - 代码块必须含 `<body>`，否则酒馆助手不渲染成 iframe。
 - HTML 单文件、无外链、无 `eval` / `document.write`、class 全带命名空间前缀。
-- 标签三处一致、字段两处一致（`前端门` 七条，见 `references/frontend-conventions.md` 第六节）。
+- 标签三处一致、字段两处一致、数据路径自洽（`前端门` 八条，见 `references/frontend-conventions.md` 第六节）。
 - 产物一律 YAML 的规则对表现层不适用：交 HTML / JSON / YAML 三份。
 
 ### Task 12: 表现层公约 + 两个阶段文件
