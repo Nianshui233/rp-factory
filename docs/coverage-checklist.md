@@ -79,25 +79,25 @@
 | S19 | 场景 | 卡 8 时间变量与事件触发器 | templates/scene-sheet.yaml | [x] |
 | S20 | 场景 | 卡 9 场景规则 | templates/scene-sheet.yaml | [x] |
 | S21 | 场景 | 卡 10 边界：不可改动 vs 可即兴 | templates/scene-sheet.yaml | [x] |
-| A01 | 系统 | 核心原则 闭环 | references/stage-4-axis-system.md | [ ] |
-| A02 | 系统 | 核心原则 可计算 | references/stage-4-axis-system.md | [ ] |
-| A03 | 系统 | 核心原则 可观察 | references/stage-4-axis-system.md | [ ] |
-| A04 | 系统 | 核心原则 显式标注 | references/stage-4-axis-system.md | [ ] |
-| A05 | 系统 | 约定 变量命名规则 | references/stage-4-axis-system.md | [ ] |
-| A06 | 系统 | 约定 数值字段为纯数字 | references/stage-4-axis-system.md | [ ] |
-| A07 | 系统 | 约定 公式用伪代码与标准运算符 | references/stage-4-axis-system.md | [ ] |
-| A08 | 系统 | 阶段 0 充分性评估（三维度） | references/stage-4-axis-system.md | [ ] |
-| A09 | 系统 | 阶段 1 信息采集（≤2 轮 ×≤4 问） | references/stage-4-axis-system.md | [ ] |
-| A10 | 系统 | 阶段 2 生成 YAML 卡 | references/stage-4-axis-system.md | [ ] |
-| A11 | 系统 | 阶段 3 输出交付四件套 | references/stage-4-axis-system.md | [ ] |
-| A12 | 系统 | 字段 meta | templates/axis-system.yaml | [ ] |
-| A13 | 系统 | 字段 axes（含 direction 约束） | templates/axis-system.yaml | [ ] |
-| A14 | 系统 | 字段 thresholds（≥3 级无间隙无重叠） | templates/axis-system.yaml | [ ] |
-| A15 | 系统 | 字段 calculation（base_range/formula/diminishing/caps/多事件合并） | templates/axis-system.yaml | [ ] |
-| A16 | 系统 | 字段 boundaries | templates/axis-system.yaml | [ ] |
-| A17 | 系统 | 字段 runtime | templates/axis-system.yaml | [ ] |
-| A18 | 系统 | 扩展 context_modifiers | templates/axis-system.yaml | [ ] |
-| A19 | 系统 | 扩展 decay | templates/axis-system.yaml | [ ] |
-| A20 | 系统 | 扩展 anti_exploit | templates/axis-system.yaml | [ ] |
-| A21 | 系统 | 扩展 interactions | templates/axis-system.yaml | [ ] |
-| A22 | 系统 | 落地三路线（本包只做路线 C） | references/stage-4-axis-system.md | [ ] |
+| A01 | 系统 | 核心原则 闭环 | references/stage-4-axis-system.md | [x] |
+| A02 | 系统 | 核心原则 可计算 | references/stage-4-axis-system.md | [x] |
+| A03 | 系统 | 核心原则 可观察 | references/stage-4-axis-system.md | [x] |
+| A04 | 系统 | 核心原则 显式标注 | references/stage-4-axis-system.md | [x] |
+| A05 | 系统 | 约定 变量命名规则 | references/stage-4-axis-system.md | [x] |
+| A06 | 系统 | 约定 数值字段为纯数字 | references/stage-4-axis-system.md | [x] |
+| A07 | 系统 | 约定 公式用伪代码与标准运算符 | references/stage-4-axis-system.md | [x] |
+| A08 | 系统 | 阶段 0 充分性评估（三维度） | references/stage-4-axis-system.md | [x] |
+| A09 | 系统 | 阶段 1 信息采集（≤2 轮 ×≤4 问） | references/stage-4-axis-system.md | [x] |
+| A10 | 系统 | 阶段 2 生成 YAML 卡 | references/stage-4-axis-system.md | [x] |
+| A11 | 系统 | 阶段 3 输出交付四件套 | references/stage-4-axis-system.md | [x] |
+| A12 | 系统 | 字段 meta | templates/axis-system.yaml | [x] |
+| A13 | 系统 | 字段 axes（含 direction 约束） | templates/axis-system.yaml | [x] |
+| A14 | 系统 | 字段 thresholds（≥3 级无间隙无重叠） | templates/axis-system.yaml | [x] |
+| A15 | 系统 | 字段 calculation（base_range/formula/diminishing/caps/多事件合并） | templates/axis-system.yaml | [x] |
+| A16 | 系统 | 字段 boundaries | templates/axis-system.yaml | [x] |
+| A17 | 系统 | 字段 runtime | templates/axis-system.yaml | [x] |
+| A18 | 系统 | 扩展 context_modifiers | templates/axis-system.yaml | [x] |
+| A19 | 系统 | 扩展 decay | templates/axis-system.yaml | [x] |
+| A20 | 系统 | 扩展 anti_exploit | templates/axis-system.yaml | [x] |
+| A21 | 系统 | 扩展 interactions | templates/axis-system.yaml | [x] |
+| A22 | 系统 | 落地三路线（本包只做路线 C） | references/stage-4-axis-system.md | [x] |

@@ -1,0 +1,101 @@
+# 数值系统卡骨架：好感度 / 亲密值 / 堕落值 / 理智值 / 信任度 / 腐化度……任何可量化状态追踪系统
+# 六个核心块必填：meta / axes / thresholds / calculation / boundaries / runtime
+# 四个扩展块按复杂度选用，不用就整段删掉（context_modifiers / decay / anti_exploit / interactions）
+# 约定：变量名全小写英文下划线；描述文本中文；数值字段是纯数字（写 0.5 不写 "×0.5"）；修正系数 1.0 = 无修正
+
+meta:
+  name: ""                          # 系统名称
+  purpose: ""                       # 一句话目的
+  display:
+    mode: ""                        # explicit = 正文输出数值 / implicit = 仅行为体现
+    format: ""                      # 仅 explicit 时填写，显示格式模板
+    position: ""                    # 仅 explicit 时填写：output_end / output_start / inline
+
+axes:
+  - name: ""                        # 维度英文名
+    range: [0, 100]                 # [下限, 上限]
+    initial: 0                      # 必须在 range 内
+    direction: ""                   # bidirectional 可升可降 / ascending 只升不降 / descending 只降不升
+    description: ""                 # 下限含义 ↔ 上限含义
+
+thresholds:
+  transition: ""                    # gradual = 跨阈值后前 20% 渐变 / sharp = 立即切换
+  levels:                           # 至少 3 级，完全覆盖 range，无间隙无重叠
+    - range: [0, 33]
+      label: ""                     # 阶段名称
+      behavioral_signs: []          # 至少 2 项，必须是外在可观察行为
+      calc_mod:
+        positive: 1.0
+        negative: 1.0
+    - range: [34, 66]
+      label: ""
+      behavioral_signs: []
+      calc_mod:
+        positive: 1.0
+        negative: 1.0
+    - range: [67, 100]
+      label: ""
+      behavioral_signs: []
+      calc_mod:
+        positive: 1.0
+        negative: 1.0
+
+calculation:
+  base_range:
+    positive: [1, 5]                # [最小正面 base, 最大正面 base]
+    negative: [-5, -1]              # [最大负面 base, 最小负面 base]，写成负数
+  formula: "delta = round(base * threshold_mod * context_mod * diminish_mod)"
+  diminishing: [1.0, 0.6, 0.3, 0.1] # 同类事件同会话第 N 次的乘数；第 4 次及之后均 0.1；新会话重置
+  caps:
+    per_interaction: { min: -20, max: 15 }
+    per_session: { min: -40, max: 30 }
+
+boundaries:
+  ceiling:
+    value: 100
+    effect: ""                      # 触顶后的数值处理规则
+    narrative: ""                   # 触顶叙事表现
+  floor:
+    value: 0
+    effect: ""                      # 触底后的数值处理规则
+    narrative: ""                   # 触底叙事表现
+
+runtime:                           # 标准模板，无特殊需求原样复用
+  evaluation_order:
+    - "识别触发事件，按 base_range 判定 base 值"
+    - "按 formula 计算各事件 delta（含多事件合并规则）"
+    - "依次裁剪 caps → boundaries"
+    - "更新数值，按新阈值调整行为"
+    - "按 display 设置输出数值（如适用）"
+  judgment:
+    - "trigger 由 AI 自行判定，base 须落在 base_range 内"
+    - "无明确触发时不强行制造数值变化"
+    - "模糊事件按有利于叙事推进的方向判定"
+  dispute: "用户质疑时展示计算过程，但不因质疑本身改变数值"
+  session_boundary: "新对话 = 新会话，diminishing 和 caps 计数重置"
+
+# ═══ 以下为扩展块，按需启用 ═══
+
+context_modifiers:                 # 情境修正：公式里 context_mod 取第一个匹配项的 factor，无匹配为 1.0
+  - condition: ""                  # 例：公开场合 / 目标情绪激动
+    applies_to: ""                 # positive / negative / both
+    factor: 1.0
+
+decay:                             # 自然衰减
+  trigger: ""                      # 例：连续 N 次交互无相关事件，N 由设计者定
+  amount: 0                        # 每次衰减朝 direction_target 移动的步长（绝对值）
+  direction_target: 0              # 衰减朝向的目标值，通常为 initial 或 0
+  stops_at_threshold: ""           # 衰减不会跨越的阈值标签，可选
+
+anti_exploit:                      # 防刷机制
+  cooldown:
+    - event_intent: ""             # 按触发意图归类，例：示好
+      min_interactions: 3          # 间隔至少 N 次交互方可再次全额触发
+  session_swing_limit: 0           # 单会话累计绝对变化上限；与 caps.per_session 取更严的一方
+
+interactions:                      # 多轴联动
+  cross_axis:
+    - when: ""                     # 例：axis_a >= 80
+      apply: { axis: "", field: "", factor: 1.0 }   # field 例：calc_mod.positive
+      reason: ""                   # 例：高 A 抑制 B 的正向增长
+  conflict_priority: []            # 行为冲突时优先表现的维度顺序
