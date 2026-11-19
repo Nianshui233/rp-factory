@@ -1,0 +1,64 @@
+project:
+  name: "白潮"
+  mode: "engineering"
+  rp_form: "1v1 长线"
+  language: "zh"
+
+stages:
+  1: done
+  2: done
+  3: done
+  4: done
+
+content_boundaries:
+  rating: "R15"
+  hard_no:
+    - "对未成年角色的性描写"
+    - "以自伤作为卖点"
+  soft_no:
+    - "长篇虐待描写"
+
+naming:
+  world: "白潮"
+  factions:
+    - {id: "faction_watch", name: "守夜所", alias: ["灯所"]}
+    - {id: "faction_salters", name: "拾盐人公行", alias: ["公行"]}
+    - {id: "faction_tidecult", name: "湖心教团", alias: ["归潮会"]}
+  places:
+    - {id: "loc_salttown", name: "白盐镇", scope: "堤线以内最大聚居地"}
+    - {id: "loc_seventower", name: "第七塔", scope: "堤线最末哨塔，已熄灯十二年"}
+    - {id: "loc_lakeisland", name: "湖心盐岛", scope: "盐潮发源处，禁入"}
+  systems:
+    - {id: "system_tide", name: "盐潮", ceiling: "漫过第七塔以北堤线后不可阻挡"}
+    - {id: "system_lamp", name: "盐晶灯", ceiling: "单灯照程约三百步，七塔同燃方成线"}
+  axes:
+    - {name: "wick", range: [0, 100], initial: 68, levels: ["清醒", "磨损", "空壳"]}
+    - {name: "tide", range: [0, 100], initial: 22, levels: ["静潮", "压潮", "漫潮"]}
+
+hard_settings:
+  - id: H01
+    text: "点灯必须烧掉点灯者的一段具体记忆，不可逆，不可转嫁他人"
+    source: "用户确认"
+    locked_at_stage: 1
+  - id: H02
+    text: "盐潮不能穿过七塔同燃的堤线；熄灭一塔，缺口即刻生成"
+    source: "用户确认"
+    locked_at_stage: 1
+  - id: H03
+    text: "第七塔自十二年前熄灭后未再点燃，缺口靠巡堤人力勉强补住"
+    source: "用户确认"
+    locked_at_stage: 1
+
+pending:
+  - {stage: 3, item: "第七塔北侧堤墙的裂缝宽度", why: "用户未定，按可修复处理"}
+
+decisions:
+  - {stage: 1, question: "盐潮是自然现象还是有意志", answer: "有意志但不可沟通", why: "用户选此项，让悬疑不落到'讲道理'上"}
+  - {stage: 2, question: "角色的核心驱动", answer: "追回被拿走的记忆而非复仇", why: "用户否掉了复仇线，避免与教团冲突重复"}
+  - {stage: 4, question: "灯芯值是否可回升", answer: "不可回升，只能靠他人代烧", why: "用户要'烧掉就没有'的压迫感"}
+
+artifacts:
+  - {type: "world-bible", path: "world-bible.yaml", version: 1}
+  - {type: "rolecard", path: "rolecard.yaml", version: 1}
+  - {type: "scene-sheet", path: "scene-sheet.yaml", version: 1}
+  - {type: "axis-system", path: "axis-system.yaml", version: 1}

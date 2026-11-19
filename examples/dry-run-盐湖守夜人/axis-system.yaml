@@ -1,0 +1,134 @@
+meta:
+  name: "守夜双轴"
+  purpose: "追踪守夜人记忆余量与盐潮压力，供场景中的行为表现与判定取用"
+  display:
+    mode: "implicit"
+
+axes:
+  - name: "wick"
+    range: [0, 100]
+    initial: 68
+    direction: "descending"
+    description: "100 = 记忆完整 ↔ 0 = 忘尽一切；只降不升"
+  - name: "tide"
+    range: [0, 100]
+    initial: 22
+    direction: "bidirectional"
+    description: "0 = 静潮 ↔ 100 = 漫潮；可涨可退，退潮慢于涨潮"
+
+thresholds:
+  wick:
+    transition: "gradual"
+    levels:
+      - range: [67, 100]
+        label: "清醒"
+        behavioral_signs: ["能准确报出人名与班次", "记得自己为什么守塔"]
+        calc_mod:
+          positive: 1.0
+          negative: 1.0
+      - range: [34, 66]
+        label: "磨损"
+        behavioral_signs: ["开始用绰号代替人名", "对旧事的复述出现细节漂移"]
+        calc_mod:
+          positive: 1.0
+          negative: 1.3
+      - range: [0, 33]
+        label: "空壳"
+        behavioral_signs: ["只重复最近一句话", "对着灯自报别人的名字"]
+        calc_mod:
+          positive: 1.0
+          negative: 1.6
+  tide:
+    transition: "sharp"
+    levels:
+      - range: [0, 33]
+        label: "静潮"
+        behavioral_signs: ["夜里听不见潮声", "盐壳只在墙根泛白"]
+        calc_mod:
+          positive: 1.0
+          negative: 1.0
+      - range: [34, 66]
+        label: "压潮"
+        behavioral_signs: ["夜里潮声如远处退潮，约三百步内", "灯焰向内偏"]
+        calc_mod:
+          positive: 1.2
+          negative: 0.7
+      - range: [67, 100]
+        label: "漫潮"
+        behavioral_signs: ["潮声压过说话声", "盐尘开始流动，低处先白"]
+        calc_mod:
+          positive: 1.5
+          negative: 0.4
+
+calculation:
+  base_range:
+    positive: [1, 5]
+    negative: [-8, -2]
+  formula: "delta = round(base * threshold_mod * context_mod * diminish_mod)"
+  diminishing: [1.0, 0.6, 0.3, 0.1]
+  caps:
+    per_interaction: { min: -18, max: 8 }
+    per_session: { min: -40, max: 20 }
+
+boundaries:
+  wick:
+    ceiling:
+      value: 100
+      effect: "数值封顶，超出部分丢弃"
+      narrative: "灯亮得刺眼，塔内所有人都看清了彼此的脸"
+    floor:
+      value: 0
+      effect: "触底后不再下降，改为永久标记'失名'，此后不计入本轴"
+      narrative: "他不再回答任何名字，包括自己的"
+  tide:
+    ceiling:
+      value: 100
+      effect: "触顶后本轴锁死，不再回落；堤线视为失守"
+      narrative: "白从低处漫上来，先白脚面，再白窗台"
+    floor:
+      value: 0
+      effect: "触底后本轴不再下降"
+      narrative: "潮退到看不见的地方，只剩盐壳上一圈湿痕"
+
+runtime:
+  evaluation_order:
+    - "识别触发事件，按 base_range 判定 base 值"
+    - "按 formula 计算各事件 delta（含多事件合并规则）"
+    - "依次裁剪 caps → boundaries"
+    - "更新数值，按新阈值调整行为"
+    - "按 display 设置输出数值（如适用）"
+  judgment:
+    - "trigger 由 AI 自行判定，base 须落在 base_range 内"
+    - "无明确触发时不强行制造数值变化"
+    - "模糊事件按有利于叙事推进的方向判定"
+    - "反直觉事件：在灯前自报真名，叙事上像确认自我，数值上按负向事件判定（交出记忆）"
+    - "潮压只在出现明确潮声描写或堤线判断失败时变动，不随时间流逝自动上涨"
+  dispute: "用户质疑时展示计算过程，但不因质疑本身改变数值"
+  session_boundary: "新对话 = 新会话，diminishing 和 caps 计数重置"
+
+context_modifiers:
+  - condition: "在教团面前"
+    applies_to: "negative"
+    factor: 1.3
+  - condition: "有人替他添芯"
+    applies_to: "both"
+    factor: 0.6
+
+decay:
+  trigger: "连续三次交互未涉及潮势或值守"
+  amount: 1
+  direction_target: 22
+  stops_at_threshold: "静潮"
+
+anti_exploit:
+  cooldown:
+    - event_intent: "替人添芯"
+      min_interactions: 3
+  session_swing_limit: 50
+
+interactions:
+  cross_axis:
+    - when: "wick <= 33"
+      apply: { axis: "tide", field: "calc_mod.positive", factor: 1.3 }
+      reason: "记忆越少，越判断不准潮位，压潮涨得更快"
+  conflict_priority: ["tide", "wick"]

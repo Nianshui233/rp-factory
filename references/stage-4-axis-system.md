@@ -30,8 +30,9 @@
 
 ### 硬规则
 
-- `thresholds.levels` **至少 3 级**，完全覆盖 `axes.range`，**无间隙无重叠**。
-- `direction: ascending` 时 `thresholds.*.calc_mod.negative` 必须为 `0`；`descending` 时 `calc_mod.positive` 必须为 `0`。
+- `thresholds` 与 `boundaries` **按轴名分键**（`thresholds.<轴名>` / `boundaries.<轴名>`）：一个轴一套阈值与上下界，多轴就多套。
+- 每个轴的 `thresholds.<轴>.levels` **至少 3 级**，完全覆盖该轴的 `range`，**无间隙无重叠**。
+- `direction: ascending` 的轴，其所有阈值行的 `calc_mod.negative` 必须为 `0`；`descending` 的轴，`calc_mod.positive` 必须为 `0`。
 - **至少设计 1 种反直觉事件**（看似正面实则负面，或反之）。
 - 数值字段为纯数字；修正系数 `1.0` = 无修正。
 - 变量名全小写英文下划线分隔；描述文本中文。
@@ -41,11 +42,11 @@
 ### 字段语义（写错就整卡不可执行）
 
 - `base`：事件基础值，参照 `base_range`；事件与 base 由 AI 运行时判定，须落在 `base_range` 内。
-- `threshold_mod`：`base > 0` 取当前阈值的 `calc_mod.positive`；`base < 0` 取 `calc_mod.negative`。
+- `threshold_mod`：`base > 0` 取**该轴当前阈值**的 `calc_mod.positive`；`base < 0` 取 `calc_mod.negative`。
 - `context_mod`：情境修正系数，取**第一个匹配项**的 `factor`，无匹配为 `1.0`。
 - `diminish_mod`：同类事件同会话第 N 次触发的衰减系数。"同类"按触发**意图**归类，非字面匹配；第 4 次及之后均取末位值；新会话重置。
 - **多事件合并**：单次交互含多个触发时，正负事件分别处理 → 取各自最高 `|base|` 的事件全额、其余 ×0.25 累加 → 正负 delta 合并为单一 delta。
-- **裁剪顺序**：`caps`（per_interaction → per_session）→ `boundaries`，顺序不可颠倒。
+- **裁剪顺序**：`caps`（per_interaction → per_session）→ 该轴的 `boundaries`，顺序不可颠倒。
 
 ## 生成
 
@@ -53,7 +54,7 @@
 
 `meta.display.mode` 决定数值是否出现在正文：`explicit`（正文输出数值，需填 `format` 与 `position`）/ `implicit`（仅行为体现，只填 `mode`）。默认 `implicit`——多数 RP 里把数值写进正文会破坏代入感。
 
-`runtime` 是标准模板，无特殊需求原样复用，不要重写。
+`runtime` 是标准模板，无特殊需求原样复用，不要重写。`calculation` 与 `caps` 是全卡共用的（不按轴分键）——如果两条轴的量级差很远，宁可拆成两张卡，不要把两套量级塞进一个 `base_range`。
 
 **交付四件套**：
 
