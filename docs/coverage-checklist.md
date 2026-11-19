@@ -41,23 +41,23 @@
 | W34 | 世界观 | 特殊场景 7 仅提供一个概念词 | references/stage-1-world-bible.md | [x] |
 | W35 | 世界观 | 特殊场景 8 面向多个 AI 平台使用 | references/stage-1-world-bible.md | [x] |
 | W36 | 世界观 | YAML 模版九块（元信息/类型与基调/时间地点/核心矛盾/世界规则/势力社会/常识清单/历史时间线/变更边界） | templates/world-bible.yaml | [x] |
-| R01 | 角色 | 阶段 0 输入评估（四维度 + 快速通道） | references/stage-2-rolecard.md | [ ] |
-| R02 | 角色 | 阶段 1 信息采集（采集强度 + 追问优先级 + 降级处理） | references/stage-2-rolecard.md | [ ] |
-| R03 | 角色 | 阶段 2 生成角色卡（四档位 + 规模参考） | references/stage-2-rolecard.md | [ ] |
-| R04 | 角色 | 阶段 3 迭代修改（级联检查矩阵） | references/stage-2-rolecard.md | [ ] |
-| R05 | 角色 | 字段规范 1 behavior.rules（≥4 条覆盖四类场景 + 三格式 + 三反例） | references/stage-2-rolecard.md | [ ] |
-| R06 | 角色 | 字段规范 2 psychology.values（≥3 项排序 + 推导说明） | references/stage-2-rolecard.md | [ ] |
-| R07 | 角色 | 字段规范 3 taboos & anti_ooc.never 逻辑一致 | references/stage-2-rolecard.md | [ ] |
-| R08 | 角色 | 字段规范 4 语言层三项互证 | references/stage-2-rolecard.md | [ ] |
-| R09 | 角色 | 字段规范 5 background（受控） | references/stage-2-rolecard.md | [ ] |
-| R10 | 角色 | 字段规范 6 语言使用规则 | references/stage-2-rolecard.md | [ ] |
-| R11 | 角色 | 自检 逻辑一致性 | references/pipeline.md | [ ] |
-| R12 | 角色 | 自检 覆盖度 | references/pipeline.md | [ ] |
-| R13 | 角色 | 自检 内容边界层（仅在该层存在时） | references/pipeline.md | [ ] |
-| R14 | 角色 | 自检 格式 | references/pipeline.md | [ ] |
-| R15 | 角色 | 输出模板（身份/心理/行为/语言/anti_ooc/扩展） | templates/rolecard.yaml | [ ] |
-| R16 | 角色 | 参考示例（精简档位） | examples/rolecard-minimal.yaml | [ ] |
-| R17 | 角色 | 系统身份与核心原则（可执行性 / 禁止产出 / 不确定信息处理） | references/stage-2-rolecard.md | [ ] |
+| R01 | 角色 | 阶段 0 输入评估（四维度 + 快速通道） | references/stage-2-rolecard.md | [x] |
+| R02 | 角色 | 阶段 1 信息采集（采集强度 + 追问优先级 + 降级处理） | references/stage-2-rolecard.md | [x] |
+| R03 | 角色 | 阶段 2 生成角色卡（四档位 + 规模参考） | references/stage-2-rolecard.md | [x] |
+| R04 | 角色 | 阶段 3 迭代修改（级联检查矩阵） | references/stage-2-rolecard.md | [x] |
+| R05 | 角色 | 字段规范 1 behavior.rules（≥4 条覆盖四类场景 + 三格式 + 三反例） | references/stage-2-rolecard.md | [x] |
+| R06 | 角色 | 字段规范 2 psychology.values（≥3 项排序 + 推导说明） | references/stage-2-rolecard.md | [x] |
+| R07 | 角色 | 字段规范 3 taboos & anti_ooc.never 逻辑一致 | references/stage-2-rolecard.md | [x] |
+| R08 | 角色 | 字段规范 4 语言层三项互证 | references/stage-2-rolecard.md | [x] |
+| R09 | 角色 | 字段规范 5 background（受控） | references/stage-2-rolecard.md | [x] |
+| R10 | 角色 | 字段规范 6 语言使用规则 | references/stage-2-rolecard.md | [x] |
+| R11 | 角色 | 自检 逻辑一致性 | references/pipeline.md | [x] |
+| R12 | 角色 | 自检 覆盖度 | references/pipeline.md | [x] |
+| R13 | 角色 | 自检 内容边界层（仅在该层存在时） | references/pipeline.md | [x] |
+| R14 | 角色 | 自检 格式 | references/pipeline.md | [x] |
+| R15 | 角色 | 输出模板（身份/心理/行为/语言/anti_ooc/扩展） | templates/rolecard.yaml | [x] |
+| R16 | 角色 | 参考示例（精简档位） | examples/rolecard-minimal.yaml | [x] |
+| R17 | 角色 | 系统身份与核心原则（可执行性 / 禁止产出 / 不确定信息处理） | references/stage-2-rolecard.md | [x] |
 | S01 | 场景 | 依赖 1 提供世界观则不得冲突 | references/stage-3-scene-sheet.md | [ ] |
 | S02 | 场景 | 依赖 2 未提供世界观时的处理 | references/stage-3-scene-sheet.md | [ ] |
 | S03 | 场景 | 依赖 3 细节深度按玩法决定 | references/stage-3-scene-sheet.md | [ ] |
