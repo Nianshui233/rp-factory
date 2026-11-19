@@ -1068,3 +1068,24 @@ python -c "import json;d=json.load(open('examples/dry-run-盐湖守夜人/最终
 grep -c 'StatusPlaceHolderImpl' templates/regex-mvu.json      # 期望 >= 1
 grep -c 'promptOnly' templates/regex-mvu.json                 # 期望 >= 1
 ```
+
+---
+
+## 追加任务（2026-11-20）：校验节奏收敛成一个口
+
+**起因**：用户问「关于检验，是不是一步一检？」——是。契约门写着"每次写完契约、以及每个阶段收尾"，前端门写着"改完跑一次"，`mvu`/`ejs` 各自在 Step 6 又跑一次，`delivery` 再跑两次。同一个动作在七个地方各有触发点，实操里会退化成"写一个文件跑一次"，既慢又没人真看输出。
+
+**Task 26 · 一个阶段一次校验**
+1. 新建 `scripts/check-stage.py <阶段> <项目根>`：按阶段分派——契约永远查，`cast` 加 `validate-rolecard.py`，`opening`/`statusbar` 加 `validate-frontend.py`，`mvu` 加 `validate-mvu.py`，`ejs` 加 `validate-ejs.py`，`delivery` 加 `validate-st-package.py`；`all` 全跑。参数从契约 `artifacts[]` 里取，取不到就按约定路径兜底。
+2. `pipeline.md` 新增「校验的节奏：一个阶段一次」段；`契约门` 措辞由"每次写完契约"改为"阶段收尾一检时一并跑"；`自检门` 注明它是"读一遍自己的稿"，不算校验轮次。
+3. 九个阶段文件的「退出」统一改成跑 `check-stage.py <阶段>`；`frontend-conventions.md` 自检第 10 条与 `contract-schema.md` 第八节同步。
+4. `SKILL.md` 硬门 8/9/10 改成"由阶段收尾那一检跑"，文件索引加 `check-stage.py`。
+
+**Ruling 8（节奏）**：**阶段完成后统一检验**，不是一步一检，也不是一切完成后才检。理由：脚本能查的错（契约漂移、`uid` 错位、占位符漏进正文）都会污染下游，等到最后才发现要回头重做三四个阶段；而在阶段内每写一个文件就跑，得到的是"这一行合不合法"，不是"这一阶段能不能交"。
+
+**核验追加**
+
+```bash
+python scripts/check-stage.py all "examples/dry-run-盐湖守夜人"     # 期望：6 个检查全过
+python scripts/check-stage.py cast "examples/dry-run-盐湖守夜人"    # 期望：2 个检查全过
+```

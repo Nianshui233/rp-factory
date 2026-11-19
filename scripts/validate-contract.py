@@ -154,6 +154,10 @@ def check_stages(c):
     s = stage_map(raw)
     for n in STAGES:
         v = s.get(n)
+        if v is None and n in ("mvu", "ejs") and s:
+            # 这两段是后加的，旧契约里没有很正常：提醒补，不判失败
+            warn("C04", f"`stages.{n}` 缺失（旧契约）：补上 `{n}: none` 或 `skipped`")
+            continue
         if v is None:
             fail('C04', f'`stages.{n}` 缺失（没跑就写 none / skipped）')
         elif v not in STAGE_STATES:

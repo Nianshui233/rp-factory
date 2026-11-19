@@ -522,7 +522,8 @@ def find_files(arg: str) -> tuple[Path | None, Path | None, Path | None]:
     if not p.is_dir():
         return p, None, None
     card = regex = book = None
-    for f in sorted(p.glob("*.json")):
+    files = sorted(p.glob("*.json")) or sorted(p.glob("*/*.json"))
+    for f in files:
         low = f.name.lower()
         if "世界书" in f.name or "worldbook" in low:
             book = book or f
@@ -564,7 +565,13 @@ def main(argv: list[str]) -> int:
         book_path = Path(args[2])
 
     if card_path is None or not card_path.exists():
-        print(f"读不到角色卡：{card_path}", file=sys.stderr)
+        here = Path(args[0])
+        seen = sorted(x.name for x in here.iterdir()) if here.is_dir() else []
+        print("读不到角色卡。三件套要放在 `最终产物/` 根下："
+              "  <世界名>（纯净）.json · 正则.json · <世界名> 世界书.json"
+              f"当前目录里的东西：{seen or '（空）'}"
+              "子目录里的旧包（单文件卡 / st/ 里那一坨）要按新规矩重打一次，别原地改。",
+              file=sys.stderr)
         return 2
 
     rep = Report()

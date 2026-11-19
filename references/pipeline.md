@@ -41,11 +41,17 @@
 
 **`收敛门`（仅阶段 1）** 同时满足以下全部才提议出终稿：所有关键系统具备"能/不能/代价/上限"四要素；判定框架已填；张力来源已定（单一引擎 → 各方目标与手段明确；多源日常 → `日常/关系/外部` 至少三类各有两条，且 `世界怎么运转` 非空）；无未解决的致命或重要级缺口；硬设定已有 ≥3 条（计法：用户确认的、或用户明确委托决策后标 `【AI补全·可替换】` 且已告知的——委托不等于未定，但必须在末尾说明）；RP 常见场景覆盖验证基本通过。
 
-**`自检门`（每份产物交付前，内部执行，不向用户展示）** 四类检查，见第四节。
+**`自检门`（每份产物交付前，内部执行，不向用户展示）** 四类检查，见第四节。这是"读一遍自己的稿"，不是脚本，不算校验轮次。
 
 **`命名门`（每次渲染产物前）** 四步，见第五节。
 
-**`契约门`（每次写完契约、以及每个阶段收尾）** 跑 `python scripts/validate-contract.py 创作痕迹/contract.yaml`，退出码 0 才算过：阶段状态在枚举内、`done` 的阶段真有对应产物、`artifacts[].type` 没自造、`path` 指向真实文件、`delivery` 与 `files` 自洽、`naming.axes` 在阶段 4 后不再带 `provisional`。`partial` 必须挂进 `pending[]`——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。
+**校验的节奏：一个阶段一次，就一次。** 所有脚本检查都收在阶段末尾的一条命令里——`python scripts/check-stage.py <阶段名> <项目根>`（`world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery`，另加 `all` 做全量复核）。它按阶段调对应校验器：契约永远查，`cast` 加 `validate-rolecard.py`，`opening`/`statusbar` 加 `validate-frontend.py`，`mvu` 加 `validate-mvu.py`，`ejs` 加 `validate-ejs.py`，`delivery` 加 `validate-st-package.py`。
+
+- **过程中不要跑**：写一个文件跑一次，得到的是"这一行合不合法"，不是"这一阶段能不能交"；反复跑还会让人跳过失败行往下走。
+- **没过就改，改完重跑同一条命令**，不逐个子命令挑着跑。
+- 全流程收尾想再确认一遍，跑 `check-stage.py all`。
+
+**`契约门`（阶段收尾一检时一并跑）** 跑 `python scripts/validate-contract.py 创作痕迹/contract.yaml`，退出码 0 才算过：阶段状态在枚举内、`done` 的阶段真有对应产物、`artifacts[].type` 没自造、`path` 指向真实文件、`delivery` 与 `files` 自洽、`naming.axes` 在阶段 4 后不再带 `provisional`。`partial` 必须挂进 `pending[]`——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。
 
 **`联网门`（仅 `project.web_research: true`）** 每次落笔前先检索（不限阶段，含局部改动），交付前复核一遍本份产物里的全部外部专名；每条检索记进 `创作痕迹/检索来源.md`，且进入本阶段后必须比之前多出至少 1 条——没有新增条目 = 没查，不许交付。逐阶段要查什么见 `references/web-research.md` 第一节的逐阶段检索量。没检索到就记 `未检索到` 并改走确认清单，不编造。细则见 `references/web-research.md`。
 

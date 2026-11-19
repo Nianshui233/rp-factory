@@ -129,7 +129,7 @@ Schema
 
 **Step 5 · 卡内脚本**：`templates/tavern-script.json` 包一层 `mvu-schema.js` 的全文；`MVU` 那条的 `content` 是一行 `import 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_module/dist/MVU/index.js';`。
 
-**Step 6 · 自检**：跑 `python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml`，再 `node --check` 一遍脚本。
+**Step 6 · 自检**：本阶段的脚本校验不在过程里跑，留到收尾：`python scripts/check-stage.py mvu <项目根>`（内部跑 `validate-mvu.py`）。单独跑时用 `python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml`，再 `node --check` 一遍脚本。
 
 ## 写回契约
 
@@ -140,7 +140,7 @@ Schema
 
 ## 退出
 
-- 变量门（本阶段的退出条件）：`validate-mvu.py` M01–M13 全过、退出码 0。
+- 变量门（本阶段的退出条件）：阶段收尾一检 `python scripts/check-stage.py mvu <项目根>` 退出码 0（内部跑 `validate-mvu.py` M01–M13）。
 - `node --check` 过（`mvu-schema.js` 是 ES module，先改名到临时 `.mjs`）。
 - 命名门：轴名与 `axis-system.yaml`、`naming.axes` 三处一致；角色键名与角色卡 `character.name` 逐字一致。
 - 交付说明里**必须有四句**：① 卡里已经带了脚本；② 导入后要去酒馆助手给这个角色**启用脚本**；③ 世界书要单独导入（`importFromJson` 不会把 `character_book` 落成书）；④ 没启用脚本时 MVU 静默不跑、不报错。

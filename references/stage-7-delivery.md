@@ -113,7 +113,7 @@
 - 阶段 5 有 → 一条：`scriptName` 带"建卡向导"，`findRegex` 只匹配标签（`/<建卡向导>/g`），`placement: [2]`（AI 输出）、`markdownOnly: true`、`runOnEdit: true`。
 - 做了 `mvu` → 三条：藏 `<UpdateVariable>…</UpdateVariable>`（`promptOnly: true` 空替换，别让模型下一轮读到自己上一轮的补丁）、藏同一个块（`markdownOnly: true`，别让玩家看见 JSONPatch）、藏 `<StatusPlaceHolderImpl/>`（`markdownOnly: true`，占位符只是给状态栏挂载用的锚点）。没做 `statusbar` 就不要第三条。
 - 阶段 6 有 → 一条：`findRegex` 带捕获组（`/<状态栏>([\s\S]*?)<\/状态栏>/g`），`replaceString` 的 HTML 里必须有一行 `<textarea id="rp-sb-raw" hidden>$1</textarea>`，且在 `<script>` 之前。
-- `replaceString` 的 HTML 用 `templates/wizard-ui.html` / `templates/statusbar.html` 填，改完跑 `python scripts/validate-frontend.py <html>`。
+- `replaceString` 的 HTML 用 `templates/wizard-ui.html` / `templates/statusbar.html` 填，改完留到收尾一检，不在这里单独跑。
 - 内联脚本里需要 HTML 实体时用 `\u0026` 拼（`'\u0026amp;'`）——酒馆会把消息里的实体再解一次码，写 `&amp;` 会让脚本语法错误、界面塌成 2px。
 
 ### 五、装配四步（写进 `creator_notes`，也是交付说明里的四句话）
@@ -191,9 +191,10 @@ node scripts/st-probe.js --st http://127.0.0.1:8000 --char "<卡名>"
 **跑校验器，别肉眼对：**
 
 ```
-python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml
-python scripts/validate-contract.py 创作痕迹/contract.yaml
+python scripts/check-stage.py delivery <项目根>
 ```
+
+它内部先跑 `validate-contract.py` 再跑 `validate-st-package.py`（想看单条输出也可以单独跑这两个，但判定以这一条命令为准）。
 
 脚本在**本 skill 包**的 `scripts/` 下，不在用户项目里；当前目录不是包根时用脚本的绝对路径。第一个参数给 `最终产物/` 目录，脚本自己认三件（也接受单给某个文件）。
 

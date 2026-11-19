@@ -97,9 +97,9 @@ disable-model-invocation: true
 6. **联网门（仅 `web_research: true`）**：每次落笔前先检索（不限阶段、含局部改动）、交付前复核一遍外部专名；查不到就记 `未检索到` 并改走确认清单，**不编造外部事实**。
 7. **前端门（仅 `opening` / `statusbar`）**：交付前按 `references/frontend-conventions.md` 第六节十条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽（静态 / `$1` / 聊天 API / MVU 变量四选一）、无外链无 `eval`、无标签时留白、脏值转义、走 MVU 时字段名与轴的 `range` 对齐、`validate-frontend.py` 全过（内联脚本里写 HTML 实体 = 界面静默变 2px 高）。
 
-8. **交付门（仅 `delivery`）**：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过；脚本查的事——三件齐全（纯净卡 / 正则 / 世界书）、卡里无 `character_book` 且 `extensions.regex_scripts` 为空、世界书是 native 对象形状且 `uid` 对齐、`extensions.world` == 世界书文件名、`description` ≤8000 字且含每个轴名、每个角色与每个地点都有条目、正则 `$1` 与捕获组对得上、`first_mes` 的标签能被某个正则接住、三件占位符 0 命中、关键词无重复；做了 `mvu` 还要卡内有 `tavern_helper.scripts` 且正则里有隐藏 `<UpdateVariable>` 的两条。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、装配四步齐全）。
-9. **阶段门**：一次只推进一个阶段。阶段做完 → 跑一遍 `python scripts/validate-contract.py 创作痕迹/contract.yaml` → 停下、汇总（本轮落下什么 / 哪些是你替我定的 / 下一步是什么）→ **等用户回话**。用户说「全都要」也只按顺序一阶段一阶段做，每段之间必须停。禁止在同一条回复里既交付本阶段又发起下一阶段的第一轮提问，禁止交付后立刻弹「要不要继续」的选项——那是在替用户按按钮。
-10. **变量门（仅 `mvu` / `ejs`）**：退出前跑 `python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml` 与 `python scripts/validate-ejs.py 创作痕迹/产物/ejs/<控制器>.ejs --book "<世界书>"`，两个退出码都要是 0。它查的是事故点：数值字段有没有 `.catch(初值)`（缺了，模型写个"很高"就作废整楼更新）、`[initvar]` 是否禁用、`uid` 是否与键对齐（错位会让条目在面板里静默消失）、两条隐藏 `<UpdateVariable>` 的正则是否齐、被控条目是否全部 `disable: true`。**没装酒馆助手就别开这个阶段**，别产出跑不起来的东西。
+8. **交付门（仅 `delivery`）**：由阶段收尾那一检跑（`check-stage.py delivery`，内部先 `validate-contract.py` 再 `validate-st-package.py`），退出码 0 才算过；脚本查的事——三件齐全（纯净卡 / 正则 / 世界书）、卡里无 `character_book` 且 `extensions.regex_scripts` 为空、世界书是 native 对象形状且 `uid` 对齐、`extensions.world` == 世界书文件名、`description` ≤8000 字且含每个轴名、每个角色与每个地点都有条目、正则 `$1` 与捕获组对得上、`first_mes` 的标签能被某个正则接住、三件占位符 0 命中、关键词无重复；做了 `mvu` 还要卡内有 `tavern_helper.scripts` 且正则里有隐藏 `<UpdateVariable>` 的两条。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、装配四步齐全）。
+9. **阶段门**：一次只推进一个阶段。**阶段做完 → 跑一次 `python scripts/check-stage.py <阶段名> <项目根>`**（唯一的校验时机，过程里不跑；没过就改，改完重跑这一条）→ 停下、汇总（本轮落下什么 / 哪些是你替我定的 / 下一步是什么）→ **等用户回话**。用户说「全都要」也只按顺序一阶段一阶段做，每段之间必须停。禁止在同一条回复里既交付本阶段又发起下一阶段的第一轮提问，禁止交付后立刻弹「要不要继续」的选项——那是在替用户按按钮。
+10. **变量门（仅 `mvu` / `ejs`）**：由阶段收尾那一检跑（`check-stage.py mvu` / `ejs`，内部调 `validate-mvu.py` 与 `validate-ejs.py`），退出码 0 才算过。它查的是事故点：数值字段有没有 `.catch(初值)`（缺了，模型写个"很高"就作废整楼更新）、`[initvar]` 是否禁用、`uid` 是否与键对齐（错位会让条目在面板里静默消失）、两条隐藏 `<UpdateVariable>` 的正则是否齐、被控条目是否全部 `disable: true`。**没装酒馆助手就别开这个阶段**，别产出跑不起来的东西。
 11. **自创字段门**：新增模板里没有的键之前先问用户，得到同意后写进 `contract.decisions`（记：新增了什么、为什么要、不加会丢什么），并在交付说明里点名。**不许用自创块替换模板既有块**（例如另起 `intimacy` 顶替 `nsfw`）；模板已有的键不够用时，优先把信息塞进扩展位（`lore` / `relationships` / `growth_arc`）而不是新造顶层键。
 
 ## 七、文件索引
@@ -121,7 +121,8 @@ disable-model-invocation: true
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
 | `templates/mvu-schema.js` / `mvu-initvar.yaml` / `mvu-entries.yaml` / `regex-mvu.json` / `tavern-script.json` / `ejs-controller.ejs` | 变量系统的五份骨架 + 分档控制器 |
-| `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` · `validate-mvu.py` · `validate-ejs.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 六个校验器（契约门 / `cast` / 前端门 / 交付门 / `mvu` / `ejs`） |
+| `scripts/check-stage.py` · `detect-sillytavern.py` · `st-import.py` · `st-probe.js` | 阶段收尾一检（按阶段自动调下面这些校验器）、环境探测、导入酒馆并实测 |
+| `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` · `validate-mvu.py` · `validate-ejs.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 六个校验器（由 `check-stage.py` 在阶段收尾统一调用） |
 | `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（探测静默跑；导入与验收只在用户点头后跑） |
 
 ## 八、阶段文件约定

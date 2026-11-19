@@ -127,6 +127,6 @@
   - `nsfw: false` → 卡里不得出现 `nsfw` 块；`taboos` 与 `anti_ooc.never` 必须含「不做任何性行为」。
 - 产物正文里不许出现构建期占位符（`【AI补全·可替换】` / `[待定]` / `【未知】`）——模板里的 `unknown_handling` 要改写成运行时口径（「从 `values.ranking` 推断，依据不写进正文」），不能把「标占位符」这句话原样留在卡里。
 - `【AI补全·可替换】` 逐条列出，交用户确认。
-- 跑 `python scripts/validate-rolecard.py <卡路径…>`（可传多个文件或一个目录），退出码 0 才算过。它查：九大块齐全、`behavior.rules` ≥4 且每条含 `trigger` + `action` 与 `condition|reason|cost` 之一、`stress_response` ≥3、`quirks` ≥3、`attitudes` 四类各 ≥2、`speech.rules` 四类齐、`catchphrases`/`quotes` ≥3、`taboos ⊆ anti_ooc.never`、`nsfw` 开关与块一致、正文占位符 0 命中。
+- **阶段收尾一检** `python scripts/check-stage.py cast <项目根>`（内部先查契约、再逐张跑 `validate-rolecard.py`），退出码 0 才算过。它查：九大块齐全、`behavior.rules` ≥4 且每条含 `trigger` + `action` 与 `condition|reason|cost` 之一、`stress_response` ≥3、`quirks` ≥3、`attitudes` 四类各 ≥2、`speech.rules` 四类齐、`catchphrases`/`quotes` ≥3、`taboos ⊆ anti_ooc.never`、`nsfw` 开关与块一致、正文占位符 0 命中。
 - 命名门四步通过（角色名、势力名、地点名与契约一致）→ 交付 → 回写契约 → 阶段结束。
 - 用户只要精简档位时不强推标准档；只在交付时一句说明精简档会让 AI 即兴补全更多。

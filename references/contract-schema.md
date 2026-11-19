@@ -76,7 +76,8 @@
 ## 八、写完就跑校验器
 
 ```
-python scripts/validate-contract.py <创作痕迹/contract.yaml>
+python scripts/check-stage.py <阶段名> <项目根>      # 阶段收尾一检，内部会跑契约校验
+python scripts/validate-contract.py <创作痕迹/contract.yaml>   # 只看契约时单独跑
 ```
 
 它查 C01–C13：`project` 必填与 `stages_requested` 枚举、九个阶段名各自的取值在 `none/partial/done/skipped` 内、`artifact.type` 在十四类枚举内、`path` 相对且真实存在、**`done` 的阶段有对应产物**（`mvu` 至少要有 `mvu-schema`/`mvu-initvar`/`mvu-entries` 之一，`ejs` 要有 `ejs-controller`）、`delivery.route` 与 `files` 自洽、`naming` 收口（阶段 4 完成后 `axes` 不许再带 `provisional`）、`hard_settings.source` 以 `用户确认`/`推导` 开头、`最终产物/` 在交付前必须空。

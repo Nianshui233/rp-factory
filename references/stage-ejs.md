@@ -78,7 +78,7 @@
 
 **Step 5 · 边界用例**：在控制器同目录写 `边界用例.md`，取每档边界的 ±1（如 59 / 60 / 30 / 29），逐个写"命中哪一档"，跑校验器核。
 
-**Step 6 · 校验**：`python scripts/validate-ejs.py 创作痕迹/产物/ejs/阶段控制器.ejs --book <世界书>`。
+**Step 6 · 校验**：不在这里跑，留到收尾——`python scripts/check-stage.py ejs <项目根>`（内部跑 `validate-ejs.py`）。
 
 ## 写回契约
 
@@ -89,7 +89,7 @@
 
 ## 退出
 
-- 变量门：`validate-ejs.py` E01–E08 全过、退出码 0。
+- 变量门：阶段收尾一检 `python scripts/check-stage.py ejs <项目根>` 退出码 0（内部跑 `validate-ejs.py` E01–E08）。
 - 命名门：控制器里的条目名、轴名与 `naming` 一致；`getvar` 路径里的角色键与角色卡一致。
 - 交付说明里三句：① 被控条目已设为禁用；② 控制器条目要 `constant` 才每轮生效；③ 没装 Prompt Template 时这段会显示成代码块。
 - 被控条目若改了名，确认 `改写清单.yaml` 与 `decisions` 都写到，且旧名在下游产物里没有残留。

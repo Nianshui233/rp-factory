@@ -136,7 +136,7 @@ else {
 1. **正文与 CSS 里不写实体**。要 `&` 就直接写 `&`（浏览器容忍），要空格用 `white-space: pre-wrap` 或 `\u00a0`，不要 `&nbsp;`。
 2. **JS 字符串里的实体用 `\x26` 拼**：`'\x26amp;'`、`'\x26lt;'`、`'\x26gt;'`、`'\x26quot;'`、`'\x26#39;'`。`\x26` 在 JS 求值时才变 `&`，源码里没有字面 `&`，管线就没东西可吃。
 
-自查：`python scripts/validate-frontend.py 创作痕迹/产物/xxx.html` 的 F04 专抓这条。
+自查：阶段收尾一检（`check-stage.py opening` / `statusbar`）里的 `validate-frontend.py` F04 专抓这条。
 
 ## 四、正则脚本 JSON
 
@@ -214,7 +214,7 @@ else {
 7. 走 D 时字段名必须能在 `mvu-schema.js` 的 `Schema` 里找到，`FIELDS` 的 min/max 逐项抄轴的 `range`（不一致就改界面，不改产物）。
 8. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本；越界值不溢出。
 9. 交用户四句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里、触发词该出现在哪条消息里。
-10. 跑 `python scripts/validate-frontend.py <界面.html>`：F01–F08 全过（F04 专抓 `<script>` 里的 HTML 实体，那是唯一会让界面整份静默不显示的写法）。
+10. 阶段收尾一检 `python scripts/check-stage.py opening|statusbar <项目根>` 全过（内部跑 `validate-frontend.py`，F01–F08）（F04 专抓 `<script>` 里的 HTML 实体，那是唯一会让界面整份静默不显示的写法）。
 
 ## 九、正则只能界面导入
 
