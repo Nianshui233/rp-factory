@@ -15,7 +15,7 @@
 
 | 键区 | 装什么 |
 |---|---|
-| `project` | 名字（`name` = 项目文件夹名）、**工作区绝对路径**（`workspace`）、模态（`text` / `engineering`）、RP 形式、语言、**本次要跑的阶段**（`stages_requested`）、**是否联网检索**（`web_research` / `source_ip`） |
+| `project` | 名字（`name` = 项目文件夹名）、**工作区绝对路径**（`workspace`）、模态（`text` / `engineering`）、RP 形式、语言、**本次要跑的阶段**（`stages_requested`）、**是否联网检索**（`web_research` / `source_ip`）、**SillyTavern 探测结果**（`sillytavern`） |
 | `stages` | 每阶段状态（1–7）：`none` / `partial` / `done` / `skipped`（未勾选写 `skipped`） |
 | `delivery` | `route`（`native` / `st` / `both`）、`st_name`（角色卡名，默 = `project.name`；世界书名另行取 `<st_name> 世界书`）、`files[]`（相对 `最终产物/st/`） |
 | `content_boundaries` | `nsfw`（开局第三问）、`rating`、`hard_no`、`soft_no` |
@@ -29,7 +29,7 @@
 
 | 键区 | 独占写者 |
 |---|---|
-| `project.*`（含 `stages_requested` / `web_research` / `source_ip`）、`content_boundaries.*`（含 `nsfw`） | 主 skill（开局门与边界门） |
+| `project.*`（含 `stages_requested` / `web_research` / `source_ip` / `sillytavern`）、`content_boundaries.*`（含 `nsfw`） | 主 skill（开局门与边界门） |
 | `naming.world` / `factions` / `places` / `systems` | 阶段 1 |
 | `naming`（角色相关新增项） | 阶段 2 |
 | `naming.axes` | 阶段 4 接管；阶段 2 / 3 可写 `provisional: true` 的临时项 |
@@ -80,3 +80,23 @@ python scripts/validate-contract.py <创作痕迹/contract.yaml>
 它查 C01–C12：`project` 必填与 `stages_requested` 枚举、`stages.1–7` 值在 `none/partial/done/skipped` 内、`artifact.type` 在九类枚举内、`path` 相对且真实存在、**`done` 的阶段有对应产物**、`delivery.route` 与 `files` 自洽、`naming` 收口（阶段 4 完成后 `axes` 不许再带 `provisional`）、`hard_settings.source` 以 `用户确认`/`推导` 开头。
 
 `partial` 不会被判失败，但必须出现在 `pending[]` 里（哪一项、为什么、缺什么才到 `done`）——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。
+
+## 九、`project.sillytavern`：开局静默探测
+
+开局问四件之前，先跑一次 `python scripts/detect-sillytavern.py`（**不告诉用户、不占问题预算**），把结果写进这一段；之后各阶段读契约，不重复探测。
+
+```yaml
+sillytavern:
+  install: "D:/AI/SillyTavern"      # 安装目录
+  user_dir: "D:/AI/SillyTavern/data/default-user"
+  running_url: "http://127.0.0.1:8000"   # 没在跑写 ""
+  pkg_version: "1.19.0"
+  extension_tavern_helper: true
+```
+
+写回规矩：
+
+- 探测不到安装 → 整段写 `sillytavern: null`，**不追问**、不提示用户去装；阶段 5/6 照常做（产物是文件），阶段 7 只交文件。
+- 有安装没在跑 → 其余照填，`running_url: ""`；阶段 7 的「导入并实测」不问（问了也做不了），改为一句"启动后要我导也说一声"。
+- 只写探测到的事实，不写推测（端口拿不到就是空着，不写 8000）。
+- 中后期用户自己装了/换端口了 → 重跑一次脚本、覆盖这一段，记 `decisions` 一条即可。

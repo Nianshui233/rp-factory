@@ -768,3 +768,15 @@ Expected: 0 失败（WARN 可带着走），退出码 0。
 - [x] 真机验证：`爱情公寓.png` 重导入后，`http://127.0.0.1:8000` 里建卡向导从 2px 黑边变成正常 674px，序章 / 基础身份 / 外观 / 总览四步可点，填完能导出档案
 
 **Ruling**：不做"在正则里把实体再转义一遍"的绕法——那要求每个界面各自记住一套转义规则，且 `$1` 注入路径会二次转义。统一在写法层面禁止实体，规则只有一条，校验器能拦。
+
+### Task 21: 开局静默探测 + 收尾导入实测
+
+- [x] 新建 `scripts/detect-sillytavern.py`：环境变量 / 家目录 / 各盘与 `AI/` 下一层 / `config.yaml` 端口 / 多端口 `/version` 指纹；输出 installation（路径、版本、用户目录、酒馆助手）与 running（url、版本、分支）；`--quiet` 一行摘要；找不到退出码仍 0
+- [x] 新建 `scripts/st-import.py`：CSRF 握手 + multipart 导入（`preserved_name`）+ 回读五项自检 + `character_allowed_regex` 白名单检查 + 可选世界书；`--st auto` 复用探测
+- [x] 新建 `scripts/st-probe.js`：puppeteer-core + 本机 Chrome，点开卡读 iframe 高度与内容，三条判定（正常 / 没 iframe / 2px），可选截图
+- [x] `templates/contract.yaml` 与 `references/contract-schema.md` 加 `project.sillytavern`（含三种"探不到"的写法）
+- [x] `SKILL.md`：开局四问前静默探测（不占预算）；第十节收尾加第二问（两种不问的情形）；文件索引加三个脚本
+- [x] `references/stage-7-delivery.md`：追问改两问、新增「导入并实测」节（命令 / 判据 / 依赖 / 报告格式 / 失败不硬试）；`references/pipeline.md` 阶段 7 行与交付门同步
+- [x] 真机验证：探测出 `D:/AI/SillyTavern` 1.19.0 + 运行中 8000 + 酒馆助手有；`st-import.py` 导入 dry-run 的 `白潮.json` 五项 PASS（另有一条白名单 WARN 属预期）；`st-probe.js` 对 `爱情公寓` 量到 674px、iframe 内有住户登记向导文字
+
+**Ruling**：探测放在开局而不是阶段 5——阶段 5/6 要知道"有没有装酒馆助手"，阶段 7 要知道"有没有在跑的实例"，两次探测会有两次不确定；开局一次写进契约，后面只读。

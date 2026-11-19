@@ -1,3 +1,6 @@
 .superpowers/
 .tmp-js/
 .tmp-check.js
+__pycache__/
+*.pyc
+node_modules/

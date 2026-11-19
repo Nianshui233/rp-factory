@@ -30,6 +30,8 @@ disable-model-invocation: true
 
 **先问四件，一次问完，不分三轮。** 四件没问完，任何阶段都不动笔。
 
+**问之前先静默探一次环境**：跑 `python scripts/detect-sillytavern.py --quiet`，**不报给用户、不占问题预算**；结果写进契约 `project.sillytavern`（安装目录 / 用户目录 / 是否在跑 / 版本 / 有没有酒馆助手），探不到就写 `null`。只有阶段 5 / 6 / 7 真的要用它时才提。
+
 **问一：工作区在哪。** 问「项目放在哪个目录？」，给 2–3 个选项（当前目录 / 用户常用目录），每个选项说明会建成什么样，附一句「只要粘贴、不落文件也可以说一声」。确认后在其下建两层：
 
 ```
@@ -113,6 +115,7 @@ disable-model-invocation: true
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
 | `templates/st-card.json` / `st-character-book-entry.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` | 酒馆包骨架（卡 / 内嵌条目 / 独立世界书）+ 四个校验器（契约门 / 阶段 2 / 前端门 / 交付门） |
+| `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（探测静默跑；导入与验收只在用户点头后跑） |
 
 ## 八、阶段文件约定
 
@@ -133,3 +136,13 @@ disable-model-invocation: true
 - 不问名字（默认 `project.name`）、不问放哪（`最终产物/st/`）、不生成头像。
 - 用户没说“打包 / 导入酒馆 / 要角色卡 json / 要世界书”就不要主动提，原生是默认。
 - 中途就要包也行，但必须先跑完已勾阶段；有 `partial` 先问“先打包还是补完”。
+
+**路线问完，只要答案里有酒馆包，再问第二句：要不要我直接导进你正在跑的酒馆并实测。**
+
+| 选择 | 做什么 |
+|---|---|
+| 要（推荐） | 先 `python scripts/validate-st-package.py`，再 `python scripts/st-import.py --st auto --card <卡>`（同名覆盖，导入后回读自检），有界面再 `node scripts/st-probe.js --char <卡名>` 量 iframe 高度；把 PASS / WARN 原样报给用户，界面上有确认框也一并说明 |
+| 不要 | 只交文件 + 四句话（正则怎么导入、渲染开关在哪、世界书要不要单独导、触发词该出现在哪条消息） |
+
+- `project.sillytavern.running_url` 为空（没在跑）或整段是 `null` → **不问这一句**，直接说“现在没有在跑的实例，启动后要我导也说一声”。
+- 导入实测属于交付的一部分：用户答“要”时，没做成就不算交付完，要把卡在哪一步说清。

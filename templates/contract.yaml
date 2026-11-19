@@ -11,6 +11,12 @@ project:
   stages_requested: []     # 开局多选的结果，升序，如 [1, 2, 4]；没勾的阶段在 stages 里写 skipped
   web_research: false      # 开局第四问：是否联网检索；true 时每次落笔前都先搜，走 references/web-research.md
   source_ip: ""            # 可选：检索依据（原作名+版本 / 真实年代地点 / 专业领域）。自动记录，不为此提问
+  sillytavern:             # 开局静默探测的结果（scripts/detect-sillytavern.py），不为此提问；没探测到写 null
+    install: ""            # 安装目录绝对路径
+    user_dir: ""           # data/<用户名> 目录
+    running_url: ""        # 正在跑的实例，如 http://127.0.0.1:8000；没在跑写 ""
+    pkg_version: ""        # 实例或安装包的版本号
+    extension_tavern_helper: false   # 有没有装酒馆助手（阶段 5/6 的前置）
 
 stages:                    # 每阶段状态，不是标量。乱序合法。
   1: none                  # none | partial | done | skipped（未勾选的阶段写 skipped）

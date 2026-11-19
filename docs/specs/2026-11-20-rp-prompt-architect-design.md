@@ -565,3 +565,21 @@ artifacts: []              # {type, path | inline_ref, version}
 **落地**：三个模板（`wizard-ui` / `statusbar` / `opening-ui`）与两个 dry-run 示例全部改掉；新增 `scripts/validate-frontend.py`（F01–F08：骨架、外链、`eval`、**内联脚本里的实体**、硬编码 vh、`innerHTML` 无 `esc()`、标签配平、外部样式）；`frontend-conventions.md` 新增「三之一 实体陷阱」并把前端门从 8 条加到 9 条；`stage-5` / `stage-6` / `pipeline` / `SKILL.md` 同步。`opening-ui.html` 顺手把 `getChatMessages` 包进 try/catch（不在正式聊天里预览时留白而不报错）。
 
 **验证方式可复用**：用 `puppeteer-core` + 本机 Chrome 打开 `http://127.0.0.1:8000/`，点开角色卡，读 `.mes_text iframe` 的高度与 iframe 内的 DOM——高度 2px 就是脚本死了，高度正常才叫渲染成功。只跑 `node --check` 不够：`&` 这类写法在源码里合法，问题只出现在管线解码之后。
+
+## 22. 从"给你文件"到"我帮你装上"（2026-11-20 追加）
+
+原来阶段 7 是盲交：算得出包对不对（静态校验器），算不出它在这台机器上能不能跑。补两件事——开头悄悄摸清环境，结尾把包真装进去验一遍。
+
+**开局静默探测**：`scripts/detect-sillytavern.py` 找五处——环境变量（`SILLYTAVERN_PATH` / `ST_PATH`）、家目录常见位置、各盘根与 `AI/` 下一层的 `SillyTavern`、`config.yaml` 的 `port`、以及 8000/8001/8080/8081/5000/3000 上的 `/version` 指纹（返回里有 `pkgVersion` 才算数，别的服务不认）。顺带看出 `data/<用户名>`、有没有装酒馆助手。结果写 `project.sillytavern`，**不告诉用户、不占问题预算**——它只是后面几阶段要用的一个事实。
+
+写回规矩偏向"不打扰"：探不到安装 → `null`，不提示去装；装了没在跑 → `running_url: ""`，阶段 7 不问"要不要导入"（问了也做不了），只说一句"启动后要我导也说一声"。
+
+**收尾第二问**：路线（原生 / 酒馆包 / 两者都要）之后，若答案含酒馆包再问「要不要我直接导进你正在跑的酒馆并实测」。答"要"就串三个动作：
+
+1. `st-import.py`：`/csrf-token` 握手 → `POST /api/characters/import`（`preserved_name` = 卡名，**同名覆盖**）→ `POST /api/characters/all` 回读，比卡名 / 内嵌条目数 / 内嵌正则数 / `first_mes` 非空 / 首条标签能被正则接住 → 再查 `character_allowed_regex`，不在名单里给 WARN（酒馆会在进聊天时弹一次「是否允许角色专属正则」）。
+2. `st-probe.js`：无头 Chrome 打开酒馆、点开卡、等 6 秒，读 `.mes_text iframe` 的高度与 iframe 内文字。判据三条：有高度且有字 = 成功；没有 iframe = 正则没生效（插件 / 消息渲染 / 白名单）；2px = 内联脚本语法错误（实体被解码）。
+3. 报告只给结论与 PASS/WARN，不贴日志。
+
+**为什么不让用户自己导**：这次的教训是"静态校验全过、真机一片空白"。`validate-st-package.py` 能证明 JSON 结构对，证明不了 ST 的渲染管线认它。中间隔着一个只有跑起来才知道的环节，所以把它做成可选的一步，而不是留给用户踩。
+
+**边界**：导入只碰两样东西——角色卡（同名覆盖）、可选的世界书文件；不动设置、不动已有聊天记录、不自动改 `character_allowed_regex`（那是用户的授权，只能他自己点）。失败就停，不换端口反复试。

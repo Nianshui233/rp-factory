@@ -182,3 +182,8 @@
 | U22 | 表现层 | 内联脚本里不写 HTML 实体（写 `&amp;`），否则整段 JS 语法错误、界面 2px | references/frontend-conventions.md · scripts/validate-frontend.py | [x] |
 | U23 | 表现层 | 交付前跑 `validate-frontend.py`，F01–F08 全过 | references/stage-5-opening-ui.md · references/stage-6-statusbar-ui.md | [x] |
 | U24 | 表现层 | 没装酒馆助手或不在正式聊天里时，界面留白不抛错（`getChatMessages` 包 try/catch） | templates/opening-ui.html · templates/statusbar.html | [x] |
+| D29 | 交付 | 开局静默探测酒馆（安装/用户目录/是否在跑/版本/酒馆助手），写 `project.sillytavern`，不为此提问 | SKILL.md · references/contract-schema.md · scripts/detect-sillytavern.py | [x] |
+| D30 | 交付 | 探不到安装写 `null`、装了没在跑写空 `running_url`，两种情况都不追问 | references/contract-schema.md · references/stage-7-delivery.md | [x] |
+| D31 | 交付 | 路线问完、答案含酒馆包时再问「要不要我直接导入并实测」 | SKILL.md · references/stage-7-delivery.md | [x] |
+| D32 | 交付 | 答「要」→ `st-import.py` 导入 + 回读五项自检 + 白名单 WARN；不成就报错不硬试 | references/stage-7-delivery.md · scripts/st-import.py | [x] |
+| D33 | 交付 | 有界面的包再跑 `st-probe.js` 量 iframe 高度（没有 iframe / 2px 各有判定） | references/stage-7-delivery.md · scripts/st-probe.js | [x] |
