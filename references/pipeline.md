@@ -8,8 +8,8 @@
 |---|---|---|---|---|
 | 0 `start` 开工判定 | `SKILL.md` | — | 用户给出任何 RP 相关请求 | 判出目标阶段，且判定够不够开工 |
 | 1 `world` 世界观 | `references/stage-1-world-bible.md` | `world-bible` | 用户给出题材 / 概念 / 世界构想 | 收敛门通过 + 用户明确确认终稿 |
-| 2 `cast` 角色卡 | `references/stage-2-rolecard.md` | `rolecard` | 有 `naming.world`，或用户直接给出角色设定 | 自检门通过 |
-| 3 `scenes` 场景卡 | `references/stage-3-scene-sheet.md` | `scene-sheet` | 有 `naming.world`，或用户直接给出地点构想 | 自检门通过 |
+| 2 `cast` 角色/NPC | `references/stage-2-cast.md` | `rolecard` | 有 `naming.world`，或用户直接给出角色设定 | 自检门通过 |
+| 3 `scenes` 场景 | `references/stage-3-scene-sheet.md` | `scene-sheet` | 有 `naming.world`，或用户直接给出地点构想 | 自检门通过 |
 | 4 `axes` 数值系统 | `references/stage-4-axis-system.md` | `axis-system` | 有 `naming.world`，或用户直接给出可量化维度 | 自检门通过 |
 | 5 `mvu` 变量系统 | `references/stage-mvu.md` | `mvu-schema` / `mvu-initvar` / `mvu-entries` | 有 `axis-system`；装了酒馆助手 | 变量门通过 |
 | 6 `ejs` 分档控制器 | `references/stage-ejs.md` | `ejs-controller` | 有 `axis-system` 或别的切换判据；装了 Prompt Template | 变量门通过；命中「不做」判据就写 `skipped` |
@@ -17,7 +17,7 @@
 | 8 `statusbar` 状态栏 | `references/stage-6-statusbar-ui.md` | `statusbar-ui` | 有 `axis-system`（降级形态：信息卡）；用户要状态栏/每轮数值 | 前端门通过 |
 | 9 `delivery` 交付 | `references/stage-7-delivery.md` | `st-card` / `st-regex` / `st-worldbook` | 需求阶段全部 `done`；用户要打包 / 导入酒馆 / 要角色卡 json | 交付门通过；用户点头就导入并实测 |
 
-阶段可任意顺序进入（"我只要一张场景卡"合法）。`contract.stages` 记录每阶段实际状态，不假定前置阶段已完成。两条例外：`mvu` 必须在 `ejs` 之前（控制器要读变量结构里定下的键），`delivery` 只能在最后一次进入。
+阶段可任意顺序进入（"我只要一个场景"合法）。`contract.stages` 记录每阶段实际状态，不假定前置阶段已完成。两条例外：`mvu` 必须在 `ejs` 之前（控制器要读变量结构里定下的键），`delivery` 只能在最后一次进入。
 
 ## 二、占位符（只有 7 个）
 

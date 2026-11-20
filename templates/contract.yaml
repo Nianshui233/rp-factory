@@ -20,8 +20,8 @@ project:
 
 stages:                    # 每阶段状态，名字键，不是标量。顺序即执行顺序，乱序进入合法。
   world: none              # none | partial | done | skipped（未勾选的阶段写 skipped）
-  cast: none               # 角色卡
-  scenes: none             # 场景卡
+  cast: none               # 角色/NPC 的人物设定（不是 ST 角色卡）
+  scenes: none             # 场景
   axes: none               # 数值系统
   mvu: none                # 变量系统：把轴投影成 zod + initvar + 三条目（必须在 ejs 前）
   ejs: none                # 分档控制器：按数值切条目（默认不建，命中判据才建）

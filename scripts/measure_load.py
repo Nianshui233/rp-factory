@@ -6,7 +6,7 @@
 - tok 估算：cjk*1.15 + 非 cjk 字符数/3.6（够用即可，不追求与某家 tokenizer 对齐）。
 - BASELINE 是 2026-11-21 改动前的实测值。任何阶段超过基线即为变重。
 - 例外只记在案的两次：Ruling ③ 世界书双入口（delivery +414）；Ruling ④ 吸收 TavernWeave
-  六项（契约 `player_agency` +63/阶段、角色卡事实分级 cast 另 +94、`worldbook-writing.md`
+  六项（契约 `player_agency` +63/阶段、人物设定事实分级 cast 另 +94、`worldbook-writing.md`
   指针 world +130 / delivery +112、SKILL 索引两行 +55/阶段、前端两段 +312 opening/statusbar）。每次都在共用文件里回收了
   等量冗余；基线一律改为「该次改动实测值」，绝对上限 26,000 不变——
   新增功能要付的体积账写在提交信息里，而不是悄悄抬高上限。
@@ -44,7 +44,7 @@ _WEB = "references/web-research.md"
 # 每个阶段进入后会读到的文件（不含 ALWAYS）。按 references/pipeline.md 的阶段名。
 LOAD_MAP: dict[str, list[str]] = {
     "world": [_INTERVIEW, _WEB, "references/stage-1-world-bible.md", _CONTRACT],
-    "cast": [_INTERVIEW, _WEB, "references/stage-2-rolecard.md", _CONTRACT],
+    "cast": [_INTERVIEW, _WEB, "references/stage-2-cast.md", _CONTRACT],
     "scenes": [_INTERVIEW, _WEB, "references/stage-3-scene-sheet.md", _CONTRACT],
     "axes": [_INTERVIEW, _WEB, "references/stage-4-axis-system.md", _CONTRACT],
     "mvu": ["references/stage-mvu.md", _CONTRACT],

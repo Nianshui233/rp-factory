@@ -70,7 +70,7 @@ Schema
 └── 背包     可选：物品名 → 数量
 ```
 
-- 角色键名逐字用角色卡里的 `character.name`；改名要同时改 schema、`[initvar]`、更新规则三处，且回写契约。
+- 角色键名逐字用人物设定里的 `character.name`；改名要同时改 schema、`[initvar]`、更新规则三处，且回写契约。
 - 轴名逐字用 `naming.axes`；**`naming.schema_axes` 写本阶段实际用到的轴名**（交付校验按它查 `description` 有没有漏）。
 - 顶层只有一个 `Schema`，不要给每个角色各注册一次。
 
@@ -144,6 +144,6 @@ Schema
 
 - 变量门（本阶段的退出条件）：阶段收尾一检 `python scripts/check-stage.py mvu <项目根>` 退出码 0（内部跑 `validate-mvu.py` M01–M13）。
 - `node --check` 过（`mvu-schema.js` 是 ES module，先改名到临时 `.mjs`）。
-- 命名门：轴名与 `axis-system.yaml`、`naming.axes` 三处一致；角色键名与角色卡 `character.name` 逐字一致。
+- 命名门：轴名与 `axis-system.yaml`、`naming.axes` 三处一致；角色键名与人物设定 `character.name` 逐字一致。
 - 交付说明里**必须有四句**：① 卡里已经带了脚本；② 导入后要去酒馆助手给这个角色**启用脚本**；③ 世界书要单独导入（`importFromJson` 不会把 `character_book` 落成书）；④ 没启用脚本时 MVU 静默不跑、不报错。
 - `project.web_research: true` 时确认本阶段 `检索来源.md` 有新增条目。

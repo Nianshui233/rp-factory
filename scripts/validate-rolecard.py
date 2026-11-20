@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""角色卡校验器：抄 templates/rolecard.yaml 的骨架检查，外加本包的几条规矩。
+"""人物设定校验器（`rolecard` 类型产物）：抄 templates/rolecard.yaml 的骨架检查，外加本包的几条规矩。
+
+注意用词：这里的「角色」是**一个包里的人物**（`制作文件/产物/rolecard/*.yaml`），
+不是 SillyTavern 导入的那张角色卡（`<世界名>（纯净）.json`）——一个包只有一张卡，
+却可以有很多人物。写成 .json/.png 就是跑偏了，`main()` 会直接报错。
 
 用法：
     python scripts/validate-rolecard.py <卡.yaml> [更多卡.yaml …]
@@ -26,6 +30,26 @@ except ImportError:
 
 PLACEHOLDERS = ('【AI补全·可替换】', '[待定', '【未知】', '[推断：')
 # 会过期的状态词：出现在身份/背景里就是踩了「把开场那一刻写死成设定」的坑
+# 阶段 2 的产物是「人物设定」（.yaml），不是 ST 角色卡（.json/.png）。
+# 一个包只产一张卡，且只在阶段 7；阶段 2 目录里出现这些后缀，说明模型把「角色卡」
+# 理解成了「每个角色一张卡」——这是本包最贵的一类跑偏（14 个 NPC → 14 张 json）。
+CARD_EXTS = {".json", ".png", ".webp", ".jpg", ".jpeg", ".charx"}
+
+
+def scan_wrong_files(folder):
+    """返回目录里疑似「角色卡」的文件名。"""
+    out = []
+    try:
+        names = sorted(os.listdir(folder))
+    except OSError:
+        return out
+    for name in names:
+        full = os.path.join(folder, name)
+        if os.path.isfile(full) and os.path.splitext(name)[1].lower() in CARD_EXTS:
+            out.append(name)
+    return out
+
+
 EXPIRING_MARKERS = ('此刻', '目前正', '现在正', '正在被', '暂时', '这两天', '今天', '这个月', '刚刚还')
 BASE_BLOCKS = ('name', 'identity', 'psychology', 'behavior', 'attitudes',
                'speech', 'background', 'anti_ooc')
@@ -253,7 +277,7 @@ def check_file(path, nsfw_required=False):
                 smuggled.append(f'{block}: {s[:40]}')
     if smuggled:
         r.warn('临时事实（会过期的状态）写进了卡：' + '；'.join(smuggled[:3]) +
-               '——移到开场或状态层，卡里只留稳定事实（见 references/stage-2-rolecard.md 规范 5）')
+               '——移到开场或状态层，卡里只留稳定事实（见 references/stage-2-cast.md 规范 5）')
 
     # 10 自创顶层键（只警告）
     allowed = set(BASE_BLOCKS) | {'nsfw', 'lore', 'relationships', 'growth_arc', 'facts'}
@@ -272,19 +296,30 @@ def main(argv):
     argv = [a for a in argv if a != '--nsfw']
 
     paths = []
+    wrong = []
     for a in argv[1:]:
         if os.path.isdir(a):
             paths.extend(sorted(glob.glob(os.path.join(a, '*.yaml'))))
+            for name in scan_wrong_files(a):
+                wrong.append((os.path.basename(os.path.normpath(a)), name))
         elif os.path.exists(a):
             paths.append(a)
         else:
             print(f'找不到：{a}')
             return 2
-    if not paths:
+    if not paths and not wrong:
         print('没有可校验的文件')
         return 2
 
     total_f = 0
+    if wrong:
+        print('\n[FAIL] 阶段 2 只产人物设定（.yaml），这里出现了角色卡文件：')
+        for folder, name in wrong:
+            print(f'   - {folder}/{name}')
+        print('   一个包只有一张角色卡，在阶段 7 生成；人物设定写成 .json/.png')
+        print('   等于把「N 个角色」理解成「N 张卡」，导进酒馆就是 N 个互不相识的角色。')
+        total_f += len(wrong)
+
     for p in paths:
         r = check_file(p, nsfw_required)
         name = os.path.basename(p)
@@ -300,7 +335,7 @@ def main(argv):
             print(f'[  ok ] {name}  {len(r.oks)} 项通过')
         total_f += len(r.fails)
 
-    print(f'\n共 {len(paths)} 张卡：{total_f} 处失败')
+    print(f'\n共 {len(paths)} 份人物设定：{total_f} 处失败')
     return 0 if total_f == 0 else 1
 
 

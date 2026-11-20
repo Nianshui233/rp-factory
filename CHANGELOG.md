@@ -3,6 +3,25 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.2.03 — 2026-11-21
+
+**把「角色卡」这个词拆开：阶段 2 产的是角色/NPC，不是卡。**
+
+「角色卡」在 SillyTavern 里指那张导入的 `.json`/`.png`。原来阶段 2 也叫「角色卡」，
+于是「阶段 2 输出角色卡」这句话在模型那里可以被读成「每个 NPC 各产一张卡」——14 个 NPC
+就是 14 个互不相识的导入项。同一个坑还有「场景卡」：ST 根本没有场景卡这个导入项。
+
+- 用词：阶段 2 = **角色/NPC**（产物是 `.yaml` 人物设定，一个包可以有很多个）；阶段 3 =
+  **场景**；「角色卡」只保留给交付里那**一张** ST 导入文件。
+- `references/stage-2-rolecard.md` → **`stage-2-cast.md`**（文件名与阶段语义对齐）。
+- **新增阶段 2 守卫**：`validate-rolecard.py` 扫目录时，出现 `.json` / `.png` / `.webp` /
+  `.jpg` / `.charx` 直接 **FAIL**，文案指出「一个包只有一张角色卡，在阶段 7 生成」。
+  入口是目录才算（`check-stage.py cast` 走的就是目录）。
+- 连带改动：`SKILL.md` 描述与阶段标签、`pipeline.md` 阶段表、`interview-protocol.md`、
+  `contract-schema.md`、`contract.yaml`、`stage-3/4/5/6/7`、`web-research.md` 的检索表、
+  三个 templates、`check_prose.py` / `measure_load.py` 的注释、README 与 coverage 清单。
+  校验器输出从「共 N 张卡」改成「共 N 份人物设定」。
+
 ## 1.2.02 — 2026-11-21
 
 **世界书知识补到机制层：先弄清引擎怎么选条目，再谈怎么配。**

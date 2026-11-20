@@ -41,33 +41,33 @@
 | W34 | 世界观 | 特殊场景 7 仅提供一个概念词 | references/stage-1-world-bible.md | [x] |
 | W35 | 世界观 | 特殊场景 8 面向多个 AI 平台使用 | references/stage-1-world-bible.md | [x] |
 | W36 | 世界观 | YAML 模版九块（元信息/类型与基调/时间地点/核心矛盾/世界规则/势力社会/常识清单/历史时间线/变更边界） | templates/world-bible.yaml | [x] |
-| R01 | 角色 | 阶段 0 输入评估（四维度 + 快速通道） | references/stage-2-rolecard.md | [x] |
-| R02 | 角色 | 阶段 1 信息采集（采集强度 + 追问优先级 + 降级处理） | references/stage-2-rolecard.md | [x] |
-| R03 | 角色 | 阶段 2 生成角色卡（四档位 + 规模参考） | references/stage-2-rolecard.md | [x] |
-| R04 | 角色 | 阶段 3 迭代修改（级联检查矩阵） | references/stage-2-rolecard.md | [x] |
-| R05 | 角色 | 字段规范 1 behavior.rules（≥4 条覆盖四类场景 + 三格式 + 三反例） | references/stage-2-rolecard.md | [x] |
-| R06 | 角色 | 字段规范 2 psychology.values（≥3 项排序 + 推导说明） | references/stage-2-rolecard.md | [x] |
-| R07 | 角色 | 字段规范 3 taboos & anti_ooc.never 逻辑一致 | references/stage-2-rolecard.md | [x] |
-| R08 | 角色 | 字段规范 4 语言层三项互证 | references/stage-2-rolecard.md | [x] |
-| R09 | 角色 | 字段规范 5 background（受控） | references/stage-2-rolecard.md | [x] |
-| R10 | 角色 | 字段规范 6 语言使用规则 | references/stage-2-rolecard.md | [x] |
+| R01 | 角色 | 阶段 0 输入评估（四维度 + 快速通道） | references/stage-2-cast.md | [x] |
+| R02 | 角色 | 阶段 1 信息采集（采集强度 + 追问优先级 + 降级处理） | references/stage-2-cast.md | [x] |
+| R03 | 角色 | 阶段 2 生成人物设定（四档位 + 规模参考） | references/stage-2-cast.md | [x] |
+| R04 | 角色 | 阶段 3 迭代修改（级联检查矩阵） | references/stage-2-cast.md | [x] |
+| R05 | 角色 | 字段规范 1 behavior.rules（≥4 条覆盖四类场景 + 三格式 + 三反例） | references/stage-2-cast.md | [x] |
+| R06 | 角色 | 字段规范 2 psychology.values（≥3 项排序 + 推导说明） | references/stage-2-cast.md | [x] |
+| R07 | 角色 | 字段规范 3 taboos & anti_ooc.never 逻辑一致 | references/stage-2-cast.md | [x] |
+| R08 | 角色 | 字段规范 4 语言层三项互证 | references/stage-2-cast.md | [x] |
+| R09 | 角色 | 字段规范 5 background（受控） | references/stage-2-cast.md | [x] |
+| R10 | 角色 | 字段规范 6 语言使用规则 | references/stage-2-cast.md | [x] |
 | R11 | 角色 | 自检 逻辑一致性 | references/pipeline.md | [x] |
 | R12 | 角色 | 自检 覆盖度 | references/pipeline.md | [x] |
 | R13 | 角色 | 自检 内容边界层（仅在该层存在时） | references/pipeline.md | [x] |
 | R14 | 角色 | 自检 格式 | references/pipeline.md | [x] |
 | R15 | 角色 | 输出模板（身份/心理/行为/语言/anti_ooc/扩展） | templates/rolecard.yaml | [x] |
 | R16 | 角色 | 参考示例（精简档位） | examples/rolecard-minimal.yaml | [x] |
-| R17 | 角色 | 系统身份与核心原则（可执行性 / 禁止产出 / 不确定信息处理） | references/stage-2-rolecard.md | [x] |
+| R17 | 角色 | 系统身份与核心原则（可执行性 / 禁止产出 / 不确定信息处理） | references/stage-2-cast.md | [x] |
 | S01 | 场景 | 依赖 1 提供世界观则不得冲突 | references/stage-3-scene-sheet.md | [x] |
 | S02 | 场景 | 依赖 2 未提供世界观时的处理 | references/stage-3-scene-sheet.md | [x] |
 | S03 | 场景 | 依赖 3 细节深度按玩法决定 | references/stage-3-scene-sheet.md | [x] |
 | S04 | 场景 | 依赖 4 可判定性 | references/stage-3-scene-sheet.md | [x] |
 | S05 | 场景 | 依赖 5 可扩展性 | references/stage-3-scene-sheet.md | [x] |
 | S06 | 场景 | 流程 第一步 ≤10 问确认用途与边界 | references/stage-3-scene-sheet.md | [x] |
-| S07 | 场景 | 流程 第二步 输出粗版场景卡并标缺失 | references/stage-3-scene-sheet.md | [x] |
+| S07 | 场景 | 流程 第二步 输出粗版场景并标缺失 | references/stage-3-scene-sheet.md | [x] |
 | S08 | 场景 | 流程 第三步 每轮 ≤8 问补全 | references/stage-3-scene-sheet.md | [x] |
 | S09 | 场景 | 流程 第四步 确认后输出最终卡 | references/stage-3-scene-sheet.md | [x] |
-| S10 | 场景 | 输出约束 1 必须是场景卡模板结构 | references/stage-3-scene-sheet.md | [x] |
+| S10 | 场景 | 输出约束 1 必须是场景模板结构 | references/stage-3-scene-sheet.md | [x] |
 | S11 | 场景 | 输出约束 2 除模版本体不附加内容 | references/stage-3-scene-sheet.md | [x] |
 | S12 | 场景 | 卡 1 场景概览 | templates/scene-sheet.yaml | [x] |
 | S13 | 场景 | 卡 2 规模与空间结构 | templates/scene-sheet.yaml | [x] |
@@ -143,7 +143,7 @@
 | U12 | 表现层 | 无插件不做静态版，先告知再问装不装 | references/frontend-conventions.md | [x] |
 | U13 | 表现层 | 产物 type 扩到八类、`naming.ui_tags`、八道门 | references/pipeline.md · references/contract-schema.md · SKILL.md | [x] |
 | U14 | 表现层 | 开局双形态：登场面板 A / 建卡向导 B，出口不同 | references/stage-5-opening-ui.md | [x] |
-| U15 | 表现层 | 向导固定三段式（序章 / 字段分组 / 总览），字段名照角色卡 | references/stage-5-opening-ui.md · templates/wizard-ui.html | [x] |
+| U15 | 表现层 | 向导固定三段式（序章 / 字段分组 / 总览），字段名照人物设定 | references/stage-5-opening-ui.md · templates/wizard-ui.html | [x] |
 | U16 | 表现层 | 向导四件事：进度条可跳、`localStorage` 续填、导出可粘、必填缺口提示 | templates/wizard-ui.html | [x] |
 | U17 | 表现层 | 触发方式二选一：开场白即触发词 / 正文标签；开场白需用户手改 | references/stage-5-opening-ui.md | [x] |
 | U18 | 表现层 | 三条数据路径（静态 / `$1` 注入 / 聊天 API）与配套 `findRegex` | references/frontend-conventions.md | [x] |
@@ -194,9 +194,9 @@
 | D28 | 数值 | 对象多于一人时必须选逐人 / 分组 / 降级 | references/stage-4-axis-system.md | [x] |
 | G01 | 流程 | 一次只做一个阶段，做完停住等回话 | SKILL.md · references/pipeline.md | [x] |
 | G02 | 流程 | 联网开启后每阶段必须有新增检索记录 | SKILL.md · references/web-research.md | [x] |
-| G03 | 流程 | `nsfw: true` 时每张卡必须有 `nsfw` 块 | references/stage-2-rolecard.md | [x] |
-| G04 | 流程 | 自创字段先问、记 `decisions`、不许替换既有块 | SKILL.md · references/stage-2-rolecard.md | [x] |
-| G05 | 流程 | 角色卡交付前跑 `validate-rolecard.py` | references/stage-2-rolecard.md · scripts/validate-rolecard.py | [x] |
+| G03 | 流程 | `nsfw: true` 时每张卡必须有 `nsfw` 块 | references/stage-2-cast.md | [x] |
+| G04 | 流程 | 自创字段先问、记 `decisions`、不许替换既有块 | SKILL.md · references/stage-2-cast.md | [x] |
+| G05 | 流程 | 人物设定交付前跑 `validate-rolecard.py` | references/stage-2-cast.md · scripts/validate-rolecard.py | [x] |
 | G06 | 流程 | 每阶段收尾跑 `validate-contract.py`（契约门） | SKILL.md · references/pipeline.md · scripts/validate-contract.py | [x] |
 | G07 | 契约 | `done` 的阶段必须有对应产物；`partial` 必须挂 `pending[]` | references/contract-schema.md · scripts/validate-contract.py | [x] |
 | G08 | 契约 | `artifact.type` 九类白名单，不许自造（`role-cards` / `secret-layer`） | references/contract-schema.md | [x] |

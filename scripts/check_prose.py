@@ -47,7 +47,7 @@ SENTENCE_SPLIT = re.compile("[。；！？]")
 IMMUNITY_KEYS = {
     "anti_ooc", "taboos", "taboo", "values", "bottom_line", "bottomline",
     "red_lines", "hard_no", "never", "底线", "红线", "禁区",
-    # 角色卡的行为层：习惯与小动作写成「一定/每次」本来就是对的（频率即设定）。
+    # 人物设定的行为层：习惯与小动作写成「一定/每次」本来就是对的（频率即设定）。
     "behavior", "habits", "habit", "dynamics", "tics", "speech", "quirks",
     "manners", "traits", "口头禅", "习惯", "小动作",
 }
@@ -83,7 +83,7 @@ def _prose_lines(text: str) -> list[tuple[int, str, bool]]:
     只做一层缩进栈跟踪，够用——这几类键都是段级块，不会嵌在行内。
 
     `key: "很长的一句话"` 这种**值本身就是正文**的行不能整行丢掉（世界书条目、
-    场景卡都是这个形状）；只丢短值/路径/布尔那类结构行，否则检查器看不到正文。
+    场景都是这个形状）；只丢短值/路径/布尔那类结构行，否则检查器看不到正文。
     """
     out: list[tuple[int, str, bool]] = []
     in_fence = False

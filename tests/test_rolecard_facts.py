@@ -1,4 +1,4 @@
-"""角色卡的事实分级：稳定事实进卡，会过期的进开场或状态层。
+"""人物设定的事实分级：稳定事实进卡，会过期的进开场或状态层。
 
 理由是实测里最常见的一类死稿：开场那一刻的「正在被追杀」被写成身份设定，
 第一轮过去就自相矛盾，而卡已经通过所有结构校验。
@@ -20,6 +20,9 @@ def _load():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+_mod = _load()
 
 
 def _card(**over):
@@ -67,6 +70,10 @@ def _card(**over):
     for key, value in over.items():
         c["character"][key] = value
     return c
+
+
+def _card_yaml():
+    return yaml.safe_dump(_card(), allow_unicode=True)
 
 
 def _run(card):
@@ -118,6 +125,29 @@ class TestFactStability(unittest.TestCase):
     def test_expiring_state_in_background_warns(self):
         r = _run(_card(background="三天前刚从渡口逃出来，现在正被追。"))
         self.assertTrue(any("临时事实" in w for w in r.warns), r.warns)
+
+
+class TestCardFileGuard(unittest.TestCase):
+    """阶段 2 只产 .yaml 人物设定。目录里出现 .json/.png 就是「每个 NPC 一张卡」的跑偏。"""
+
+    def _dir(self, files):
+        d = Path(tempfile.mkdtemp())
+        for name, body in files.items():
+            (d / name).write_text(body, encoding="utf-8")
+        return d
+
+    def test_json_card_in_cast_dir_fails(self):
+        d = self._dir({"曾小贤.json": "{}", "曾小贤.yaml": _card_yaml()})
+        code = _mod.main(["validate-rolecard.py", str(d)])
+        self.assertEqual(code, 1)
+
+    def test_png_card_in_cast_dir_fails(self):
+        d = self._dir({"咖喱酱.png": "not-a-real-png"})
+        self.assertEqual(_mod.main(["validate-rolecard.py", str(d)]), 1)
+
+    def test_yaml_only_dir_passes(self):
+        d = self._dir({"曾小贤.yaml": _card_yaml()})
+        self.assertEqual(_mod.main(["validate-rolecard.py", str(d)]), 0)
 
 
 if __name__ == "__main__":

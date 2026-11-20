@@ -28,7 +28,7 @@ class TestIndex(unittest.TestCase):
         self.assertIn("templates/", SKILL)
 
     def test_every_stage_has_a_file(self):
-        # 阶段名与文件名不是一一对应（cast → stage-2-rolecard.md），以加载表的映射为准
+        # 阶段名与文件名不是一一对应（cast → stage-2-cast.md），以加载表的映射为准
         import sys
         sys.path.insert(0, str(ROOT / "scripts"))
         import measure_load as ml

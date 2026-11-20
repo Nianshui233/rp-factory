@@ -1,8 +1,8 @@
 ---
 name: rp-factory
 metadata:
-  version: 1.2.02
-description: 把 RP 构想编译成世界观、角色卡、场景卡、数值系统四类 YAML 设定产物，跨产物命名与硬设定保持一致；可选把数值投影成酒馆变量系统（MVU 的 zod 结构 + 初始化 + 更新条目）与按数值切换的分档控制器（EJS），可选再产开局界面与状态栏两种酒馆前端（正则 + HTML），整条流程跑完可再打一个能直接导入 SillyTavern 的包（角色卡 JSON + 世界书 JSON + 正则）。支持粘贴用提示词条目与工程文件两种交付。仅在用户显式输入 /skill:rp-factory 时执行，不参与自然语言自动匹配。
+  version: 1.2.03
+description: 把 RP 构想编译成世界观、角色/NPC、场景、数值系统四类 YAML 设定产物，跨产物命名与硬设定保持一致；可选把数值投影成酒馆变量系统（MVU 的 zod 结构 + 初始化 + 更新条目）与按数值切换的分档控制器（EJS），可选再产开局界面与状态栏两种酒馆前端（正则 + HTML），整条流程跑完可再打一个能直接导入 SillyTavern 的包（角色卡 JSON + 世界书 JSON + 正则）。支持粘贴用提示词条目与工程文件两种交付。仅在用户显式输入 /skill:rp-factory 时执行，不参与自然语言自动匹配。
 disable-model-invocation: true
 ---
 
@@ -17,12 +17,12 @@ disable-model-invocation: true
 | 用户说的 | 进入 | 加载 |
 |---|---|---|
 | 「帮我做个世界观 / 世界观设定」 | 阶段 `world` | `references/stage-1-world-bible.md` |
-| 「设计一个角色 / 角色卡 / 人设」 | 阶段 `cast` | `references/stage-2-rolecard.md` |
+| 「设计一个角色 / 人物 / 人设」（说「角色卡」也走这里：要人不要 json） | 阶段 `cast` | `references/stage-2-cast.md` |
 | 「生成场景 / 地点卡 / 地图」 | 阶段 `scenes` | `references/stage-3-scene-sheet.md` |
 | 「好感度 / 堕落值 / 理智值 / 数值系统」 | 阶段 `axes` | `references/stage-4-axis-system.md` |
 | 「数值要记住 / 变量自己更新 / 变量管理器」 | 阶段 `mvu` | `references/stage-mvu.md` |
 | 「按数值换人设 / 分档人设 / 到某档就换一套说法」 | 阶段 `ejs` | `references/stage-ejs.md` |
-| 「开局界面 / 开场面板 / 首页 / 建卡向导 / 捏人」 | 阶段 `opening` | `references/stage-5-opening-ui.md` |
+| 「开局界面 / 开场面板 / 建卡向导 / 捏人」 | 阶段 `opening` | `references/stage-5-opening-ui.md` |
 | 「状态栏 / 面板 / 每轮显示数值 / 血条」 | 阶段 `statusbar` | `references/stage-6-statusbar-ui.md` |
 | 「打包 / 导入酒馆 / 要角色卡 json / 要世界书」 | 阶段 `delivery`（最后一个） | `references/stage-7-delivery.md` |
 | 「做一张完整卡 / 一整套设定」 | 按 `project.stages_requested` 依次 | 按需逐个加载 |
@@ -52,7 +52,7 @@ disable-model-invocation: true
 
 **问二：跑哪几个阶段（多选）**
 
-八项可全选，按执行顺序列：`world 世界观` / `cast 角色卡` / `scenes 场景卡` / `axes 数值系统` / `mvu 变量系统` / `ejs 分档控制器` / `opening 开局前端` / `statusbar 状态栏前端`。用户不懂就一句说明：`mvu` 要装酒馆助手（JS-Slash-Runner）才会跑，`ejs` 还要 Prompt Template，`opening`/`statusbar` 是界面——没装时产物仍是文件，只是不会自动生效。**第九项（`delivery` 交付）不在这里问**，它排在最后（见第三节第 5 条与第十节）。
+八项可全选，按执行顺序列：`world 世界观` / `cast 角色/NPC` / `scenes 场景` / `axes 数值系统` / `mvu 变量系统` / `ejs 分档控制器` / `opening 开局前端` / `statusbar 状态栏前端`。用户不懂就一句说明：`mvu` 要装酒馆助手（JS-Slash-Runner）才会跑，`ejs` 还要 Prompt Template，`opening`/`statusbar` 是界面——没装时产物仍是文件，只是不会自动生效。**第九项（`delivery` 交付）不在这里问**，它排在最后（见第三节第 5 条与第十节）。
 
 - 写 `project.stages_requested`（按执行顺序写**名字**），未勾的在 `stages` 里写 `skipped`（本次不跑，不是没跑）。
 - 执行顺序永远 `world → cast → scenes → axes → mvu → ejs → opening → statusbar`，不跳序；`mvu` 必须在 `ejs` 前。只勾下游而缺上游时，进该阶段走一次补采访问（≤3 问）。
@@ -61,7 +61,7 @@ disable-model-invocation: true
 **问三：启用 NSFW 内容吗**
 
 - **否** → `nsfw: false`，`rating` 写一般向，`hard_no` 加「任何性描写」；阶段 2 不写 `nsfw` 块，自检门的内容边界层整类跳过。
-- **是** → `nsfw: true`，`rating` 须给明确档位（`R15` / `R18`），`hard_no` 至少一条硬底线。**阶段 2 每张角色卡必须有 `nsfw` 块且七键齐全**——卡里没有块视为这一阶段没做完，自检门的内容边界层直接判失败，不是跳过。
+- **是** → `nsfw: true`，`rating` 须给明确档位（`R15` / `R18`），`hard_no` 至少一条硬底线。**阶段 2 每个角色都必须有 `nsfw` 块且七键齐全**——没有块视为这一阶段没做完，自检门直接判失败。
 - 不答 → 按「否」锁，一句告知可随时开；中途开关 → 改 `nsfw` + 重锁 `rating` + 记 `decisions`，关掉时已交付产物里的越界内容必须清掉。
 
 **问四：需要联网吗**（是/否，问这次创作要不要主动查外部资料，与是否同人无关）
@@ -129,7 +129,7 @@ disable-model-invocation: true
 | `references/st-correctness.md` | 会静默失效的 ST 语义事实（S 系列），每条带 `public/…:line` 锚点 |
 | `references/tavern-helper.md` | 酒馆助手 4.12.1 接口速查：渲染链路、srcdoc、iframe 全局、变量/消息/事件 |
 | `references/frontend-conventions.md` | 表现层机制、HTML 骨架、正则 JSON、提示词条目、前端门 |
-| `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 `world` / `cast` / `scenes` / `axes`：世界观 / 角色卡 / 场景卡 / 数值系统 |
+| `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 `world` / `cast` / `scenes` / `axes`：世界观 / 角色/NPC / 场景 / 数值系统 |
 | `references/stage-mvu.md` | 阶段 `mvu`：轴 → zod 结构 / `[initvar]` / 三条更新条目 / 两条隐藏正则 / 卡内脚本 |
 | `references/stage-ejs.md` | 阶段 `ejs`：分档控制器 + 被控条目（含"什么时候不做"的判据） |
 | `references/stage-5-opening-ui.md` | 阶段 `opening` 开局前端（登场面板 / 建卡向导两形态） |

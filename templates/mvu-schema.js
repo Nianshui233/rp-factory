@@ -32,9 +32,9 @@ const Schema = z.object({
     位置: z.string().catch('未知'),
   }).prefault({}),
 
-  // 群像：每个角色一份；键名逐字等于角色卡里的 character.name
+  // 群像：每个角色一份；键名逐字等于人物设定里的 character.name
   角色: z.object({
-    角色甲: 单人数值,   // ← 换成角色卡里的 character.name，逐字
+    角色甲: 单人数值,   // ← 换成人物设定里的 character.name，逐字
     角色乙: 单人数值,   // ← 同上；人数 = cast 阶段的角色数
   }).prefault({}),
 

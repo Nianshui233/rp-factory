@@ -146,7 +146,7 @@ class TestProseRules(unittest.TestCase):
     # ———— 免疫区：真机包（14 张卡）测出来的误报 ————
 
     def test_rolecard_taboos_are_not_absolute_flags(self):
-        """角色卡的 anti_ooc / taboos 里写「绝不」「一定」是设定，不是八股。"""
+        """人物设定的 anti_ooc / taboos 里写「绝不」「一定」是设定，不是八股。"""
         mod = _load()
         text = """identity:
   name: 张伟
