@@ -1,0 +1,105 @@
+# SillyTavern 语义事实表
+
+本文件只记**会静默失效的事**：写错了不报错、界面照样出来、卡照样能导，但那一块机制其实没跑。每条给三样东西——机制、源码锚点、失效表现。判据以本机 `D:/AI/SillyTavern`（v1.19.0，commit `06bde939f`）为准；换版本先重跑 `scripts/check_st_facts.py --verify`，锚点漂了就更新这里。
+
+`scripts/validate_st_semantics.py` 按 `[S-xx]` 编号实现可机检的部分；标「肉眼」的只能人看。
+
+---
+
+## 一、正则脚本（`正则.json` 里的一条 = ST 的一个 `regexScript`）
+
+**[S-01] `placement` 是数组，且只认 7 个整数**
+`regex_placement = { MD_DISPLAY: 0(已废弃), USER_INPUT: 1, AI_OUTPUT: 2, SLASH_COMMAND: 3, WORLD_INFO: 5, REASONING: 6 }`，4 是 legacy sendAs（`public/scripts/extensions/regex/engine.js:281-290`）。
+匹配判定是 `script.placement.includes(placement)`（`engine.js:374`）——写成单个整数 `2` 而不是 `[2]`，`.includes` 不存在于 number 上，**整条正则静默不跑**。`0` 写了等于没写。
+
+**[S-02] `markdownOnly` / `promptOnly` 的真值表**
+（`engine.js:350-355`）三选一：`markdownOnly` 管显示、`promptOnly` 管发给模型、两者都 `false` 才「显示和提示词都管」。**两个都 `true` 时永远不匹配**——这是最常见的「正则明明开着但没反应」。
+
+**[S-03] `substituteRegex` 三档**
+`NONE:0` 原样、`RAW:1` 先把 `{{char}}` 之类宏替换进 findRegex、`ESCAPED:2` 替换后还做正则转义；未知值只 `console.warn` 后按原样处理（`engine.js:398-407`）。写 `"1"` 字符串也能用（`Number()` 兜），写 `true` 会落到 default 分支。
+
+**[S-04] `replaceString` 的捕获组语法**
+`$1`…`$99` 与 `$<name>` 都支持，匹配式 `/\\$(\d+)|\\$<([^>]+)>/g`（`engine.js:422`）。
+**引用了不存在的组，那一段替换成空字符串**（`if (!match) return ''`，`engine.js:436`）——不是保留字面量。所以 `$1$2` 里 `$2` 不存在时，前半段也一起没了。
+附带坑：`$10` 按第 10 组解析（`\d+` 贪婪），不是「第 1 组 + 字面 0」。
+
+**[S-05] `{{match}}` 是整个匹配的别名**
+替换前先 `replaceString.replace(/{{match}}/gi, '$0')`（`engine.js:421`）。写 `{{match}}` 与 `$0` 等价；把 `{{match}}` 当普通宏写进文案里的人，会得到整段原文。
+
+**[S-06] 替换结果最后还会过一遍宏替换**
+`return substituteParams(replaceWithGroups)`（`engine.js:445`）。含义：`replaceString` 里任何 `{{char}}` / `{{user}}` / `{{description}}` 都会被**自动**替换掉；想在界面上显示字面 `{{char}}`，得写成 `{{noop}}` 之类绕开。同理，legacy 的 `<USER>` / `<BOT>` / `<CHAR>` / `<GROUP>` 也会被替换（`public/scripts/macros.js:625-629`）——界面 HTML 里出现 `<BOT>` 这种「标签」会被吃掉。
+
+**[S-07] `minDepth` / `maxDepth` 的哨兵值**
+`minDepth >= -1` 才生效（`-1` 与 `null` 都表示不设下限）；`maxDepth >= 0` 才生效（`engine.js:363-372`）。写 `maxDepth: -1` 想表达「不限」，实际是「这一条永远不生效」。
+
+**[S-08] `runOnEdit` 只影响编辑重渲染**
+`if (isEdit && !script.runOnEdit) return`（`engine.js:356`）。不填时用户手动改楼，该条正则不再作用于那一楼——以为「改一下就会重排」的界面会停在旧形态。
+
+**[S-09] 正则按数组顺序串行，前一条的输出是后一条的输入**
+`allRegex.forEach(...)` 逐条 `finalString = runRegexScript(...)`（`engine.js:346-380`）。顺序错 = 后一条永远匹配不到。
+
+---
+
+## 二、世界书（`世界书.json` 里的一条 = ST 的一个 world info entry）
+
+**[S-10] `position` 枚举是 8 个值，不只是「前/后」**
+`{ before:0, after:1, ANTop:2, ANBottom:3, atDepth:4, EMTop:5, EMBottom:6, outlet:7 }`（`public/scripts/world-info.js:855`）。`4`（@D）必须同时给 `depth`；`7`（outlet）必须同时给 `outletName`，内容靠 `{{outlet::<name>}}` 宏取用（`macros.js:654`）。
+
+**[S-11] `order` 越大越靠前**
+排序是 `(a, b) => b.order - a.order`（`world-info.js:88`）。「按顺序读」的直觉在这里是反的；两条同 `order` 的相对位置不稳定。
+
+**[S-12] 预算与激活门槛**
+`world_info_budget = 25`（占上下文的百分比，`world-info.js:73`）、`world_info_budget_cap = 0`（不设绝对上限，`:81`）、`world_info_min_activations = 0`（`:70`）。单条可用 `ignoreBudget` 越过预算（`convertCharacterBook` 里 `ignoreBudget: entry.extensions?.ignore_budget ?? false`，`:5669`）。条目写太多不会报错，只会**悄悄被预算挤掉最后几条**。
+
+**[S-13] `selectiveLogic` 四值**
+`AND_ANY:0 / NOT_ALL:1 / NOT_ANY:2 / AND_ALL:3`（`world-info.js:33`）。`keysecondary` 非空但 `selective: false` 时，第二组关键词完全不参与判定。
+
+**[S-14] 嵌入卡片的 `character_book` 不会自动生效**
+卡里带 `data.character_book` 时，ST 只弹「是否导入」：导入才 `convertCharacterBook` 落成独立世界书文件，默认名是 `character_book.name` 或 `<角色名>'s Lorebook`（`world-info.js:5744-5756`），同名直接覆盖；导入后写回 `data.extensions.world` 完成绑定（`:1119-1128` 的 `primary` 分支只认 `extensions.world`）。**没绑定的书 = 一条都不会激活**，但卡看起来完全正常。所以本流水线一律：不写 `character_book`，单独交 `世界书.json`，并把 `extensions.world` 设成该文件名。
+
+**[S-15] `convertCharacterBook` 的三个反直觉映射**
+（`world-info.js:5617-5674`）
+
+- `disable: !entry.enabled`（`:5640`）——**`enabled` 缺省 = 禁用**。V2 卡里省掉 `enabled: true` 的条目，导入后全是灰的。
+- `position: entry.extensions?.position ?? (entry.position === 'before_char' ? 0 : 1)`（`:5636`）——字符串 `position` 只识别 `'before_char'`，`'after_char'` 靠 fallback 侥幸正确，其余任何字符串（如 `'before_an'`）**一律落到 after**。
+- `order: entry.insertion_order`（`:5635`）——不写就是 `undefined`，排序随之失序；`extensions` 里那些键是 snake_case（`exclude_recursion` / `prevent_recursion` / `scan_depth` / `match_whole_words` / `group_override`…），写成 camelCase 会被当成没写。
+
+---
+
+## 三、角色卡（`<世界名>（纯净）.json`）
+
+**[S-16] `character_book` 属 V2 `data` 层，导出时会被 ST 清掉**
+`data.data.character_book = undefined`（`world-info.js:6113-6114`）。也就是说「我塞进卡里了」在导出/再导入链路上不稳定——必须走独立世界书。
+
+**[S-17] `extensions.regex_scripts` 不应留东西**
+卡级 `extensions.regex_scripts` 会被读成「卡内自带正则」，绕过用户自己的正则列表；本流水线的正则统一走 `正则.json` 手动导入，所以卡里这个键必须是空数组（`validate-st-package.py` 已查）。
+
+**[S-18] `role` 三值**
+`extension_prompt_roles = { SYSTEM:0, USER:1, ASSISTANT:2 }`（`public/script.js:494-498`）。世界书 `atDepth` 条目的 `role` 用同一套；写 `"system"` 字符串在部分路径会被 `Number()` 成 `NaN` → 落回默认。
+
+---
+
+## 四、宏与前端渲染
+
+**[S-19] 未知宏原样保留，不报错**
+`evaluateMacros` 只逐条替换已注册的宏，没有任何「清除未知 `{{...}}`」的兜底（`public/scripts/macros.js:610-716`）。所以 `{{fmt_data}}` 这种拼错的宏会**字面出现在聊天里**。
+
+**[S-20] `{{format_message_variable::stat_data}}` 不是 ST 核心宏**
+ST 核心 grep 无此宏（`public/` 仅 `JS-Slash-Runner` 包里出现）。它由酒馆助手注册，数据存在 `message.variables[swipe_id]`（酒馆助手 `index.js`：`_.has(e?.variables?.[e.swipe_id ?? 0], 'stat_data')`）。**没装酒馆助手 = 这一行原样显示**，而 MVU 整套也就不会跑。
+
+**[S-21] 酒馆助手的世界书位置用字符串词汇，与 ST 的整数枚举是两套**
+酒馆助手把条目映射成 `before_character_definition` / `after_character_definition` / `before_example_messages` / `after_example_messages` / `before_author_note` / `after_author_note` / `at_depth_as_system|user|assistant`。写脚本时用错词汇（例如把 `'before_an'` 当合法值）不会报错，只落默认位置。
+
+**[S-22] 首条消息也过正则**
+`mes: getRegexedString(firstMes, regex_placement.AI_OUTPUT)`（`public/script.js:7719`）。开局要注入界面/状态栏，正则的 `placement` 必须含 `2`，否则第一楼没有标签可替换——用户会以为界面坏了。
+
+**[S-23] 聊天渲染一律走 `AI_OUTPUT` / `USER_INPUT`**
+`chatItem.is_user ? USER_INPUT : AI_OUTPUT`（`script.js:4503`），impersonate 也按 `USER_INPUT` 处理（`script.js:6481`）。写在 `REASONING(6)` 上的正则只作用于思维链，不会作用于正文。
+
+---
+
+## 五、肉眼项（脚本查不了的）
+
+- **S-M1** 正则在 ST 里「开着」≠「生效」：用户在扩展面板把某条 toggle 关掉，`getRegexScripts({ allowedOnly: true })` 就取不到它（`engine.js:345`）。交付说明里必须写清「导入后要确认每条的开关」。
+- **S-M2** 酒馆助手是否安装决定 `mvu` / `ejs` 是否真跑；`detect-sillytavern.py` 探到的 `tavern_helper` 字段要写进契约，别拿「文件都对」当「跑起来了」。
+- **S-M3** 向量化（`vectorized`）与 `sticky` / `cooldown` / `delay` 依赖用户端已开向量存储/设置；这类条目在「裸 ST」里表现与在本机不同，交付说明要点明。

@@ -117,7 +117,7 @@ disable-model-invocation: true
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
 | `references/dual-mode.md` | 两种模态的对照、切换、渲染、注释剥离 |
-| `references/web-research.md` | 联网检索：何时查、怎么记、冲突怎么裁、没网怎么降级 |
+| `references/st-correctness.md` | 会静默失效的 ST 语义事实（S-01…S-M3）：正则/世界书/卡/宏四类，每条带 `public/…:line` 源码锚点 |
 | `references/frontend-conventions.md` | 表现层机制、HTML 骨架、正则 JSON、提示词条目、前端门 |
 | `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 `world` / `cast` / `scenes` / `axes`：世界观 / 角色卡 / 场景卡 / 数值系统 |
 | `references/stage-mvu.md` | 阶段 `mvu`：轴 → zod 结构 / `[initvar]` / 三条更新条目 / 两条隐藏正则 / 卡内脚本 |
@@ -131,6 +131,7 @@ disable-model-invocation: true
 | `scripts/check-stage.py` · `detect-sillytavern.py` · `st-import.py` · `st-probe.js` | 阶段收尾一检（按阶段自动调下面这些校验器）、环境探测、导入酒馆并实测 |
 | `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` · `validate-mvu.py` · `validate-ejs.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 六个校验器（由 `check-stage.py` 在阶段收尾统一调用） |
 | `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（探测静默跑；导入与验收只在用户点头后跑） |
+| `scripts/check_st_facts.py` + `tests/` | 复核 `st-correctness.md` 的源码锚点、加载量预算、全套单测（改完跑 `python -m unittest discover -s tests -t .`） |
 
 ## 八、阶段文件约定
 
