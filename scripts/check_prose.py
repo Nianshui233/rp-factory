@@ -42,10 +42,22 @@ BOUNDARY = re.compile(r"绝不|永远不|从不")
 UNIVERSAL = re.compile(r"一律|一定|所有|任何|人人|每个|无一例外|毫无|总是|每次")
 HEDGE = re.compile(r"通常|多数|有时|可能|大概|一般|往往|容易|倾向|或许|多半|常见|偶尔|极少|少数")
 SENTENCE_SPLIT = re.compile("[。；！？]")
+# 免疫区：这些键下面写「绝不 / 一定」是**对的**（角色底线、价值观、禁区）。
+# 真机测出来的：一份 14 张卡的包，P09 四处命中全落在 anti_ooc 里，全是误报。
+IMMUNITY_KEYS = {
+    "anti_ooc", "taboos", "taboo", "values", "bottom_line", "bottomline",
+    "red_lines", "hard_no", "never", "底线", "红线", "禁区",
+    # 角色卡的行为层：习惯与小动作写成「一定/每次」本来就是对的（频率即设定）。
+    "behavior", "habits", "habit", "dynamics", "tics", "speech", "quirks",
+    "manners", "traits", "口头禅", "习惯", "小动作",
+}
+BLOCK_KEY = re.compile(r"^(\s*)([A-Za-z_\u4e00-\u9fff][\w\u4e00-\u9fff\- ]*):\s*$")
+INLINE_VALUE = re.compile(r"^\s*([A-Za-z_\u4e00-\u9fff][\w\u4e00-\u9fff.\- ]*):\s+[\"'|>]?(.+?)[\"']?\s*$")
 
 PATTERNS: list[tuple[str, str, re.Pattern]] = [
-    ("P02", "抽象逃逸", re.compile(r"某种|说不出的?|说不上来的?|一股.{0,6}(?:涌上|涌起|升起)")),
-    ("P03", "情绪直说", re.compile(r"(?:他|她|我|你|TA)(?:感到|觉得|意识到|察觉到)|不禁|忍不住|不由自主")),
+    ("P02", "抽象逃逸", re.compile(r"某种|说不出的?(?!话|口|一个字)|说不上来的?|一股.{0,6}(?:涌上|涌起|升起)")),
+    # P03 只管叙述里替角色报情绪。第一/第二人称的「我觉得」多为台词，不算。
+    ("P03", "情绪直说", re.compile(r"(?:他|她|TA)(?:感到|觉得|意识到|察觉到)|不禁(?!.{0,4}(?:开口|说话))|忍不住(?!开口)")),
     ("P04", "排比总结", re.compile(r"不是[^。；\n]{1,24}[，,]?\s*而是|既不?[^。；\n]{1,16}[，,]?\s*又")),
     ("P05", "陈词比喻", re.compile(
         r"眼睛像(?:星星|星辰|宝石)|时间仿佛静止|空气仿佛凝固|心像小鹿|"
@@ -61,20 +73,44 @@ SKIP_LINE = re.compile(r"^\s*(?:#|\||>|```|-\s+\w+:|\w[\w.\-]*:\s)")
 FENCE = "```"
 
 
-def _prose_lines(text: str) -> list[tuple[int, str]]:
-    """挑出真正当散文读的行：跳代码块、表格、标题、YAML 键值。"""
-    out: list[tuple[int, str]] = []
+DENY_VALUE = re.compile(r"^(?:[\w./\\-]+|true|false|null|none|\d+(?:\.\d+)?)$", re.I)
+
+
+def _prose_lines(text: str) -> list[tuple[int, str, bool]]:
+    """挑出真正当散文读的行：跳代码块、表格、标题、YAML 键值。
+
+    第三个返回值是「免疫」：这一行是否落在 IMMUNITY_KEYS 打开的那个块里。
+    只做一层缩进栈跟踪，够用——这几类键都是段级块，不会嵌在行内。
+
+    `key: "很长的一句话"` 这种**值本身就是正文**的行不能整行丢掉（世界书条目、
+    场景卡都是这个形状）；只丢短值/路径/布尔那类结构行，否则检查器看不到正文。
+    """
+    out: list[tuple[int, str, bool]] = []
     in_fence = False
+    stack: list[tuple[int, str]] = []
     for number, line in enumerate(text.splitlines(), start=1):
         stripped = line.strip()
+        indent = len(line) - len(line.lstrip())
+        while stack and stack[-1][0] >= indent:
+            stack.pop()
+        opened = BLOCK_KEY.match(line)
+        if opened:
+            stack.append((indent, opened.group(2).strip()))
+        immune = any(key in IMMUNITY_KEYS for _, key in stack)
         if stripped.startswith(FENCE):
             in_fence = not in_fence
             continue
         if in_fence or not stripped:
             continue
+        inline = INLINE_VALUE.match(line)
+        if inline and len(inline.group(2)) >= 24 and not DENY_VALUE.match(inline.group(2)):
+            # 键本身也计入免疫判定：`dynamics: "他每次都…"` 落在 dynamics 块里。
+            inline_immune = immune or inline.group(1).strip() in IMMUNITY_KEYS
+            out.append((number, inline.group(2), inline_immune))
+            continue
         if SKIP_LINE.match(line):
             continue
-        out.append((number, line))
+        out.append((number, line, immune))
     return out
 
 
@@ -82,7 +118,7 @@ def check_text(text: str, *, dash_per_chars: int = 600) -> list[dict]:
     """返回命中列表：{code, rule, line, excerpt, message}。"""
     findings: list[dict] = []
     lines = _prose_lines(text)
-    body = "\n".join(line for _, line in lines)
+    body = "\n".join(line for _, line, _im in lines)
     chars = max(1, len(re.sub(r"\s", "", body)))
 
     # P01 密度：破折号解释腔
@@ -97,7 +133,7 @@ def check_text(text: str, *, dash_per_chars: int = 600) -> list[dict]:
         })
 
     unique_tags: set[str] = set()
-    for number, line in lines:
+    for number, line, _im in lines:
         for code, name, pattern in PATTERNS:
             for match in pattern.finditer(line):
                 if code == "P07":
@@ -109,8 +145,10 @@ def check_text(text: str, *, dash_per_chars: int = 600) -> list[dict]:
                 })
 
     # P09 绝对化失衡：文件级（全是绝对句，一个对冲词都没有）+ 句级（一句里叠两个）
-    universal_hits = UNIVERSAL.findall(body)
-    hedge_hits = HEDGE.findall(body)
+    # 免疫区（anti_ooc / values / 底线）不参与绝对化统计：那里的「绝不」是设定，不是八股。
+    strict_body = "\n".join(line for _, line, im in lines if not im)
+    universal_hits = UNIVERSAL.findall(strict_body)
+    hedge_hits = HEDGE.findall(strict_body)
     if len(universal_hits) >= 3 and not hedge_hits:
         findings.append({
             "code": "P09", "rule": RULES["P09"], "line": 0,
@@ -119,7 +157,9 @@ def check_text(text: str, *, dash_per_chars: int = 600) -> list[dict]:
                        f"绝大多数世界判断是倾向。写成「一律/绝不」之后模型再也演不出例外，"
                        f"把该松的改成「通常/多数/可能」。",
         })
-    for number, line in lines:
+    for number, line, immune in lines:
+        if immune:
+            continue
         for sentence in SENTENCE_SPLIT.split(line):
             found = UNIVERSAL.findall(sentence) + BOUNDARY.findall(sentence)
             if len(found) >= 2 and UNIVERSAL.search(sentence):

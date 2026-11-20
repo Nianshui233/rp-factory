@@ -143,6 +143,50 @@ class TestProseRules(unittest.TestCase):
         self.assertIn("line", hits[0])
         self.assertIn("message", hits[0])
 
+    # ———— 免疫区：真机包（14 张卡）测出来的误报 ————
+
+    def test_rolecard_taboos_are_not_absolute_flags(self):
+        """角色卡的 anti_ooc / taboos 里写「绝不」「一定」是设定，不是八股。"""
+        mod = _load()
+        text = """identity:
+  name: 张伟
+  anti_ooc:
+    always:
+      - "答应的事一定做到，做不到会提前赔不是"
+    never:
+      - "绝不说自己没有把握的话，说了就一定做到"
+      - "绝不白拿别人的东西，一顿饭也要还"
+      - "绝不在别人有难的时候谈条件"
+"""
+        self.assertEqual([f["code"] for f in mod.check_text(text) if f["code"] == "P09"], [])
+
+    def test_habits_with_always_are_not_flags(self):
+        """习惯写成「一定/每次」本来就是对的：频率即设定。"""
+        mod = _load()
+        text = """habits:
+  - "凌晨十二点前十分钟一定在看表"
+  - "说谎时那句话一定加个『真的』"
+  - "紧张时把所有杯子摆成一条线"
+"""
+        self.assertEqual([f["code"] for f in mod.check_text(text) if f["code"] == "P09"], [])
+
+    def test_world_text_still_flags_absolutes(self):
+        """免疫只对设定块生效：世界正文里把倾向写成绝对，照样要报。"""
+        mod = _load()
+        text = """geography:
+  content: "所有商队一律绕行北道，任何人不得走盐径，每个人都记得那次塌方。"
+"""
+        self.assertTrue([f for f in mod.check_text(text) if f["code"] == "P09"])
+
+    def test_dialogue_first_person_feeling_is_not_tell(self):
+        """「我觉得这样比较好」是台词，不是叙述替角色报情绪。"""
+        mod = _load()
+        text = """mes_example: |
+  {{user}}: 要不要换个地方？
+  {{char}}: "我觉得这样比较好。"
+"""
+        self.assertEqual([f["code"] for f in mod.check_text(text) if f["code"] == "P03"], [])
+
 
 if __name__ == "__main__":
     unittest.main()
