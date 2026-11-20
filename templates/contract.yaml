@@ -40,6 +40,14 @@ content_boundaries:        # 边界门：任何产物落笔前必须锁定（开
   hard_no: []              # 明确不出现的元素；nsfw: false 时至少含“任何性描写”
   soft_no: []              # 尽量不出现，但可为叙事让步
 
+player_agency:             # 演出许可：能不能替玩家写、写到哪。缺省 = player-controlled（最保守）
+  mode: "player-controlled"  # player-controlled 不替玩家做任何事 | limited 只写 allowed 那几处 | delegated 整段代跑
+  allowed: []              # limited / delegated 必填：允许写的具体内容（收尾句点头、指定的过渡段…）
+  excluded: []             # 明确不写的（默认已含：玩家内心、感受、决定、生理反应）
+  scope: ""                # 适用于哪一段 / 哪一屏；空 = 全篇
+  duration: ""             # 本开局 / 到场景结束；delegated 必填
+  source: "默认"           # 默认 | 用户确认；放宽到 limited / delegated 必须是“用户确认…”（C16）
+
 naming:                    # 命名门的事实源：同一实体在所有产物里用同一个名字
   world: ""
   factions: []             # - {id: "", name: "", alias: []}

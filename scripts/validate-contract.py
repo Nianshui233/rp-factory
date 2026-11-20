@@ -288,6 +288,35 @@ def check_output_dirs(c, root):
             fail('C15', f'酒馆路线缺 {", ".join(sorted(missing))}')
 
 
+def check_player_agency(c):
+    """C16：演出许可自洽。缺省 = player-controlled（老契约不受影响）。"""
+    if 'player_agency' not in c:
+        return
+    pa = c.get('player_agency')
+    if not isinstance(pa, dict):
+        fail('C16', '`player_agency` 必须是映射（mode / allowed / excluded / scope / duration / source）')
+        return
+    mode = pa.get('mode')
+    if mode not in (None, 'player-controlled', 'limited', 'delegated'):
+        fail('C16', f'`player_agency.mode` 只能是 player-controlled / limited / delegated，实际 {mode!r}')
+        return
+    mode = mode or 'player-controlled'
+    allowed = pa.get('allowed') or []
+    if not isinstance(allowed, list):
+        fail('C16', '`player_agency.allowed` 必须是列表')
+        allowed = []
+    duration = str(pa.get('duration') or '').strip()
+    if mode in ('limited', 'delegated') and not allowed:
+        fail('C16', f'`player_agency.mode` = {mode}，但 `allowed` 是空的：'
+                    f'放宽许可必须写清允许写的那几处，否则等于默认可代演')
+    if mode == 'delegated' and not duration:
+        fail('C16', '`player_agency.mode` = delegated，但没写 `duration`：'
+                    '代跑只对某一段生效，不写时长就变成了整局代玩')
+    if mode != 'player-controlled' and not str(pa.get('source') or '').startswith('用户确认'):
+        fail('C16', f'`player_agency.mode` = {mode}，但 `source` = {pa.get("source")!r}：'
+                    '放宽许可是用户定的，不许自己调（写 source: 用户确认）')
+
+
 def check_naming(c):
     nm = c.get('naming')
     if nm is None:
@@ -391,6 +420,7 @@ def main():
     check_delivery(c)
     check_output_dirs(c, root)
     check_naming(c)
+    check_player_agency(c)
     check_lists(c)
 
     rules = {
@@ -410,6 +440,7 @@ def main():
         'C13': 'decisions[].state 四态与「未答≠委托」',
         'C14': 'partial 阶段必须挂 pending',
         'C15': '最终产物/ 交付前空、交付后三件齐',
+        'C16': 'player_agency 三档自洽（放宽须用户确认，delegated 须有时长）',
     }
     bad = {r for r, _ in fails}
     for r, name in rules.items():

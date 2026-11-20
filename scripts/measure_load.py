@@ -5,8 +5,10 @@
 - ALWAYS / LOAD_MAP 描述每个阶段进入时实际会读到的文件（worst case：开关打开时也算进去）。
 - tok 估算：cjk*1.15 + 非 cjk 字符数/3.6（够用即可，不追求与某家 tokenizer 对齐）。
 - BASELINE 是 2026-11-21 改动前的实测值。任何阶段超过基线即为变重。
-- 例外只有一次（Ruling ③）：用户明确要求世界书双入口（内嵌 `character_book`），
-  delivery 阶段因此 +414 tok，基线已改为「吸收完成后的实测值」。绝对上限 26,000 不变。
+- 例外只记在案的两次：Ruling ③ 世界书双入口（delivery +414）；Ruling ④ 契约新增
+  `player_agency`（每阶段 +63，加载在最共用的 `contract-schema.md`）与角色卡事实分级
+  （cast 另 +94）。基线一律改为「该次改动实测值」，绝对上限 26,000 不变——
+  新增功能要付的体积账写在提交信息里，而不是悄悄抬高上限。
 
 CLI:
     python scripts/measure_load.py                # 全部阶段 + 结论
@@ -64,15 +66,15 @@ LOAD_MAP: dict[str, list[str]] = {
 
 # 2026-11-21 实测（改动前），见 scripts/measure_load.py 首次运行的输出。
 BASELINE: dict[str, int] = {
-    "world": 23485,
-    "cast": 20396,
-    "scenes": 19216,
-    "axes": 20178,
-    "mvu": 16549,
-    "ejs": 15577,
-    "opening": 23399,
-    "statusbar": 22389,
-    "delivery": 25773,
+    "world": 23548,
+    "cast": 20576,
+    "scenes": 19279,
+    "axes": 20241,
+    "mvu": 16612,
+    "ejs": 15582,
+    "opening": 23533,
+    "statusbar": 22523,
+    "delivery": 25880,
 }
 
 _CJK = re.compile(r"[\u4e00-\u9fff]")

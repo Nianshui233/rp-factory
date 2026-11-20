@@ -25,6 +25,8 @@ except ImportError:
     sys.exit(2)
 
 PLACEHOLDERS = ('【AI补全·可替换】', '[待定', '【未知】', '[推断：')
+# 会过期的状态词：出现在身份/背景里就是踩了「把开场那一刻写死成设定」的坑
+EXPIRING_MARKERS = ('此刻', '目前正', '现在正', '正在被', '暂时', '这两天', '今天', '这个月', '刚刚还')
 BASE_BLOCKS = ('name', 'identity', 'psychology', 'behavior', 'attitudes',
                'speech', 'background', 'anti_ooc')
 NSFW_KEYS = ('sexual_orientation', 'standing', 'fetish', 'preference',
@@ -66,7 +68,8 @@ def strings(obj):
 def check_file(path, nsfw_required=False):
     r = Report(path)
     try:
-        doc = yaml.safe_load(open(path, encoding='utf-8'))
+        with open(path, encoding='utf-8') as fh:
+            doc = yaml.safe_load(fh)
     except Exception as e:
         r.fail(f'YAML 解析失败：{e}')
         return r
@@ -205,8 +208,55 @@ def check_file(path, nsfw_required=False):
     else:
         r.ok('正文无占位符')
 
+    # 11 事实分级：稳定事实进卡，会过期的进开场/状态层
+    facts = c.get('facts')
+    if facts is not None:
+        if not isinstance(facts, dict):
+            r.fail('facts 必须是映射（stable / temporary 两个列表）')
+        else:
+            extra = [k for k in facts if k not in ('stable', 'temporary')]
+            if extra:
+                r.fail('facts 只认 stable / temporary，多出：' + '、'.join(map(str, extra)))
+            stable = facts.get('stable') or []
+            if not isinstance(stable, list):
+                r.fail('facts.stable 必须是列表')
+            for i, item in enumerate(stable if isinstance(stable, list) else []):
+                if isinstance(item, dict):
+                    if not str(item.get('text') or '').strip():
+                        r.fail(f'facts.stable[{i}] 缺 text')
+                elif not str(item or '').strip():
+                    r.fail(f'facts.stable[{i}] 是空串')
+            temporary = facts.get('temporary') or []
+            if not isinstance(temporary, list):
+                r.fail('facts.temporary 必须是列表')
+                temporary = []
+            for i, item in enumerate(temporary):
+                if not isinstance(item, dict):
+                    r.fail(f'facts.temporary[{i}] 必须是 {{text, expires_when}}')
+                    continue
+                if not str(item.get('text') or '').strip():
+                    r.fail(f'facts.temporary[{i}] 缺 text')
+                if not str(item.get('expires_when') or '').strip():
+                    r.fail(f'facts.temporary[{i}] 缺 expires_when：'
+                           '会过期的状态要写清何时失效，否则下一步就自相矛盾')
+            if isinstance(temporary, list) and temporary:
+                r.warn(f'facts.temporary 有 {len(temporary)} 项会过期的状态：'
+                       '它们属于开场（第一楼）或状态层，卡里只该留 stable 那部分')
+    else:
+        r.ok('没有 facts 块（可选；标准档建议写 stable 列表）')
+
+    # 12 临时事实混进身份/背景
+    smuggled = []
+    for block, value in (('identity', c.get('identity')), ('background', c.get('background'))):
+        for s in strings(value):
+            if any(m in s for m in EXPIRING_MARKERS):
+                smuggled.append(f'{block}: {s[:40]}')
+    if smuggled:
+        r.warn('临时事实（会过期的状态）写进了卡：' + '；'.join(smuggled[:3]) +
+               '——移到开场或状态层，卡里只留稳定事实（见 references/stage-2-rolecard.md 规范 5）')
+
     # 10 自创顶层键（只警告）
-    allowed = set(BASE_BLOCKS) | {'nsfw', 'lore', 'relationships', 'growth_arc'}
+    allowed = set(BASE_BLOCKS) | {'nsfw', 'lore', 'relationships', 'growth_arc', 'facts'}
     extra = [k for k in c if k not in allowed]
     if extra:
         r.warn('模板外的顶层键：' + '、'.join(extra) + '（须已在 decisions 记过）')

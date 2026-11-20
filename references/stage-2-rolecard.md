@@ -25,7 +25,7 @@
 
 **优先级**：P0 世界观/题材（决定语言风格、禁忌、冲突类型）→ P1 核心动机 & 恐惧（须能变成 `behavior.rules`）→ P2 底线/价值排序（决定 `taboos` / `anti_ooc`）。
 
-每问 2–3 个可选项 + 其他；禁止开放式空问。追问无果按 `references/interview-protocol.md` 的降级链走，不另造。
+每问 2–3 个可选项 + 其他，禁止开放式空问；无果走 `references/interview-protocol.md` 的降级链，不另造。
 
 ## 判断标准
 
@@ -71,14 +71,15 @@
 
 `catchphrases` 用词须符合 `style` 的 `tone` 与 `vocabulary`；`stress_response` 的语言变化不得违背 `emotion_shift` 规则。
 
-### 规范 5：`background`（受控）
+### 规范 5：`background` 受控，事实分稳定/临时
 
-默认 1–2 句，只写对当前行为有直接影响的信息。未确认的背景标 `【AI补全·可替换】`。
-禁止把关键行为逻辑埋在背景叙述里——那种内容必须转译进 `behavior.rules` 或 `psychology`。
+`background` 默认 1–2 句，只写对当前行为有直接影响的信息；未确认的标 `【AI补全·可替换】`。禁止把关键行为逻辑埋在背景里——那类内容必须转译进 `behavior.rules` 或 `psychology`。
+
+事实分级：**稳定事实**（身份、体质、长期能力、已确立的关系）进卡；**会过期的状态**（当前位置、进行中的任务、暂时的伤、正在被追）不进卡——写 `facts.temporary` 且必须给 `expires_when`，或直接移到开场/状态层。把「正在被追杀」写进背景，第一轮过去就自相矛盾，而卡已过全部结构校验。
 
 ### 规范 6：语言使用规则
 
-规则/逻辑类字段用英文（`trigger`、`action`、`reason`、`condition`、`cost`、`type`）；描述/内容类字段跟随用户输入语言（`motivations`、`fears`、`background`、`quotes.line`）；专有名词保持原语言（角色名、地名、组织名）。
+规则/逻辑类字段用英文（`trigger` / `action` / `reason` / `condition` / `cost` / `type`）；描述类字段跟随用户语言（`motivations` / `fears` / `background` / `quotes.line`）；专有名词保持原语言。
 
 ## 生成
 
@@ -93,9 +94,7 @@
 | 扩展 | 标准 + `lore` + `relationships` + `growth_arc` | 长线叙事、复杂世界观，150–200 行 |
 | 定制 | 仅用户指定字段 | 用户点名要某几块 |
 
-**生成后交付三件**：① 完整 YAML 角色卡 ② 简要设计说明 ≤5 句（价值排序理由、关键规则的推导逻辑）③ 若有 `【AI补全·可替换】`，逐条列出补全项供用户确认。
-
-说明文字与补全清单的位置按 `references/dual-mode.md`：文本模态放在代码块外，工程模态在交付消息里，都不夹进 YAML 正文。
+**生成后交付三件**：① 完整 YAML 角色卡 ② 简要设计说明 ≤5 句（价值排序理由、关键规则的推导逻辑）③ 有 `【AI补全·可替换】` 就逐条列出待确认。说明文字与补全清单的位置按 `references/dual-mode.md`，都不夹进 YAML 正文。
 
 **迭代**（用户提交已有卡 + 修改需求）：
 1. 定位直接修改项。
@@ -119,6 +118,7 @@
 - 用户提到可量化维度（"他在意好感度""堕落值会变"）→ 写 `naming.axes` 并标 `provisional: true`，同时在 `decisions` 记"由阶段 4 接管确认"。阶段 4 接手后删除 `provisional`。
 - `hard_settings[]`：用户明确确认的角色底线追加为硬设定，`source: 用户确认`。
 - `content_boundaries`：落笔前必须已锁定 `nsfw` / `rating` / `hard_no`（开局就锁了，缺则回边界门）。`nsfw: false` → 卡里不写 `nsfw` 块，`taboos` 与 `anti_ooc.never` 里加一条"不做任何性行为"。
+- `player_agency`：`behavior.rules` 只写到角色自己的动作与台词为止——不得有「玩家犹豫时角色替玩家点头」。放宽时按 `references/decisions.md` 第六节写 `allowed` / `scope` / `duration` 并记 `decisions`。
 
 ## 退出
 
@@ -127,6 +127,6 @@
   - `nsfw: false` → 卡里不得出现 `nsfw` 块；`taboos` 与 `anti_ooc.never` 必须含「不做任何性行为」。
 - 产物正文里不许出现构建期占位符（`【AI补全·可替换】` / `[待定]` / `【未知】`）——模板里的 `unknown_handling` 要改写成运行时口径（「从 `values.ranking` 推断，依据不写进正文」），不能把「标占位符」这句话原样留在卡里。
 - `【AI补全·可替换】` 逐条列出，交用户确认。
-- **阶段收尾一检** `python scripts/check-stage.py cast <项目根>`（内部先查契约、再逐张跑 `validate-rolecard.py`），退出码 0 才算过。它查：九大块齐全、`behavior.rules` ≥4 且每条含 `trigger` + `action` 与 `condition|reason|cost` 之一、`stress_response` ≥3、`quirks` ≥3、`attitudes` 四类各 ≥2、`speech.rules` 四类齐、`catchphrases`/`quotes` ≥3、`taboos ⊆ anti_ooc.never`、`nsfw` 开关与块一致、正文占位符 0 命中。
+- **阶段收尾一检** `python scripts/check-stage.py cast <项目根>`（先查契约，再逐张跑 `validate-rolecard.py`），退出码 0 才算过。校验项就是上面这些结构要求 + `facts` 分级形状（若有）+ 正文占位符 0 命中，逐条打印，不用背。
 - 命名门四步通过（角色名、势力名、地点名与契约一致）→ 交付 → 回写契约 → 阶段结束。
 - 用户只要精简档位时不强推标准档；只在交付时一句说明精简档会让 AI 即兴补全更多。
