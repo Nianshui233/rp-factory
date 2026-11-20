@@ -52,7 +52,7 @@ naming:
   schema_axes: ["wick", "tide"]    # 阶段 mvu 实际投影进 zod 的轴名；交付校验 X02 用它查漏
   ui_tags:
     opening: "建卡向导"
-    status: "状态栏"
+    status: "StatusPlaceHolderImpl"
 
 hard_settings:
   - id: H01
@@ -76,7 +76,7 @@ hard_settings:
     source: "用户确认"
     locked_at_stage: 1
   - id: H06
-    text: "每轮回复末尾必输出 <状态栏> 块；灯芯与潮压只写 0-100 整数，不可知写「未知」"
+    text: "状态栏显示本楼保存的灯芯与潮压，范围 0–100，缺值按未知处理"
     source: "用户确认"
     locked_at_stage: 6
   - id: H07

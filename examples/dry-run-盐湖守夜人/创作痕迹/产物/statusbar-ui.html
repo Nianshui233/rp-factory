@@ -52,14 +52,10 @@
 </head>
 <body>
 <div class="rp-sb" id="rp-sb-root"></div>
-<textarea id="rp-sb-raw" hidden>$1</textarea>
 <script>
 (function () {
   'use strict';
 
-  /* ===== 配置：三处一致性靠这里 ===== */
-  var TAG = '状态栏';                 // 与正则 findRegex、frontend-prompt.yaml 的 标签 逐字一致
-  var FOLLOW_LATEST = false;          // false=读本楼（每楼快照）；true=永远读最新楼
   var HIDE_UNKNOWN = true;            // 值为 未知 时整条隐去；false 则显示灰条 + 未知
 
   /* kind: 'text' 进抬头信息条；'bar' 进数值行
@@ -84,45 +80,19 @@
     });
   }
 
-  function pick(block, name) {
-    var m = block.match(new RegExp('<' + name + '>([\\s\\S]*?)<\\/' + name + '>'));
-    return m ? m[1].trim() : '';
-  }
-
-  function parse(text) {
-    var m = String(text || '').match(new RegExp('<' + TAG + '>([\\s\\S]*?)<\\/' + TAG + '>'));
-    if (!m) return null;
-    var out = {};
-    FIELDS.forEach(function (f) { out[f.name] = pick(m[1], f.name); });
-    return out;
-  }
-
-  /* 数据源优先级：$1 注入的隐藏 textarea > getChatMessages。
-     有 $1 时没有历史楼层，所以不算差值箭头。 */
-  function rawFromDollar1() {
-    var el = document.getElementById('rp-sb-raw');
-    var v = el ? String(el.value || '').trim() : '';
-    if (!v || v.indexOf('$1') === 0) return '';
-    return v;
-  }
-
-  function messageText() {
-    var injected = rawFromDollar1();
-    if (injected) return '<' + TAG + '>' + injected + '</' + TAG + '>';
-    try {
-      var list = getChatMessages(FOLLOW_LATEST ? -1 : getCurrentMessageId());
-      return list && list.length ? list[0].message : '';
-    } catch (e) { return ''; }
-  }
-
-  function previousData() {
-    if (rawFromDollar1() || FOLLOW_LATEST || typeof getCurrentMessageId !== 'function') return null;
-    try {
-      var id = getCurrentMessageId();
-      if (id <= 0) return null;
-      var prev = getChatMessages(id - 1);
-      return prev && prev.length ? parse(prev[0].message) : null;
-    } catch (e) { return null; }
+  function snapshot(id) {
+    if (id < 0) return null;
+    var saved = Mvu.getMvuData({ type: 'message', message_id: id });
+    var state = saved && saved.stat_data;
+    if (!state) return null;
+    var world = state.世界 || {};
+    var actor = (state.角色 || {}).祁昭 || {};
+    return {
+      时间: [world.日期, world.时段].filter(Boolean).join(' · '),
+      地点: world.地点 || '',
+      灯芯: actor.wick == null ? '' : String(actor.wick),
+      潮压: actor.tide == null ? '' : String(actor.tide)
+    };
   }
 
   function fmt(n, f) {
@@ -152,10 +122,11 @@
   }
 
   function render() {
-    var data = parse(messageText());
+    var id = getCurrentMessageId();
+    var data = snapshot(id);
     if (!data) { ROOT.innerHTML = ''; return; }
 
-    var prev = previousData();
+    var prev = snapshot(id - 1);
     var meta = [];
     var rows = [];
 
@@ -193,17 +164,11 @@
       (rows.length ? '<div class="rp-sb-rows">' + rows.join('') + '</div>' : '');
   }
 
-  render();
-
-  if (typeof eventOn === 'function' && typeof tavern_events !== 'undefined') {
-    eventOn(tavern_events.CHARACTER_MESSAGE_RENDERED, render);
-    eventOn(tavern_events.USER_MESSAGE_RENDERED, render);
-    if (tavern_events.MESSAGE_SWIPED) eventOn(tavern_events.MESSAGE_SWIPED, render);
-    if (tavern_events.MESSAGE_UPDATED) eventOn(tavern_events.MESSAGE_UPDATED, render);
+  // MVU 写回本楼后会刷新该楼，刷新时重新读取本楼快照。
+  if (typeof waitGlobalInitialized === 'function') {
+    waitGlobalInitialized('Mvu').then(render).catch(function () { ROOT.textContent = '变量暂不可用'; });
   }
-  window.addEventListener('pagehide', function () {
-    if (typeof eventClearAll === 'function') eventClearAll();
-  });
+
 })();
 </script>
 </body>

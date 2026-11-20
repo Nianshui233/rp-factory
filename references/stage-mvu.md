@@ -55,7 +55,7 @@ $(() => { registerMvuSchema(Schema); });
 ```
 
 - `.catch(初值)` 是**必须**的：只写 `z.coerce.number()` 时，模型写一个 `"很高"` 会先产出 `NaN`，在 `.transform` 之前就抛错，**整条更新被拒**——不是这一个字段，是这一楼全部改动都没了。
-- `.transform(v => _.clamp(v, 0, 上界))` 负责夹取；`0` 与上界逐字抄 `axis-system.yaml` 的 `range`。
+- 夹取的两端都取轴的 range。非零下限用显式 clamp，例如 _.clamp(v, -50, 100)。
 - `.prefault(初值)` 让"没提到这个字段"时有值。`.default()` 不给对象键补值，这里要 `prefault`。
 - 字符串与枚举同样要接住脏值：`z.string().catch('未知')`、`z.enum([...]).catch('傍晚')`。
 - 不要用 `.min()/.max()`：那会**拒绝**越界值并作废整条更新，而我们要的是夹住。

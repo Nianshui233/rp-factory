@@ -5,10 +5,10 @@
 结构校验在 validate-st-package.py（C/R/W/X 系列），这里只查跨字段语义——
 判据与源码锚点见 references/st-correctness.md。
 
-    S-02 markdownOnly 与 promptOnly 同为 true          → 该条永远不匹配
+    S-02 显示 / 提示词标志可同时启用
     S-03 substituteRegex 不在 0/1/2                    → 只 warn 后按原样处理
     S-04 replaceString 引用了不存在的捕获组             → 那段替换静默变成空串
-    S-07 maxDepth < 0 / minDepth < -1                  → 该条永远不生效
+    S-07 生效的上下限相互冲突
     S-10 position=4 缺 depth / position=7 缺 outletName → 注入位置失效
     S-11 order 缺失                                     → 排序 undefined
     S-13 keysecondary 非空但 selective 非 true          → 副关键词完全不参与
@@ -238,11 +238,6 @@ def check_regex_scripts(scripts: list, file: str, rep: Report) -> None:
 
         check_dialect(script, file, rep, label)
 
-        if script.get("markdownOnly") is True and script.get("promptOnly") is True:
-            rep.fail("S-02", file,
-                     f"[{label}] markdownOnly 与 promptOnly 同时为 true：engine.js 的两个分支互斥，"
-                     f"这一条永远不会匹配。按用途只留一个。")
-
         sub = script.get("substituteRegex", 0)
         try:
             sub_value = int(sub)
@@ -254,14 +249,10 @@ def check_regex_scripts(scripts: list, file: str, rep: Report) -> None:
                      f"其它值只 console.warn 后按原样处理。")
 
         max_depth = script.get("maxDepth")
-        if isinstance(max_depth, (int, float)) and not isinstance(max_depth, bool) and max_depth < 0:
-            rep.fail("S-07", file,
-                     f"[{label}] maxDepth = {max_depth}：只有 >= 0 才生效，负数等于这一条永不执行"
-                     f"（想表达不限就写 null）。")
         min_depth = script.get("minDepth")
-        if isinstance(min_depth, (int, float)) and not isinstance(min_depth, bool) and min_depth < -1:
-            rep.fail("S-07", file,
-                     f"[{label}] minDepth = {min_depth}：只有 >= -1 才生效，越小越不可能是本意。")
+        if (type(min_depth) in (int, float) and type(max_depth) in (int, float)
+                and 0 <= max_depth < min_depth):
+            rep.fail("S-07", file, f"[{label}] 有效深度范围为空：{min_depth}…{max_depth}")
 
         check_replace_groups(script, file, rep)
 

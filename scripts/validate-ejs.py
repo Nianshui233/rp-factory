@@ -10,12 +10,15 @@
 --range     轴的取值区间，E06 用它判"两端有没有盖住"，默认 0,100
 
 退出码：0 全过；1 有 FAIL；2 用法错误。
-只依赖标准库。
+需要 Node.js；随包编译器仅编译，不执行项目模板。
 """
 import json
+import operator
 import os
 import re
 import sys
+import subprocess
+from pathlib import Path
 
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -52,9 +55,36 @@ def blocks(src):
     return re.findall(r'<%(=?[-_]?)(.*?)%>', src, re.S)
 
 
+def compile_controller(path, report):
+    # 仅编译。不调用模板函数，不运行任何项目提供的 JavaScript。
+    compiler = Path(__file__).parent / 'vendor' / 'ejs' / 'ejs.cjs'
+    command = """const fs = require('node:fs');
+const ejs = require(process.argv[1]);
+try {
+  ejs.compile(fs.readFileSync(process.argv[2], 'utf8'), {
+    async: true, client: true, _with: true, localsName: 'locals', outputFunctionName: 'print'
+  });
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
+}"""
+    try:
+        result = subprocess.run(['node', '-e', command, str(compiler.resolve()), str(path)],
+                                capture_output=True, text=True, encoding='utf-8', timeout=15)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        report.fail(f'E00 编译器未完成：{error}')
+        return
+    if result.returncode:
+        report.fail('E00 EJS 编译失败：' + result.stderr.strip()[:700])
+    else:
+        report.ok('E00 通过 ST-Prompt-Template 同版 EJS 编译')
+
+
 def check(path, book_p, no_mvu, rng):
     r = Report()
     src = read(path)
+
+    compile_controller(path, r)
 
     # E01 标签纪律：只许 <%_ … _%>
     loose = re.findall(r'<%(?![-_=#])', src)
@@ -70,7 +100,7 @@ def check(path, book_p, no_mvu, rng):
         return r
 
     # E02 首个块里的变量要有 typeof 守卫 + var
-    first = bs[0][1]
+    first = next((body for tag, body in bs if tag in ('_', '')), '')
     declares = re.findall(r'\bvar\s+(\w+)\s*=\s*getvar', first)
     if re.search(r'\bgetvar\(', first) and not declares:
         r.fail('E02 首个块里有 getvar 但没有 var 声明')
@@ -135,33 +165,48 @@ def check(path, book_p, no_mvu, rng):
         except Exception as e:
             r.fail(f'E04 世界书读不了：{e}')
 
-    # E06 边界：数字单调，且（无 else 时）两端盖住 range
-    conds = re.findall(r'\bif\s*\(([^)]*)\)|\belse\s+if\s*\(([^)]*)\)', src)
-    nums = []
-    for a, b in conds:
-        c = a or b
-        for op, val in re.findall(r'(>=|<=|>|<)\s*(-?\d+(?:\.\d+)?)', c):
-            nums.append(float(val))
-    if nums:
-        uniq = [nums[0]]
-        for v in nums[1:]:
-            if v != uniq[-1]:
-                uniq.append(v)
-        asc = all(b > a for a, b in zip(uniq, uniq[1:]))
-        desc = all(b < a for a, b in zip(uniq, uniq[1:]))
-        if not (asc or desc):
-            r.fail('E06 分支边界的数值不是单调的（' + ' → '.join(f'{v:g}' for v in uniq) + '）：多半有区间重叠或顺序写反')
-        else:
-            r.ok('E06 边界数值单调')
-        has_else = re.search(r'\belse\s*\{', src) is not None
+    # 只对能静态辨认的同一变量的单阈值 if/else if 链判断覆盖。
+    # 逐个阈值及相邻区间取一点，保留 < 与 <= 的端点差异。
+    ops = {'<': operator.lt, '<=': operator.le, '>': operator.gt, '>=': operator.ge}
+    predicate = re.compile(r'^(?:}\s*)?(if|else\s+if)\s*\(\s*(\w+)\s*(>=|<=|>|<)\s*(-?\d+(?:\.\d+)?)\s*\)\s*{\s*$')
+    chain = []
+
+    def check_chain(has_else):
+        if not chain:
+            return
         lo, hi = rng
-        if not has_else:
-            if min(uniq) > lo + 0.001 or max(uniq) < hi - 0.001:
-                r.fail(f'E06 末档没有 else 兜底，且边界没盖住 {lo:g}–{hi:g}（最小 {min(uniq):g} / 最大 {max(uniq):g}）')
-            else:
-                r.ok('E06 末端与两端覆盖完整')
-        else:
-            r.ok('E06 末档用 else 兜底（允许）')
+        cuts = sorted({lo, hi, *(v for _, _, v in chain if lo <= v <= hi)})
+        points = set(cuts) | {(a + b) / 2 for a, b in zip(cuts, cuts[1:])}
+        remaining = points
+        for name, op, cutoff in chain:
+            matched = {x for x in remaining if ops[op](x, cutoff)}
+            if not matched:
+                r.fail(f'E06 分支 {name} {op} {cutoff:g} 在指定范围内不可达')
+            remaining = remaining - matched
+        if remaining and not has_else:
+            r.fail(f'E06 分档未覆盖 {min(remaining):g}，且没有 else 兜底')
+        chain.clear()
+
+    for tag, body in bs:
+        if tag not in ('_', ''):
+            continue
+        code = body.strip().removesuffix('_').strip()
+        match = predicate.fullmatch(code)
+        if match:
+            keyword, name, op, value = match.groups()
+            if keyword == 'if':
+                chain.clear()  # 嵌套分支有自己的条件，不能当作上一档的边界
+            elif not chain or chain[0][0] != name:
+                chain.clear()
+                continue
+            chain.append((name, op, float(value)))
+        elif re.fullmatch(r'}\s*else\s*{', code):
+            check_chain(True)
+        elif code == '}':
+            check_chain(False)
+        elif code:
+            chain.clear()  # 嵌套或复合条件不由这个静态检查推断
+    check_chain(False)
 
     # E07 禁用能力
     hit = [b for b in BANNED if b in src]
@@ -201,6 +246,8 @@ def main(argv):
             try:
                 lo, hi = argv[i + 1].split(',')
                 rng = (float(lo), float(hi))
+                if rng[0] > rng[1]:
+                    raise ValueError("范围逆序")
             except Exception:
                 print('--range 要写成 0,100')
                 return 2

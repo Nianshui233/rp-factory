@@ -131,7 +131,7 @@ class TestStSemantics(unittest.TestCase):
         """助手端的 find_regex / replace_string 写进卡端正则：不报错，只是不生效。"""
         script = _script()
         script.pop("findRegex")
-        script["find_regex"] = "/<状态栏>([\s\S]*?)<\/状态栏>/g"
+        script["find_regex"] = r"/<状态栏>([\s\S]*?)<\/状态栏>/g"
         findings, _ = self._run(regex=[script])
         self.assertIn("S-25", self._codes(findings))
 
@@ -182,9 +182,9 @@ class TestStSemantics(unittest.TestCase):
         self.assertNotIn("S-29", self._codes(findings) + self._codes(findings, "warning"))
 
     # ---- S-02 开关组合 ------------------------------------------------
-    def test_markdown_only_and_prompt_only_both_true_is_error(self):
+    def test_markdown_only_and_prompt_only_both_true_is_valid(self):
         findings, _ = self._run(regex=[_script(markdownOnly=True, promptOnly=True)])
-        self.assertIn("S-02", self._codes(findings))
+        self.assertEqual(findings, [])
 
     # ---- S-03 substituteRegex ----------------------------------------
     def test_bad_substitute_regex_is_error(self):
@@ -196,13 +196,13 @@ class TestStSemantics(unittest.TestCase):
         self.assertEqual(findings, [], findings)
 
     # ---- S-07 深度哨兵 -------------------------------------------------
-    def test_negative_max_depth_is_dead_rule(self):
+    def test_negative_max_depth_is_unbounded(self):
         findings, _ = self._run(regex=[_script(maxDepth=-1)])
-        self.assertIn("S-07", self._codes(findings))
+        self.assertEqual(findings, [])
 
-    def test_min_depth_below_sentinel_is_error(self):
+    def test_min_depth_below_sentinel_is_unbounded(self):
         findings, _ = self._run(regex=[_script(minDepth=-5)])
-        self.assertIn("S-07", self._codes(findings))
+        self.assertEqual(findings, [])
 
     # ---- S-10 位置 ----------------------------------------------------
     def test_at_depth_without_depth_is_error(self):
@@ -260,8 +260,8 @@ class TestStSemantics(unittest.TestCase):
 
     # ---- 逃生口 -------------------------------------------------------
     def test_report_has_stage_and_message(self):
-        findings, _ = self._run(regex=[_script(promptOnly=True, markdownOnly=True)])
-        hit = next(f for f in findings if f["code"] == "S-02")
+        findings, _ = self._run(regex=[_script(minDepth=3, maxDepth=2)])
+        hit = next(f for f in findings if f["code"] == "S-07")
         self.assertIn("message", hit)
         self.assertEqual(hit["file"], "正则.json")
 

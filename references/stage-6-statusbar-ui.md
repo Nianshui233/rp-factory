@@ -41,7 +41,7 @@
 
 ### 〇、先看有没有 `mvu`
 
-契约 `stages.mvu: done` → **走 `references/frontend-conventions.md` 第二节的 D 路径**：状态栏不再要求模型输出 `<状态栏>` 块，直接读 `stat_data`，`findRegex` 用 `<StatusPlaceHolderImpl/>`、`maxDepth: 2`。此时"数据块"一节整节跳过。
+契约 `stages.mvu: done` → **走 `references/frontend-conventions.md` 第二节的 D 路径**：状态栏不再要求模型输出 `<状态栏>` 块，直接读 `stat_data`，`findRegex` 用 `<StatusPlaceHolderImpl/>`、`maxDepth: 2`。读样包 statusbar-ui.html。MVU 写回后刷新本楼；界面初始化时读取本楼快照。
 
 没有 `mvu` → 按下面的一、二节走标签方案。两条不要混用：混用的结果是"有一条正则接不到任何东西"，看起来只是不显示，很难查。
 
@@ -93,8 +93,8 @@
 
 - `stages.6` → `done` / `partial`（只出数据块与提示词）/ `skipped`。
 - `artifacts` 追加：`statusbar-ui`（HTML）、`statusbar-ui-regex`（JSON）、`statusbar-ui-prompt`（YAML）。
-- `naming.ui_tags.status` → `"状态栏"`。
-- `hard_settings` 追加"状态栏每轮必输出"（`source: 用户确认`）——这条不进系统提示词就等于没做。
+- 变量路径用 `StatusPlaceHolderImpl`；文本路径沿用项目标签。
+- 仅文本路径要求模型输出标签；变量路径由 MVU 提供挂载点。
 - `pending`：轴未定的（`[待定：轴名]`）、用户还没决定跟随本楼还是最新楼的，登记在此。
 - `decisions` 记：跟随模式、危险阈值上色、降级形态（信息卡 / 无箭头 / 隐去未知）。
 

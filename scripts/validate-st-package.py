@@ -249,6 +249,34 @@ def _matches(pattern: str, text: str) -> bool:
 
 # ---------------------------------------------------------------- 卡片（纯净）
 
+def validate_mvu_panel(script_list, rep):
+    """核对最终发布的 AI 显示规则和替换后的内联脚本。"""
+    marker = "<StatusPlaceHolderImpl/>"
+    renderers = []
+    for rule in script_list:
+        if rule.get("disabled") or 2 not in (rule.get("placement") or []):
+            continue
+        if not rule.get("markdownOnly") or not _matches(str(rule.get("findRegex", "")), marker):
+            continue
+        body = str(rule.get("replaceString") or "")
+        if rule.get("promptOnly"):
+            rep.fail("X07", "变量界面应只用于显示，HTML 不能发给模型")
+        if type(rule.get("minDepth")) in (int, float) and rule["minDepth"] > 0:
+            rep.fail("X07", "minDepth 排除了最新楼层的状态栏")
+        if not body.strip():
+            rep.fail("X07", "已启用的显示正则会移除 MVU 状态栏挂载标签")
+            continue
+        scripts = re.findall(r"<script\b[^>]*>(.*?)</script\s*>", body, re.I | re.S)
+        code = "\n".join(scripts)
+        reader = re.search(r"\b(?:getMvuData|getVariables|getAllVariables)\s*\(", code)
+        if "<body" in body.lower() and reader and "stat_data" in code and "$1" not in body:
+            renderers.append(rule)
+    if len(renderers) != 1:
+        rep.fail("X07", f"需有一条 AI 显示正则把 {marker} 渲染为读 stat_data 的界面，实际 {len(renderers)} 条")
+    else:
+        rep.ok("X07", "MVU 挂载标签与最终界面的变量读取路径已静态核对")
+
+
 def validate_card(card: dict, card_path: Path | None, book_path: Path | None, rep: Report) -> dict:
     data = card.get("data") if isinstance(card.get("data"), dict) else {}
 
@@ -716,6 +744,9 @@ def main(argv: list[str]) -> int:
                 rep.warn("X06", "没有 markdownOnly 的隐藏规则：玩家会看到 JSONPatch 原文")
             else:
                 rep.ok("X06", "两条隐藏更新块的正则都在")
+
+    if stage_mvu == "done" and stages.get("statusbar", stages.get(6, stages.get("6"))) == "done":
+        validate_mvu_panel(script_list, rep)
 
     rep.dump(as_json)
     return 0 if not rep.failures else 1

@@ -17,6 +17,7 @@ opening / statusbar / delivery。
 """
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -120,10 +121,24 @@ def plan(stage: str, root: Path) -> list[tuple[str, list[str]]]:
 
     if stage in ("ejs", "all"):
         ctrls = sorted((root / "创作痕迹" / "产物" / "ejs").glob("*.ejs"))
+        ranges = {}
+        if ctrls and contract.exists():
+            import yaml
+            try:
+                data = yaml.safe_load(contract.read_text(encoding="utf-8"))
+                for axis in (data or {}).get("naming", {}).get("axes", []):
+                    if isinstance(axis, dict) and isinstance(axis.get("range"), list) and len(axis["range"]) == 2:
+                        ranges[axis.get("name")] = axis["range"]
+            except (OSError, ValueError, AttributeError, yaml.YAMLError):
+                pass  # 契约检查另行报告读取或格式错误
         for c in ctrls:
             args = [str(c)]
             if book:
                 args += ["--book", str(book)]
+            paths = re.findall(r"""getvar\(\s*['"](stat_data\.[^'"]+)['"]""", c.read_text(encoding="utf-8"))
+            axes = {path.rsplit(".", 1)[-1] for path in paths}
+            if len(axes) == 1 and (bounds := ranges.get(next(iter(axes)))):
+                args += ["--range", ",".join(map(str, bounds))]
             jobs.append(("validate-ejs.py", args))
 
     if stage in ("delivery", "all"):

@@ -167,18 +167,23 @@ def check(schema_p, init_p, entries_p, regex_p, axes, book_p, need_regex):
                 bad.append(f'{name} 没出现在 schema 里')
                 continue
             if len(rng) == 2:
-                hi = rng[1]
-                pat = re.compile(re.escape(name) + r'[^\n]*?clamp\(\s*v\s*,\s*-?\d+\s*,\s*' + str(hi) + r'\s*\)')
-                pat2 = re.compile(re.escape(name) + r'[^\n]*?刻度\(\s*\d+\s*,\s*' + str(hi) + r'\s*\)')
-                if not (pat.search(code) or pat2.search(code)):
-                    bad.append(f'{name} 的夹取上界不是 range 的 {hi}')
+                number = r'-?(?:\d+(?:\.\d+)?|\.\d+)'
+                field = rf'(?<![\w])["\']?{re.escape(name)}["\']?\s*:\s*'
+                direct = re.findall(field + rf'[^,\n}}]*?clamp\(\s*v\s*,\s*({number})\s*,\s*({number})\s*\)', code)
+                helper = re.findall(field + rf'刻度\(\s*{number}\s*,\s*({number})\s*\)', code)
+                helper_floor = re.search(rf'刻度\s*=\s*\(\s*\w+\s*,\s*(\w+)\s*\)\s*=>\s*[^;]*?clamp\(\s*v\s*,\s*({number})\s*,\s*\1\s*\)', code)
+                bounds = [(float(lo), float(hi)) for lo, hi in direct]
+                if helper and helper_floor:
+                    bounds.extend((float(helper_floor[2]), float(hi)) for hi in helper)
+                if not bounds or any(pair != tuple(rng) for pair in bounds):
+                    bad.append(f'{name} 夹取区间 {bounds or "无法识别"}，契约要求 {rng}')
         if bad:
             for b in bad:
                 r.fail('M04 ' + b)
         else:
-            r.ok(f'M04 {len(axes)} 条轴的夹取上界与 range 一致')
+            r.ok(f'M04 {len(axes)} 条轴的夹取上下界与 range 一致')
     else:
-        r.ok('M04 未传契约，跳过轴名与上界比对')
+        r.ok('M04 未传契约，跳过轴名与上下界比对')
 
     # M05 不许 z.number()
     if re.search(r'\bz\.number\(', code):
@@ -336,7 +341,7 @@ def check(schema_p, init_p, entries_p, regex_p, axes, book_p, need_regex):
             r.fail('M13 缺 markdownOnly 那条（否则玩家会看到 JSONPatch 原文）')
         ph = [x for x in regs if '<StatusPlaceHolderImpl' in str(x.get('findRegex', '')).replace('\\', '')]
         if not ph:
-            r.warn('M13 没有隐藏 <StatusPlaceHolderImpl/> 的规则——做了状态栏才需要，没做就别留这条')
+            r.ok('M13 未隐藏 MVU 挂载点；变量状态栏在交付阶段核对')
         pats = []
         for x in regs:
             fr = x.get('findRegex') or ''

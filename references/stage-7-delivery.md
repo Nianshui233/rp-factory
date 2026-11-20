@@ -103,7 +103,7 @@ python scripts/embed-book.py --card "<世界名>（纯净）.json" --book "<世�
 | 世界规则 / 这栋楼的默契 / 变更边界 / 世界怎么运转 / AI即兴约束 | 3–6 条，各一条 | `true` | 100–94 | `0` | `[]` |
 | 信息分层（防剧透） | 1 | `true` | 85 | `4` + `depth: 2` | `[]` |
 | 数值与判定 | 1 | `true` | 84 | `4` + `depth: 2` | `[]` |
-| 状态栏协议（仅做了阶段 6） | 1 | `true` | 70 | `4` + `depth: 0` | `[]` |
+| 文本状态栏协议（仅标签路径） | 1 | `true` | 70 | `4` + `depth: 0` | `[]` |
 | **每个角色**（`创作痕迹/产物/rolecard/*.yaml`） | 每人 1 条 | `false` | 80–78 | `0` | 本名 + `alias[]` + 关系指代 + 绰号（8–15 个） |
 | **每个地点**（`创作痕迹/产物/scene/…` 或 scene-sheet） | 每地点 1 条 | `false` | 76–74 | `0` | 地点名 + 区域名 + 场景指代（8–15 个） |
 | 势力 / 时间线 / 常识 / 名词 | 各 1 条 | `false` | 88–82 | `0` | `factions[].name` + `alias[]` |
@@ -123,8 +123,8 @@ python scripts/embed-book.py --card "<世界名>（纯净）.json" --book "<世�
 一个 **数组**，一条正则一个对象，字段见 `templates/regex-frontend.json`（单对象文件也能导）。
 
 - 阶段 5 有 → 一条：`scriptName` 带"建卡向导"，`findRegex` 只匹配标签（`/<建卡向导>/g`），`placement: [2]`（AI 输出）、`markdownOnly: true`、`runOnEdit: true`。
-- 做了 `mvu` → 三条：藏 `<UpdateVariable>…</UpdateVariable>`（`promptOnly: true` 空替换，别让模型下一轮读到自己上一轮的补丁）、藏同一个块（`markdownOnly: true`，别让玩家看见 JSONPatch）、藏 `<StatusPlaceHolderImpl/>`（`markdownOnly: true`，占位符只是给状态栏挂载用的锚点）。没做 `statusbar` 就不要第三条。
-- 阶段 6 有 → 一条：`findRegex` 带捕获组（`/<状态栏>([\s\S]*?)<\/状态栏>/g`），`replaceString` 的 HTML 里必须有一行 `<textarea id="rp-sb-raw" hidden>$1</textarea>`，且在 `<script>` 之前。
+- 有 MVU：隐藏更新块的提示词与显示规则均启用。有变量状态栏就保留挂载标签；无面板时可用空替换隐藏它。
+- 有状态栏：MVU 路径匹配 `<StatusPlaceHolderImpl/>`，替换成读取本楼 stat_data 的界面；文本路径匹配项目标签，按选定的数据路径配置捕获组。
 - `replaceString` 的 HTML 用 `templates/wizard-ui.html` / `templates/statusbar.html` 填，改完留到收尾一检，不在这里单独跑。
 - 内联脚本里需要 HTML 实体时用 `\u0026` 拼（`'\u0026amp;'`）——酒馆会把消息里的实体再解一次码，写 `&amp;` 会让脚本语法错误、界面塌成 2px。
 

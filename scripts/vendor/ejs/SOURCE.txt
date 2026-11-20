@@ -1,0 +1,2 @@
+ST-Prompt-Template d6f520d149ab, src/3rdparty/ejs.js (unmodified browser bundle).
+EJS: Apache-2.0. Embedded components retain their license notices in ejs.cjs.

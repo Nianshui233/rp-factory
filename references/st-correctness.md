@@ -13,7 +13,7 @@
 匹配判定是 `script.placement.includes(placement)`（`engine.js:374`）——写成单个整数 `2` 而不是 `[2]`，`.includes` 不存在于 number 上，**整条正则静默不跑**。`0` 写了等于没写。
 
 **[S-02] `markdownOnly` / `promptOnly` 的真值表**
-（`engine.js:350-355`）三选一：`markdownOnly` 管显示、`promptOnly` 管发给模型、两者都 `false` 才「显示和提示词都管」。**两个都 `true` 时永远不匹配**——这是最常见的「正则明明开着但没反应」。
+（`engine.js:350-355`）显示阶段看 markdownOnly，提示词阶段看 promptOnly。两项都开时两个阶段分别匹配；两项都关时只匹配这两个标志都未置位的原文处理调用。
 
 **[S-03] `substituteRegex` 三档**
 `NONE:0` 原样、`RAW:1` 先把 `{{char}}` 之类宏替换进 findRegex、`ESCAPED:2` 替换后还做正则转义；未知值只 `console.warn` 后按原样处理（`engine.js:398-407`）。写 `"1"` 字符串也能用（`Number()` 兜），写 `true` 会落到 default 分支。
@@ -30,7 +30,7 @@
 `return substituteParams(replaceWithGroups)`（`engine.js:445`）。含义：`replaceString` 里任何 `{{char}}` / `{{user}}` / `{{description}}` 都会被**自动**替换掉；想在界面上显示字面 `{{char}}`，得写成 `{{noop}}` 之类绕开。同理，legacy 的 `<USER>` / `<BOT>` / `<CHAR>` / `<GROUP>` 也会被替换（`public/scripts/macros.js:625-629`）——界面 HTML 里出现 `<BOT>` 这种「标签」会被吃掉。
 
 **[S-07] `minDepth` / `maxDepth` 的哨兵值**
-`minDepth >= -1` 才生效（`-1` 与 `null` 都表示不设下限）；`maxDepth >= 0` 才生效（`engine.js:363-372`）。写 `maxDepth: -1` 想表达「不限」，实际是「这一条永远不生效」。
+（`engine.js:363-372`）在传入非负楼层深度时才做裁剪。负的 maxDepth 或 null 不限制上界；minDepth 小于 -1 或 null 不限制下界。有效下限大于有效上限时区间为空。
 
 **[S-08] `runOnEdit` 只影响编辑重渲染**
 `if (isEdit && !script.runOnEdit) return`（`engine.js:356`）。不填时用户手动改楼，该条正则不再作用于那一楼——以为「改一下就会重排」的界面会停在旧形态。

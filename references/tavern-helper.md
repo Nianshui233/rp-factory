@@ -56,7 +56,7 @@ html,body{margin:0!important;padding:0;overflow:hidden!important;max-width:100%!
 `src/iframe/predefine.js` 把父窗口的这些东西搬进来（**TH-06**）：
 
 - `_`、`YAML`、`showdown`、`toastr`、`z`、`EjsTemplate`、`TavernHelper`
-- `TavernHelper` 上每个函数都经过 `_bind` 换绑到当前 window，所以 `getChatMessages()`、`eventOn()` 这些在 iframe 里直接调用，作用域自动落在**本楼层**，不需要传 `message_id`
+- 消息 iframe 读本楼用 `getChatMessages(getCurrentMessageId())`。range 必填；事件订阅的生命周期与消息读取范围分别处理。
 - `SillyTavern`：每次读都是新的 `getContext()`，额外多一个 `writeExtensionField`；包含 `chat`、`characters`、`name1`/`name2`、`characterId`、`chatId`、`chatMetadata`、`maxContext`、`eventSource`、`eventTypes`、`addOneMessage`、`deleteLastMessage`、`generate`、`stopGeneration`、`getTokenCountAsync`、`extensionPrompts`、`setExtensionPrompt(prompt_id, content, position, depth, scan, role, filter)`、`saveSettingsDebounced`、`reloadCurrentChat`
 - `Mvu`：只在父窗口有 Mvu 时注入，赋值是空操作
 - iframe 专属工具函数：`getAllVariables()`、`eventOn/eventOnce/eventEmit/eventEmitAndWait/eventRemoveListener/eventClearAll`、`getCurrentMessageId()`、`getIframeName()`、`reloadIframe()`
@@ -233,7 +233,7 @@ builtin.addOneMessage / copyText / renderMarkdown / duringGenerating / reloadCha
 - **file**：`getTavernFile / uploadTavernFile / deleteTavernFile`。
 - **import_raw**：`importRawCharacter / importRawChat / importRawPreset / importRawWorldbook / importRawTavernRegex` — 直接喂 JSON/字符串建对象，不经过文件导入对话框。
 - **audio**：`playAudio / pauseAudio / getAudioList / replaceAudioList / appendAudioList / getAudioSettings / setAudioSettings / getCurrentAudio`。
-- **global**：`initializeGlobal(变量名列表)` / `waitGlobalInitialized(name)` — 等 `Mvu`、`TavernHelper` 这类全局就绪，比 `setTimeout` 靠谱。
+- **global**：`initializeGlobal(name, value)` / `waitGlobalInitialized(name)` — 等 `Mvu`、`TavernHelper` 这类全局就绪，比 `setTimeout` 靠谱。
 - **version**：`getTavernHelperVersion() / getTavernVersion()` — 运行时自检用，比读 manifest 可靠。
 
 ---
