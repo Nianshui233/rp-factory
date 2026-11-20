@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""去 AI 味检查（P01–P08）：找「解释腔、情绪直说、陈词比喻、模板标签」。
+"""去 AI 味检查（P01–P09）：找「解释腔、情绪直说、陈词比喻、模板标签」。
 
 定位：这是**自检门的辅助**，不是判分器。它抓的是可机检的八股形态，判不了"好不好看"。
 默认只警告（退出码 0），`--strict` 才当失败用；命中之后怎么改由人判断——
@@ -31,7 +31,17 @@ RULES = {
     "P06": "段末总结句：这一刻／或许，／他知道——替读者总结",
     "P07": "对话标签单调：淡淡地说、冷冷地道连着用",
     "P08": "三连形容堆叠：…的…的…的",
+    "P09": "绝对化失衡：把「通常/多数」的尺子写成「绝不/一律/一定」",
 }
+
+# P09：绝对化词与对冲词（程度词）分开数。世界设定里绝大多数判断是倾向，
+# 写成绝对句之后模型再也演不出例外——这跟 P02 的「模糊逃逸」正好相反。
+# 真边界（taboos / anti_ooc 里的「绝不」是对的，不算问题）
+BOUNDARY = re.compile(r"绝不|永远不|从不")
+# 把倾向写成普遍规律的那几个词，才是 P09 要抓的
+UNIVERSAL = re.compile(r"一律|一定|所有|任何|人人|每个|无一例外|毫无|总是|每次")
+HEDGE = re.compile(r"通常|多数|有时|可能|大概|一般|往往|容易|倾向|或许|多半|常见|偶尔|极少|少数")
+SENTENCE_SPLIT = re.compile("[。；！？]")
 
 PATTERNS: list[tuple[str, str, re.Pattern]] = [
     ("P02", "抽象逃逸", re.compile(r"某种|说不出的?|说不上来的?|一股.{0,6}(?:涌上|涌起|升起)")),
@@ -96,6 +106,28 @@ def check_text(text: str, *, dash_per_chars: int = 600) -> list[dict]:
                     "code": code, "rule": RULES[code], "line": number,
                     "excerpt": match.group(0),
                     "message": f"{RULES[code]}：命中「{match.group(0)}」",
+                })
+
+    # P09 绝对化失衡：文件级（全是绝对句，一个对冲词都没有）+ 句级（一句里叠两个）
+    universal_hits = UNIVERSAL.findall(body)
+    hedge_hits = HEDGE.findall(body)
+    if len(universal_hits) >= 3 and not hedge_hits:
+        findings.append({
+            "code": "P09", "rule": RULES["P09"], "line": 0,
+            "excerpt": f"{len(universal_hits)} 处绝对化 / 0 处程度词",
+            "message": f"{RULES['P09']}（{len(universal_hits)} 处绝对化，对冲词 0）："
+                       f"绝大多数世界判断是倾向。写成「一律/绝不」之后模型再也演不出例外，"
+                       f"把该松的改成「通常/多数/可能」。",
+        })
+    for number, line in lines:
+        for sentence in SENTENCE_SPLIT.split(line):
+            found = UNIVERSAL.findall(sentence) + BOUNDARY.findall(sentence)
+            if len(found) >= 2 and UNIVERSAL.search(sentence):
+                findings.append({
+                    "code": "P09", "rule": RULES["P09"], "line": number,
+                    "excerpt": sentence.strip()[:60],
+                    "message": f"{RULES['P09']}：一句里叠了 {' / '.join(found)}——"
+                               f"留一个绝对句，其余改成程度词或条件句。",
                 })
 
     # P07 只看「同段里连着换标签」：三种以上不同标签同时出现才算单调
@@ -171,7 +203,7 @@ def main(argv: list[str]) -> int:
             print(f"\n{len(report)} 处命中（{' '.join(codes)}）。这是提示不是判决："
                   f"改法是写出表现，不是删句。")
         else:
-            print("八类形态都没命中。")
+            print("九类形态都没命中。")
 
     if strict and report:
         return 1

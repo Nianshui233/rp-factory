@@ -2,6 +2,8 @@
 
 阶段 7 出包时按这份文件定参数。规则来自 SillyTavern 官方 World Info 文档、本机 `public/scripts/world-info.js` 的实现、以及本机酒馆的行为实测。凡与"社区习惯"冲突，以实现为准。
 
+**先写后配**：正文写什么见 `references/worldbook-writing.md`；这一份只管参数。
+
 ## 一、三个灯
 
 | 灯 | 字段 | 行为 |

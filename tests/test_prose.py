@@ -1,4 +1,4 @@
-"""check_prose.py（P01–P08）测试：每条规则都要「该响时响、不该响时安静」。"""
+"""check_prose.py（P01–P09）测试：每条规则都要「该响时响、不该响时安静」。"""
 from __future__ import annotations
 
 import importlib.util
@@ -46,6 +46,21 @@ BAD_PARALLEL = """这不是勇气，而是固执；不是坚持，而是执念�
 BAD_ENDING = """这一刻，他终于明白了。
 
 或许，一切都还来得及。
+"""
+
+ABS_ONLY = """守夜人一律不离开岗位。
+闸门一定是闭着的，所有船都过不去。
+任何人不许进闸区。
+每个人都记得那条规矩。
+"""
+
+ABS_WITH_HEDGE = """守夜人通常不离开岗位。
+闸门多数时候闭着，偶尔会开半边。
+大多数人都进不去，可是巡夜人有钥匙。
+那条路往往封锁。
+"""
+
+ABS_STACKED = """所有人都一定记得那一天，绝不会有例外。
 """
 
 
@@ -105,6 +120,21 @@ class TestProseRules(unittest.TestCase):
             self.assertEqual(mod.main([str(bad), "--strict"]), 1)
             json.dump({}, open(Path(tmp) / "x.json", "w"))
             self.assertEqual(mod.main([str(bad), "--json"]), 0)
+
+    def test_absolute_without_hedge_is_flagged(self):
+        mod = _load()
+        codes = {f["code"] for f in mod.check_text(ABS_ONLY)}
+        self.assertIn("P09", codes)
+
+    def test_absolute_with_hedges_is_quiet(self):
+        mod = _load()
+        codes = {f["code"] for f in mod.check_text(ABS_WITH_HEDGE)}
+        self.assertNotIn("P09", codes)
+
+    def test_absolute_stacked_in_one_sentence_is_flagged(self):
+        mod = _load()
+        codes = {f["code"] for f in mod.check_text(ABS_STACKED)}
+        self.assertIn("P09", codes)
 
     def test_findings_have_location(self):
         mod = _load()

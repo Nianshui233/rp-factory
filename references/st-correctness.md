@@ -38,6 +38,15 @@
 **[S-09] 正则按数组顺序串行，前一条的输出是后一条的输入**
 `allRegex.forEach(...)` 逐条 `finalString = runRegexScript(...)`（`engine.js:346-380`）。顺序错 = 后一条永远匹配不到。
 
+**[S-25] 卡端正则只认 camelCase，助手端的 snake_case 在这里等于没写**
+ST 读的是 `findRegex` / `replaceString` / `placement` / `markdownOnly` / `promptOnly` / `substituteRegex` / `minDepth` / `maxDepth` / `runOnEdit` / `disabled` / `scriptName`（`engine.js:332-380` 的 `RegexParams` 与各分支）。酒馆助手导出的是另一套 `TavernRegex`（`find_regex` / `replace_string` / `markdown_only`…）——把助手端格式直接贴进 `正则.json`，**所有字段都不被读取，该条什么都不做，且不报错**。两边字段集互不兼容，转换要手工做。
+
+**[S-26] `replaceString` 必须存在；空串是合法的「删除」**
+`regexScript.replaceString.replace(/{{match}}/gi, '$0')`（`engine.js:421`）直接对它的值调方法——**键缺失或为 `null` 会抛 TypeError**（该条不跑，控制台留错）。空串 `""` 没有错：匹配到的内容全删，这是正规用法，不要为了「总得替点东西」而硬填。
+
+**[S-27] `findRegex` 为空串 = 这条静默跳过**
+`if (!regexScript || !!(regexScript.disabled) || !regexScript?.findRegex || !rawString) return rawString;`（`engine.js:393`）。空串与缺失都命中这个短路——**不警告、不报错、什么都不做**。脚手架里留着空模板忘了填，就是这样丢一条正则的。
+
 ---
 
 ## 二、世界书（`世界书.json` 里的一条 = ST 的一个 world info entry）

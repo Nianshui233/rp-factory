@@ -14,6 +14,9 @@
     S-13 keysecondary 非空但 selective 非 true          → 副关键词完全不参与
     S-19 未知宏                                         → 字面出现在聊天里（警告）
     S-20 用了酒馆助手宏但环境没有该扩展（需契约）        → 那行原样显示（警告）
+    S-25 卡端正则写了助手端 snake_case 键                → 该键不被读取，等于没配
+    S-26 缺 replaceString 或为空值                       → 运行时抛 TypeError（空串是合法的）
+    S-27 findRegex 为空串                                → 这条什么都不做（警告）
 
 用法：
     python scripts/validate_st_semantics.py <最终产物目录>
@@ -165,6 +168,42 @@ REF_NUM_RE = re.compile(r"\$(\d+)")
 REF_NAME_RE = re.compile(r"\$<([^>]+)>")
 
 
+HELPER_SNAKE_KEYS = {
+    "find_regex": "findRegex",
+    "replace_string": "replaceString",
+    "markdown_only": "markdownOnly",
+    "prompt_only": "promptOnly",
+    "substitute_regex": "substituteRegex",
+    "min_depth": "minDepth",
+    "max_depth": "maxDepth",
+    "run_on_edit": "runOnEdit",
+    "script_name": "scriptName",
+}
+
+
+def check_dialect(script: dict, file: str, rep: Report, label: str) -> None:
+    """S-25/S-26/S-27：卡端正则的字段集只认 engine.js 读的那几个 camelCase 键。"""
+    wrong = [k for k in HELPER_SNAKE_KEYS if k in script]
+    if wrong:
+        hint = " / ".join(f"{k}→{HELPER_SNAKE_KEYS[k]}" for k in wrong)
+        rep.fail("S-25", file,
+                 f"[{label}] 用了助手端的 snake_case 键：{hint}。"
+                 f"ST 只读 camelCase（engine.js:334-380），写错不报错、这一条等于没配。")
+
+    if "replaceString" not in script:
+        rep.fail("S-26", file,
+                 f"[{label}] 缺 replaceString：engine.js:421 直接对它调 .replace，"
+                 f"undefined 会抛 TypeError。想删除匹配内容就写空串 \"\"。")
+    elif script.get("replaceString") is None:
+        rep.fail("S-26", file,
+                 f"[{label}] replaceString 是 null：同上，运行时会抛错。空串才是删除。")
+
+    if script.get("findRegex") == "":
+        rep.warn("S-27", file,
+                 f"[{label}] findRegex 是空串：engine.js:393 直接跳过这一条，"
+                 f"它不会报错，也不会做任何事。")
+
+
 def check_replace_groups(script: dict, file: str, rep: Report) -> None:
     find_regex = script.get("findRegex") or ""
     replace = script.get("replaceString") or ""
@@ -194,6 +233,8 @@ def check_regex_scripts(scripts: list, file: str, rep: Report) -> None:
         if not isinstance(script, dict):
             continue
         label = script.get("scriptName") or script.get("id") or "未命名脚本"
+
+        check_dialect(script, file, rep, label)
 
         if script.get("markdownOnly") is True and script.get("promptOnly") is True:
             rep.fail("S-02", file,

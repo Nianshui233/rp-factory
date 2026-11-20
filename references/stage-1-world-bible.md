@@ -2,6 +2,8 @@
 
 产物 type：`world-bible`。骨架：`templates/world-bible.yaml`。格式、预算、降级链回 `references/interview-protocol.md`。
 
+**写条目前读 `references/worldbook-writing.md`**：句子功能、强度分档、知识度数——不是文风建议，是被踩过的塌缩点。
+
 ## 进入条件
 
 - 用户给出题材、概念、世界构想中的任意一项即可进入；只有一个概念词也进入（走"仅概念词"分支）。

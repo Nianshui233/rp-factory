@@ -53,6 +53,9 @@ FACTS: list[tuple[str, str, int, str]] = [
     (SCRIPT, "mes: getRegexedString(firstMes, regex_placement.AI_OUTPUT)", 7719, "S-22"),
     (MACROS, "export function evaluateMacros(content, env, postProcessFn)", 610, "S-19"),
     (MACROS, "{ regex: /<USER>/gi", 625, "S-06"),
+    (ENGINE, "@typedef {{characterOverride?: string, isMarkdown?: boolean, isPrompt?: boolean, isEdit?: boolean, depth?: number }}", 332, "S-25"),
+    (ENGINE, "const replaceString = regexScript.replaceString.replace(", 421, "S-26"),
+    (ENGINE, "!(regexScript.disabled) || !regexScript?.findRegex", 393, "S-27"),
 ]
 
 

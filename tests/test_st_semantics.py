@@ -126,6 +126,36 @@ class TestStSemantics(unittest.TestCase):
             replaceString="<div>$1</div>")])
         self.assertEqual(findings, [], findings)
 
+    # ---- S-25 方言混用 --------------------------------------------------
+    def test_helper_snake_case_keys_are_error(self):
+        """助手端的 find_regex / replace_string 写进卡端正则：不报错，只是不生效。"""
+        script = _script()
+        script.pop("findRegex")
+        script["find_regex"] = "/<状态栏>([\s\S]*?)<\/状态栏>/g"
+        findings, _ = self._run(regex=[script])
+        self.assertIn("S-25", self._codes(findings))
+
+    def test_camel_case_keys_are_fine(self):
+        findings, _ = self._run()
+        self.assertNotIn("S-25", self._codes(findings))
+
+    # ---- S-26 空替换与缺失替换 -----------------------------------------
+    def test_missing_replace_string_is_error(self):
+        script = _script()
+        script.pop("replaceString")
+        findings, _ = self._run(regex=[script])
+        self.assertIn("S-26", self._codes(findings))
+
+    def test_empty_replace_string_is_legal(self):
+        """空串 = 把匹配到的全删掉，这是合法用法。"""
+        findings, _ = self._run(regex=[_script(replaceString="")])
+        self.assertNotIn("S-26", self._codes(findings))
+
+    # ---- S-27 空 findRegex ---------------------------------------------
+    def test_empty_find_regex_warns(self):
+        findings, _ = self._run(regex=[_script(findRegex="")])
+        self.assertIn("S-27", self._codes(findings, "warning"))
+
     # ---- S-02 开关组合 ------------------------------------------------
     def test_markdown_only_and_prompt_only_both_true_is_error(self):
         findings, _ = self._run(regex=[_script(markdownOnly=True, promptOnly=True)])

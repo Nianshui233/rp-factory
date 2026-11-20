@@ -5,9 +5,10 @@
 - ALWAYS / LOAD_MAP 描述每个阶段进入时实际会读到的文件（worst case：开关打开时也算进去）。
 - tok 估算：cjk*1.15 + 非 cjk 字符数/3.6（够用即可，不追求与某家 tokenizer 对齐）。
 - BASELINE 是 2026-11-21 改动前的实测值。任何阶段超过基线即为变重。
-- 例外只记在案的两次：Ruling ③ 世界书双入口（delivery +414）；Ruling ④ 契约新增
-  `player_agency`（每阶段 +63，加载在最共用的 `contract-schema.md`）与角色卡事实分级
-  （cast 另 +94）。基线一律改为「该次改动实测值」，绝对上限 26,000 不变——
+- 例外只记在案的两次：Ruling ③ 世界书双入口（delivery +414）；Ruling ④ 吸收 TavernWeave
+  六项（契约 `player_agency` +63/阶段、角色卡事实分级 cast 另 +94、`worldbook-writing.md`
+  指针 world +130 / delivery +112、SKILL 索引两行 +55/阶段）。每次都在共用文件里回收了
+  等量冗余；基线一律改为「该次改动实测值」，绝对上限 26,000 不变——
   新增功能要付的体积账写在提交信息里，而不是悄悄抬高上限。
 
 CLI:
@@ -66,15 +67,15 @@ LOAD_MAP: dict[str, list[str]] = {
 
 # 2026-11-21 实测（改动前），见 scripts/measure_load.py 首次运行的输出。
 BASELINE: dict[str, int] = {
-    "world": 23548,
-    "cast": 20576,
-    "scenes": 19279,
-    "axes": 20241,
-    "mvu": 16612,
-    "ejs": 15582,
-    "opening": 23533,
-    "statusbar": 22523,
-    "delivery": 25880,
+    "world": 23652,
+    "cast": 20631,
+    "scenes": 19334,
+    "axes": 20296,
+    "mvu": 16609,
+    "ejs": 15637,
+    "opening": 23459,
+    "statusbar": 22449,
+    "delivery": 25966,
 }
 
 _CJK = re.compile(r"[\u4e00-\u9fff]")
