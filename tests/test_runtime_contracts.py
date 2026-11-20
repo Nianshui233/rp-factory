@@ -86,13 +86,20 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const rules = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
+// 界面是手动粘贴的：测试里用包内的 .html 模拟“粘到替换里”这一步
+const pasted = fs.readFileSync(process.argv[2], 'utf8');
 let message = '<StatusPlaceHolderImpl/>';
+let usedPaste = false;
 for (const rule of rules) {
   if (!rule.markdownOnly || rule.disabled || !rule.placement.includes(2)) continue;
   const match = rule.findRegex.match(/^\/(.*)\/(\w*)$/);
   const regex = match ? new RegExp(match[1], match[2]) : new RegExp(rule.findRegex);
-  message = message.replace(regex, rule.replaceString);
+  const pending = String(rule.replaceString).startsWith('【尚未粘贴界面】');
+  const repl = pending ? pasted : rule.replaceString;
+  if (pending && regex.test(message)) usedPaste = true;
+  message = message.replace(regex, repl);
 }
+assert.equal(usedPaste, true, '状态栏正则应该是待粘贴态，且 html 能接上');
 const script = message.match(/<script>([\s\S]*?)<\/script>/)[1];
 const root = {innerHTML: ''};
 let record = {角色: {祁昭: {wick: 0, tide: 82}}};
@@ -119,6 +126,7 @@ const host = {
   assert.equal(root.innerHTML, '');
 })().catch(error => { console.error(error); process.exitCode = 1; });
 """
-        run = subprocess.run(["node", "-e", code, str(PACKAGE / "正则.json")],
+        run = subprocess.run(["node", "-e", code, str(PACKAGE / "正则.json"),
+                              str(PACKAGE / "白潮 状态栏.html")],
                              capture_output=True, text=True, encoding="utf-8")
         self.assertEqual(run.returncode, 0, run.stderr)

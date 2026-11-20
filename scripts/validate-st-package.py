@@ -253,12 +253,16 @@ def validate_mvu_panel(script_list, rep):
     """核对最终发布的 AI 显示规则和替换后的内联脚本。"""
     marker = "<StatusPlaceHolderImpl/>"
     renderers = []
+    pending = []
     for rule in script_list:
         if rule.get("disabled") or 2 not in (rule.get("placement") or []):
             continue
         if not rule.get("markdownOnly") or not _matches(str(rule.get("findRegex", "")), marker):
             continue
         body = str(rule.get("replaceString") or "")
+        if body.startswith(PENDING_UI_MARK):
+            pending.append(rule)
+            continue
         if rule.get("promptOnly"):
             rep.fail("X07", "变量界面应只用于显示，HTML 不能发给模型")
         if type(rule.get("minDepth")) in (int, float) and rule["minDepth"] > 0:
@@ -271,6 +275,10 @@ def validate_mvu_panel(script_list, rep):
         reader = re.search(r"\b(?:getMvuData|getVariables|getAllVariables)\s*\(", code)
         if "<body" in body.lower() and reader and "stat_data" in code and "$1" not in body:
             renderers.append(rule)
+    if not renderers and pending:
+        rep.warn("X07", f"状态栏界面还是待粘贴态（{len(pending)} 条）：粘完后要满足——"
+                        f"`<body>` 里读 stat_data、替换串不要用 $1、minDepth 留空")
+        return
     if len(renderers) != 1:
         rep.fail("X07", f"需有一条 AI 显示正则把 {marker} 渲染为读 stat_data 的界面，实际 {len(renderers)} 条")
     else:
@@ -357,6 +365,16 @@ def validate_card(card: dict, card_path: Path | None, book_path: Path | None, re
     else:
         rep.fail("C10", f"extensions.regex_scripts 里有 {len(scripts) if isinstance(scripts, list) else '未知'} 条脚本："
                         "三件套要求正则单独一份")
+
+    # 纯净 = 不内嵌酒馆助手脚本（脚本单独一份，导入后在插件里开）
+    th_scripts, th_has = nested_get(data, "extensions.tavern_helper.scripts")
+    if not th_has or (isinstance(th_scripts, list) and not th_scripts):
+        rep.ok("C12", "卡里没有 tavern_helper.scripts（脚本单独一份）")
+    else:
+        n = len(th_scripts) if isinstance(th_scripts, list) else "未知"
+        rep.fail("C12", f"卡里内嵌了 {n} 条酒馆助手脚本：本次交付要求脚本单独一份"
+                        f"（`<世界名> 酒馆助手脚本.json`）。内嵌脚本要进角色白名单才跑，"
+                        f"和单独导入的同一份同时启用还会跑两遍")
 
     world = nested_get(data, "extensions.world")[0]
     if not world:
@@ -480,6 +498,18 @@ def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
 
 # ---------------------------------------------------------------- 正则
 
+# 界面还没粘进来时的标记，写在 replaceString 开头——忘粘时聊天里显示的就是这句话，
+# 比留空（等于删掉这行）或留标签（只剩 <建卡向导> 六个字）好排查得多。
+PENDING_UI_MARK = "【尚未粘贴界面】"
+
+
+def looks_like_ui(repl: str) -> bool:
+    """替换串是不是一段界面：```html 围栏，或整段 HTML 文档。"""
+    if "```html" in repl:
+        return True
+    low = repl.lower()
+    return "<html" in low and "</html>" in low
+
 def validate_regex_pack(scripts, path: Path | None, rep: Report) -> list[dict]:
     if scripts is None:
         return []
@@ -544,18 +574,27 @@ def validate_regex_pack(scripts, path: Path | None, rep: Report) -> list[dict]:
                           for t in ("update", "UpdateVariable", "StatusPlaceHolder"))
         if groups > 0 and not uses_dollar and not bookkeeping:
             rep.warn("R06", f"正则[{i}] 有 {groups} 个捕获组但 replaceString 没引用 $1（若有意为之可忽略）")
-        if uses_dollar and "```html" not in repl:
-            rep.warn("R06", f"正则[{i}] 的 replaceString 不是 ```html 围栏：酒馆助手不会把它当界面渲染")
+        pending = PENDING_UI_MARK in repl
+        if uses_dollar and not looks_like_ui(repl) and not pending:
+            rep.warn("R06", f"正则[{i}] 的 replaceString 既不是 ```html 围栏也不是整段 HTML："
+                            f"酒馆助手不会把它当界面渲染")
+        hiding = bookkeeping or any(w in str(s.get("scriptName", "")) for w in ("隐藏", "不显示", "不发送"))
+        if pending:
+            rep.ok("R07", f"正则[{i}] 界面待粘贴（导入包里带了 html，按导入说明粘）")
+        elif not repl.strip() and not hiding and s.get("markdownOnly") and 2 in (s.get("placement") or []):
+            rep.fail("R07", f"正则[{i}] 的 replaceString 是空的：空替换等于把这行字删掉，"
+                            f"界面和内容都不会出现")
     return [s for s in scripts if isinstance(s, dict)]
 
 
 # ---------------------------------------------------------------- 入口
 
-def find_files(arg: str) -> tuple[Path | None, Path | None, Path | None]:
+def find_files(arg: str) -> tuple[Path | None, Path | None, Path | None, Path | None]:
+    """从目录里认出四件：卡 / 正则 / 世界书 / 酒馆助手脚本（按文件名，内容由 sniff 兜底）。"""
     p = Path(arg)
     if not p.is_dir():
-        return p, None, None
-    card = regex = book = None
+        return p, None, None, None
+    card = regex = book = script = None
     files = sorted(p.glob("*.json")) or sorted(p.glob("*/*.json"))
     for f in files:
         low = f.name.lower()
@@ -563,11 +602,13 @@ def find_files(arg: str) -> tuple[Path | None, Path | None, Path | None]:
             book = book or f
         elif "正则" in f.name or "regex" in low:
             regex = regex or f
+        elif "酒馆助手脚本" in f.name or "tavern-helper" in low or "tavern_helper" in low:
+            script = script or f
         elif "（纯净）" in f.name or "(纯净)" in f.name or "pure" in low:
             card = card or f
         elif '"spec"' in f.read_text(encoding="utf-8", errors="ignore")[:600]:
             card = card or f  # 没按命名惯例，但确实是张卡
-    return card, regex, book
+    return card, regex, book, script
 
 
 def main(argv: list[str]) -> int:
@@ -592,7 +633,7 @@ def main(argv: list[str]) -> int:
         print(__doc__)
         return 2
 
-    card_path, regex_path, book_path = find_files(args[0])
+    card_path, regex_path, book_path, script_file = find_files(args[0])
     if len(args) > 1:
         regex_path = Path(args[1])
     if len(args) > 2:
@@ -601,8 +642,9 @@ def main(argv: list[str]) -> int:
     if card_path is None or not card_path.exists():
         here = Path(args[0])
         seen = sorted(x.name for x in here.iterdir()) if here.is_dir() else []
-        print("读不到角色卡。三件套要放在 `导入包/` 根下："
+        print("读不到角色卡。交付件要放在 `导入包/` 根下："
               "  <世界名>（纯净）.json · 正则.json · <世界名> 世界书.json"
+              " · <世界名> 酒馆助手脚本.json · <世界名> 开局前端.html · 导入说明.txt"
               f"当前目录里的东西：{seen or '（空）'}"
               "子目录里的旧包（单文件卡 / st/ 里那一坨）要按新规矩重打一次，别原地改。",
               file=sys.stderr)
@@ -719,21 +761,23 @@ def main(argv: list[str]) -> int:
     else:
         rep.ok("X05", "三件里都没有构建期占位符")
 
-    # X06 做了 mvu 阶段就得把东西带齐：卡内脚本、两条隐藏正则
+    # X06 做了 mvu 阶段就得把东西带齐：独立脚本文件（含 MVU 加载器）、两条隐藏正则
     stages = (contract or {}).get("stages") if isinstance(contract, dict) else {}
     stages = stages if isinstance(stages, dict) else {}
     stage_mvu = stages.get("mvu") if isinstance(stages, dict) else None
     if stage_mvu == "done":
         scripts = nested_get(data, "extensions.tavern_helper.scripts")[0]
-        if not isinstance(scripts, list) or not scripts:
-            rep.fail("X06", "`stages.mvu: done` 但卡里没有 extensions.tavern_helper.scripts："
-                            "MVU 不跑、变量永远是初值，而且不报错")
+        if isinstance(scripts, list) and scripts:
+            rep.ok("X06", f"卡内脚本 {len(scripts)} 条（C12 会另判这是不是该单独发）")
+        elif script_file is None:
+            rep.fail("X06", "`stages.mvu: done` 但既没有卡内脚本也没有 "
+                            "`<世界名> 酒馆助手脚本.json`：MVU 不跑、变量永远是初值，而且不报错")
         else:
-            names = " ".join(str(x.get("name", "")) for x in scripts if isinstance(x, dict))
-            if "MVU" not in names.upper():
-                rep.warn("X06", "卡内脚本里没有名字含 MVU 的那条（一般是 import 一行 bundle 的加载器）")
+            body = script_file.read_text(encoding="utf-8")
+            if "MVU" not in body.upper():
+                rep.warn("X06", "脚本文件里没有名字含 MVU 的那条（一般是 import 一行 bundle 的加载器）")
             else:
-                rep.ok("X06", f"卡内脚本 {len(scripts)} 条，含 MVU 加载器")
+                rep.ok("X06", f"独立脚本文件 {script_file.name} 里有 MVU 加载器")
         if not script_list:
             rep.fail("X06", "`stages.mvu: done` 但正则文件缺失")
         else:

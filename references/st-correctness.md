@@ -57,6 +57,17 @@ ST 读的是 `findRegex` / `replaceString` / `placement` / `markdownOnly` / `pro
 真机实测（1.19.0，2026-11-21）：导入 `character_book.name = "爱情公寓 世界书"`、`extensions.world = "爱情公寓 世界书"` 的卡，ST 自动生成 `worlds/爱情公寓 世界书.json`（33 条 / 559,165 B），不必手工再导一次书。缺省名字才是 `<角色名>'s Lorebook`（`world-info.js:5744`）。
 反过来：`character_book.name ≠ extensions.world` 时，书会落成另一个名字，而绑定只认 `extensions.world`（`:1128`），结果是**两本都对不上、一条都不激活**。`scripts/validate_st_semantics.py` 按 S-29 拦这一条。
 
+**[S-30] 正则导入时选目标：全局 / 角色专属 / 预设，三选一，默认全局**
+导入入口是 `regex/index.js:1750`，目标由三个 radio 决定（`:1754` 是 scoped 那个）。三个目标后果完全不同：
+
+| 目标 | 生效范围 | 还要做什么 |
+|---|---|---|
+| 全局（默认） | 所有角色、所有聊天 | 不用授权，但状态栏正则跑到别人卡上也会命中 |
+| 角色专属 | 只有当前角色 | 还要点一次「允许角色专属正则」（S-28），取消一次永久静音 |
+| 预设 | 跟随预设 | 换预设就失效 |
+
+本 skill 交付的 `正则.json` 一律**导入为全局**：少一次授权，也少一个静默失效点。代价是正则的 `findRegex` 必须足够窄（只匹配自己那套标签），否则会误伤别人的消息。
+
 ---
 
 ## 二、世界书（`世界书.json` 里的一条 = ST 的一个 world info entry）

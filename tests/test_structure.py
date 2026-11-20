@@ -66,7 +66,10 @@ class TestScripts(unittest.TestCase):
             text = md.read_text(encoding="utf-8")
             # 排除 public/scripts/xxx.js 这类 ST 源码锚点，只认包自己的 scripts/
             referenced.update(re.findall(r"(?<![\w/])scripts/([\w.\-]+\.(?:py|js|sh))", text))
-        missing = [n for n in sorted(referenced) if not (ROOT / "scripts" / n).exists()]
+        # 文档里说明「已删除」的脚本不算引用（迁移说明里会提到）
+        blob = "".join(m.read_text(encoding="utf-8") for m in (ROOT / "references").glob("*.md"))
+        removed = set(re.findall(r"`scripts/([\w.\-]+\.(?:py|js|sh))`[^\n]*删了", blob))
+        missing = [n for n in sorted(referenced - removed) if not (ROOT / "scripts" / n).exists()]
         self.assertEqual(missing, [], f"文档提到但脚本不存在：{missing}")
 
     def test_every_script_compiles(self):

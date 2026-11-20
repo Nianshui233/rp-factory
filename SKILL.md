@@ -1,7 +1,7 @@
 ---
 name: rp-factory
 metadata:
-  version: 1.1.00
+  version: 1.2.00
 description: 把 RP 构想编译成世界观、角色卡、场景卡、数值系统四类 YAML 设定产物，跨产物命名与硬设定保持一致；可选把数值投影成酒馆变量系统（MVU 的 zod 结构 + 初始化 + 更新条目）与按数值切换的分档控制器（EJS），可选再产开局界面与状态栏两种酒馆前端（正则 + HTML），整条流程跑完可再打一个能直接导入 SillyTavern 的包（角色卡 JSON + 世界书 JSON + 正则）。支持粘贴用提示词条目与工程文件两种交付。仅在用户显式输入 /skill:rp-factory 时执行，不参与自然语言自动匹配。
 disable-model-invocation: true
 ---
@@ -120,7 +120,6 @@ disable-model-invocation: true
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
 | `check_acceptance.py` | 验收账本 A00–A06（L5/L6 只能人签；L4 写 11 维之一） |
-| `scripts/embed-book.py` | 世界书双入口：把 native 书内嵌进卡（`character_book`） |
 | `scripts/run_checks.sh` | 一键全检：结构 + 单测 + 加载预算（给创作目录时再查产物） |
 | `references/rehearsal.md` | 试演：四类证据、最小响应八种、四类判据、≤5 轮、禁整卡重写 |
 | `references/acceptance.md` | 六层证据、谁能签哪一层、账本格式 |
@@ -137,10 +136,10 @@ disable-model-invocation: true
 | `references/stage-6-statusbar-ui.md` | 阶段 `statusbar` 状态栏前端（有 MVU 走变量、没有走标签） |
 | `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 `delivery` 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning（三灯、套餐、关键词、位置、预算、递归、概率） |
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `制作文件/`，不进终稿） |
-| `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
+| `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` / `import-guide.txt` | 界面骨架、正则骨架（替换为待粘占位）、提示词条目、导入说明 |
 | `templates/mvu-schema.js` / `mvu-initvar.yaml` / `mvu-entries.yaml` / `regex-mvu.json` / `tavern-script.json` / `ejs-controller.ejs` | 变量系统的五份骨架 + 分档控制器 |
 | `scripts/check-stage.py` | 阶段收尾一检：按阶段自动调下面这些校验器 |
-| `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py`（F01–F14） · `validate-mvu.py` · `validate-ejs.py` · `validate_st_semantics.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 七个校验器 |
+| `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py`（F01–F14） · `validate-mvu.py` · `validate-ejs.py` · `validate_st_semantics.py` | 交付骨架（卡 / 正则 / 世界书 / 脚本）+ 七个校验器 |
 | `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（探测静默跑；导入与验收只在用户点头后跑） |
 | `scripts/check_prose.py` | P01–P09 去 AI 味提示（解释腔 / 情绪直说 / 陈词比喻 / 模板标签 / 绝对化失衡），自检门顺手跑 |
 | `check_st_facts.py` + `tests/` | 复核 `st-correctness.md` 的源码锚点、加载量预算、全套单测（改完跑 `python -m unittest discover -s tests -t .`） |
@@ -158,7 +157,7 @@ disable-model-invocation: true
 
 ## 十、收尾问（最后才问）
 
-`project.stages_requested` 里的阶段全部 `done` 之后，**问一次、只问一次**：原生产物（默认，把 `制作文件/产物/` 复制进 `导入包/`）/ SillyTavern 三件套（`<世界名>（纯净）.json` + `正则.json` + `<世界名> 世界书.json`，用户自己装配）/ 两者都要。
+`project.stages_requested` 里的阶段全部 `done` 之后，**问一次、只问一次**：原生产物（默认，把 `制作文件/产物/` 复制进 `导入包/`）/ SillyTavern 分包（卡 + 世界书 + 正则 + 脚本 + 界面 html + 导入说明，用户自己装配）/ 两者都要。
 
 - 写 `delivery.route` 为 `native` / `st` / `both`；选酒馆包才进 `delivery`，选原生就把 `stages.delivery` 写 `skipped`。
 - 不问名字（默认 `project.name`）、不问放哪（`导入包/` 根下）、不生成头像。

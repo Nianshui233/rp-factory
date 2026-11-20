@@ -103,11 +103,13 @@ Schema
 
 做了 `statusbar` 阶段的项目，第三条撤掉——状态栏要读它。
 
-### 卡内脚本必须内嵌，且必须手动启用
+### 脚本单独一份，不内嵌进卡
 
-- 卡里 `data.extensions.tavern_helper.scripts` 放两条：`MVU`（一行 import）与变量结构脚本（`templates/tavern-script.json` 的形状：`{type, enabled, name, id, content}`）。
-- **导入后脚本默认不跑，也不报错。** 要在酒馆助手 → 脚本 → 该角色里启用一次（`enabled.characters` 白名单含该 avatar）。交付说明必须点名这一步，否则用户以为坏了。
-- 卡内脚本跑在独立 iframe 里，`Mvu` 挂在 `window.parent`；脚本内部用 `Mvu.xxx` 即可。
+- 产出 `制作文件/产物/mvu/tavern-script-{变量结构,mvu}.json`，形状照 `templates/tavern-script.json`（`MVU` 那条只有一行 import，另一条是 `mvu-schema.js` 全文）。
+- 交付时合成 `<世界名> 酒馆助手脚本.json`：单条就是那个对象，多条用文件夹包一层 `{type:'folder', name, id, scripts:[…]}`。
+- **卡里 `data.extensions.tavern_helper` 不写**（C12 会拦）：内嵌要进白名单才跑，和单独导入的同时启用会跑两遍。
+- **导入后默认不跑也不报错**：插件导入时就把 `enabled` 置 false 并换 `id`（TH-11）。要在脚本库里手动打开；文件夹形态是打开文件夹而不是逐个开。导入说明必须点名。
+- 脚本跑在独立 iframe 里，`Mvu` 挂在 `window.parent`，脚本内直接用 `Mvu.xxx`。
 
 ## 生成
 

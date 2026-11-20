@@ -62,11 +62,11 @@ MIT 精神的自用工具，无担保。**它不能替你保证「好玩」**—
 | 阶段 | 9 个 | `world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery` |
 | 硬门 | 14 道 | 从开工门到自创字段门，编号 0–13，判据只写在 `references/pipeline.md` |
 | 参考页 | 22 份 | 阶段做法、契约规范、ST 语义事实、酒馆助手接口、验收、试演、去 AI 味 |
-| 骨架 | 21 份 | 契约 + 四类设定 + MVU 五件 + 两个界面 + 三件套，填完即交付 |
+| 骨架 | 22 份 | 契约 + 四类设定 + MVU 五件 + 两个界面 + 交付四件 + 导入说明，填完即交付 |
 | 校验器 | 9 个 + 1 个总检 | 结构、语义、前端、变量、EJS、验收账本；`check-stage.py` 按阶段自动挑 |
-| 断言 | 责任分散但**可数** | `C01–C17` / `R00–R06` / `W00–W16` / `X01–X07` / `S-01–S-29+S-M1–M3` / `TH-01–TH-10` / `F01–F14` / `P01–P09` / `A00–A06` |
-| 单测 | 161 个 | `python -m unittest discover -s tests -t .` |
-| 源码锚点 | 44 条 | 34 条 ST 1.19.0 + 10 条酒馆助手 4.12.1，漂了会红 |
+| 断言 | 责任分散但**可数** | `C01–C17` / `R00–R07` / `W00–W16` / `X01–X07` / `S-01–S-30+S-M1–M3` / `TH-01–TH-11` / `F01–F14` / `P01–P09` / `A00–A06` |
+| 单测 | 166 个 | `python -m unittest discover -s tests -t .` |
+| 源码锚点 | 48 条 | 36 条 ST 1.19.0 + 12 条酒馆助手 4.12.1，漂了会红 |
 
 ## 开始用
 
@@ -116,11 +116,11 @@ delivery   → 白潮（纯净）.json / 正则.json / 白潮 世界书.json
 | `cast` | `rolecard.yaml` | `description` / `personality` / `first_mes` / `mes_example` / `system_prompt`；NSFW 时 `nsfw` 块七键齐全 |
 | `scenes` | `scene-sheet.yaml` | 地点、可达性、在场者、可发生事件、禁区；强结构给十块 |
 | `axes` | `axis-system.yaml` | 轴的语义、范围、初值依据、触发事件、可见性 |
-| `mvu` | `变量结构.js` `[initvar]…yaml` `变量规则.yaml` `regex-mvu.json` | 把轴投影成 zod + 初始化 + 更新条目 + 隐藏正则 + 卡内脚本 |
+| `mvu` | `变量结构.js` `[initvar]…yaml` `变量规则.yaml` `regex-mvu.json` `tavern-script-*.json` | 把轴投影成 zod + 初始化 + 更新条目 + 隐藏正则 + 独立脚本文件 |
 | `ejs` | `阶段控制器.ejs` + 分档条目 | 按数值换提示词；有「什么时候不该做」的判据 |
 | `opening` | `*-ui.html` `regex-*.json` `frontend-prompt.yaml` | 登场面板 / 建卡向导两形态，靠酒馆助手渲染 |
 | `statusbar` | 同上 | 有 MVU 走变量，没有走标签 |
-| `delivery` | 三件套 | 纯净卡（无内嵌书）+ 正则数组 + native 世界书，放 `导入包/` 根下 |
+| `delivery` | 分包 | 纯净卡 + native 世界书 + 正则数组（界面替换是待粘占位）+ 脚本 + 两个 html + 导入说明，平铺在 `导入包/` |
 </details>
 
 ## 十四道硬门
@@ -152,8 +152,8 @@ delivery   → 白潮（纯净）.json / 正则.json / 白潮 世界书.json
 | --- | --- | --- |
 | `scripts/validate-contract.py` | `C00–C17` | 契约自洽：阶段状态、产物索引、交付路线、命名表、演出许可三档 |
 | `scripts/validate-rolecard.py` | 1–12 | 角色卡骨架、占位符、事实分级（稳定 / 临时）、越界标记 |
-| `scripts/validate-st-package.py` | `C` `R` `W` `X` | 三件套结构：卡字段、正则数组、世界书条目、跨文件绑定 |
-| `scripts/validate_st_semantics.py` | `S-01–S-29` | **只抓静默失效**：两套正则方言、`$<name>`、书位置枚举、卡内 scoped 正则未授权、书名绑定 |
+| `scripts/validate-st-package.py` | `C` `R` `W` `X` | 分包结构：卡字段、卡内不许内嵌、正则数组、世界书条目、跨文件绑定 |
+| `scripts/validate_st_semantics.py` | `S-01–S-30` | **只抓静默失效**：两套正则方言、`$<name>`、书位置枚举、卡内 scoped 正则未授权、书名绑定、正则导入目标 |
 | `scripts/validate-frontend.py` | `F01–F14` | HTML 骨架、外链、危险 API、实体、事件名、相对路径、裸定时器 |
 | `scripts/validate-mvu.py` | — | 变量结构可编译、`[initvar]` 与 schema 对齐、更新条目、隐藏正则 |
 | `scripts/validate-ejs.py` | — | EJS 语法纪律、变量路径、被控条目存在且已禁用、边界连续 |
@@ -185,9 +185,13 @@ SillyTavern 有一类错误不抛异常、不写日志、界面上也不报错�
                            # 验收.yaml（六层证据，L5/L6 只能人签）/ 试演记录.yaml
     产物/                  # 四类设定 + MVU/EJS + 两个界面的 HTML
   导入包/                  # 交付成品，平铺，交付前必须空着
-    白潮（纯净）.json
-    正则.json
-    白潮 世界书.json
+    白潮（纯净）.json      # 卡：character_book / regex_scripts / tavern_helper 一个都不内嵌
+    白潮 世界书.json       # 文件名 = 书名 = extensions.world
+    正则.json             # 替换里是「【尚未粘贴界面】…」待粘占位
+    白潮 酒馆助手脚本.json  # 做了 mvu/ejs 才有；导入后默认关着
+    白潮 开局前端.html     # 粘贴素材：记事本打开 → 复制 → 粘到那条正则的替换里
+    白潮 状态栏.html
+    导入说明.txt
 ```
 
 根下只有这两个文件夹，不散落 README、清单、脚本或隐藏账本——`validate-contract.py` 的 **C17** 会查旧布局（`创作痕迹/`、`最终产物/`）与根目录散落文件。改名或迁移过的旧项目要先按新布局搬完再跑，不保留两套。
@@ -238,7 +242,7 @@ skill 最容易悄悄变胖：每加一句话，每个阶段都多读一遍。
 
 ```bash
 bash scripts/run_checks.sh                       # 包自身：结构 + 单测 + 加载预算
-bash scripts/run_checks.sh <某创作目录>            # 再加：契约 / 三件套 / 语义 / 验收
+bash scripts/run_checks.sh <某创作目录>            # 再加：契约 / 交付包 / 语义 / 验收
 PYTHONIOENCODING=utf-8 python scripts/check_st_facts.py   # 44 条源码锚点是否还站得住
 python scripts/measure_load.py                    # 九阶段加载量 vs 基线
 ```

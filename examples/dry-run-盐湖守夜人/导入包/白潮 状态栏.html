@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  .rp-sb {
+    --rp-sb-bg: #12171a;
+    --rp-sb-fg: #dfe3df;
+    --rp-sb-dim: #8b9698;
+    --rp-sb-line: #2b3438;
+    --rp-sb-accent: #d9b26a;
+    --rp-sb-warn: #c8912f;
+    --rp-sb-danger: #b5442f;
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, "Noto Sans SC", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--rp-sb-fg);
+    background: var(--rp-sb-bg);
+    border: 1px solid var(--rp-sb-line);
+    border-radius: 6px;
+    padding: 12px 14px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .rp-sb * { box-sizing: border-box; }
+  .rp-sb-meta {
+    display: flex; flex-wrap: wrap; gap: 4px 14px;
+    margin: 0 0 10px; padding: 0 0 8px;
+    border-bottom: 1px solid var(--rp-sb-line);
+    color: var(--rp-sb-dim); font-size: 12px;
+  }
+  .rp-sb-meta span { white-space: nowrap; }
+  .rp-sb-rows { display: grid; gap: 8px; }
+  .rp-sb-row { display: grid; grid-template-columns: minmax(4.5em, auto) 1fr auto; align-items: center; gap: 10px; }
+  .rp-sb-name { font-size: 12px; letter-spacing: .06em; color: var(--rp-sb-dim); }
+  .rp-sb-bar { position: relative; height: 6px; background: var(--rp-sb-line); border-radius: 3px; overflow: hidden; }
+  .rp-sb-fill { display: block; height: 100%; width: 0; background: var(--rp-sb-accent); border-radius: 3px; transition: width .35s ease; }
+  .rp-sb-val { font-variant-numeric: tabular-nums; font-size: 12px; min-width: 4.5em; text-align: right; color: var(--rp-sb-fg); }
+  .rp-sb-delta { font-size: 11px; margin-left: 4px; color: var(--rp-sb-dim); }
+  .rp-sb-row.is-warn .rp-sb-fill { background: var(--rp-sb-warn); }
+  .rp-sb-row.is-danger .rp-sb-fill { background: var(--rp-sb-danger); }
+  .rp-sb-row.is-danger .rp-sb-val { color: var(--rp-sb-danger); }
+  .rp-sb-row.is-danger .rp-sb-bar { animation: rp-sb-pulse 2.4s ease-in-out infinite; }
+  @keyframes rp-sb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .62; } }
+  @media (prefers-reduced-motion: reduce) {
+    .rp-sb-fill { transition: none; }
+    .rp-sb-row.is-danger .rp-sb-bar { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="rp-sb" id="rp-sb-root"></div>
+<script>
+(function () {
+  'use strict';
+
+  var HIDE_UNKNOWN = true;            // 值为 未知 时整条隐去；false 则显示灰条 + 未知
+
+  /* kind: 'text' 进抬头信息条；'bar' 进数值行
+     dir:  'up' 值越高越好；'down' 值越高越危险；'none' 不上色
+     warn / danger: 危险区起点（按 dir 判断方向），不给就不上色
+     range 抄 axis-system.yaml 的对应轴 range */
+  var FIELDS = [
+    { name: '时间', kind: 'text' },
+    { name: '地点', kind: 'text' },
+    { name: '灯芯', kind: 'bar', min: 0, max: 100, dir: 'down', warn: 34, danger: 15, unit: '' },
+    { name: '潮压', kind: 'bar', min: 0, max: 100, dir: 'up', warn: 60, danger: 82, unit: '', decimals: 0 }
+  ];
+
+  var ROOT = document.getElementById('rp-sb-root');
+  var NUM_RE = /^-?\d+(?:\.\d+)?$/;
+
+  function esc(s) {
+
+    // 实体一律用 \x26 拼：正文里的实体写法会被渲染管线多吃掉一层（见 frontend-conventions 三之一）
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '\x26amp;', '<': '\x26lt;', '>': '\x26gt;', '"': '\x26quot;', "'": '\x26#39;' }[c];
+    });
+  }
+
+  function snapshot(id) {
+    if (id < 0) return null;
+    var saved = Mvu.getMvuData({ type: 'message', message_id: id });
+    var state = saved && saved.stat_data;
+    if (!state) return null;
+    var world = state.世界 || {};
+    var actor = (state.角色 || {}).祁昭 || {};
+    return {
+      时间: [world.日期, world.时段].filter(Boolean).join(' · '),
+      地点: world.地点 || '',
+      灯芯: actor.wick == null ? '' : String(actor.wick),
+      潮压: actor.tide == null ? '' : String(actor.tide)
+    };
+  }
+
+  function fmt(n, f) {
+    var d = f.decimals == null ? (Math.abs(n) >= 10 || n % 1 === 0 ? 0 : 1) : f.decimals;
+    return n.toFixed(d) + (f.unit || '');
+  }
+
+  function zone(f, v) {
+    if (f.dir === 'none' || f.warn == null) return '';
+    if (f.dir === 'down') {
+      if (f.danger != null && v <= f.danger) return ' is-danger';
+      if (v <= f.warn) return ' is-warn';
+      return '';
+    }
+    if (f.danger != null && v >= f.danger) return ' is-danger';
+    if (v >= f.warn) return ' is-warn';
+    return '';
+  }
+
+  function deltaHtml(f, v, prev) {
+    if (!prev || prev[f.name] == null || !NUM_RE.test(prev[f.name])) return '';
+    var p = parseFloat(prev[f.name]);
+    var d = v - p;
+    if (Math.abs(d) < 1e-9) return '';
+    var arrow = d > 0 ? '↑' : '↓';
+    return '<span class="rp-sb-delta">' + arrow + esc(fmt(Math.abs(d), f)) + '</span>';
+  }
+
+  function render() {
+    var id = getCurrentMessageId();
+    var data = snapshot(id);
+    if (!data) { ROOT.innerHTML = ''; return; }
+
+    var prev = snapshot(id - 1);
+    var meta = [];
+    var rows = [];
+
+    FIELDS.forEach(function (f) {
+      var raw = data[f.name];
+      if (f.kind === 'text') {
+        if (raw) meta.push('<span>' + esc(raw) + '</span>');
+        return;
+      }
+      var known = raw !== '' && NUM_RE.test(raw);
+      if (raw === '未知' || raw === '') {
+        if (HIDE_UNKNOWN) return;
+        rows.push('<div class="rp-sb-row"><span class="rp-sb-name">' + esc(f.name) +
+          '</span><div class="rp-sb-bar"><span class="rp-sb-fill" style="width:0"></span></div>' +
+          '<span class="rp-sb-val">未知</span></div>');
+        return;
+      }
+      if (!known) {
+        rows.push('<div class="rp-sb-row"><span class="rp-sb-name">' + esc(f.name) +
+          '</span><div class="rp-sb-bar"><span class="rp-sb-fill" style="width:0"></span></div>' +
+          '<span class="rp-sb-val">' + esc(raw) + '</span></div>');
+        return;
+      }
+      var v = parseFloat(raw);
+      var span = f.max - f.min || 1;
+      var pct = Math.max(0, Math.min(100, ((v - f.min) / span) * 100));
+      rows.push('<div class="rp-sb-row' + zone(f, v) + '">' +
+        '<span class="rp-sb-name">' + esc(f.name) + '</span>' +
+        '<div class="rp-sb-bar"><span class="rp-sb-fill" style="width:' + pct.toFixed(1) + '%"></span></div>' +
+        '<span class="rp-sb-val">' + esc(fmt(v, f)) + deltaHtml(f, v, prev) + '</span></div>');
+    });
+
+    ROOT.innerHTML =
+      (meta.length ? '<div class="rp-sb-meta">' + meta.join('') + '</div>' : '') +
+      (rows.length ? '<div class="rp-sb-rows">' + rows.join('') + '</div>' : '');
+  }
+
+  // MVU 写回本楼后会刷新该楼，刷新时重新读取本楼快照。
+  if (typeof waitGlobalInitialized === 'function') {
+    waitGlobalInitialized('Mvu').then(render).catch(function () { ROOT.textContent = '变量暂不可用'; });
+  }
+
+})();
+</script>
+</body>
+</html>

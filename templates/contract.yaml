@@ -30,7 +30,7 @@ stages:                    # 每阶段状态，名字键，不是标量。顺序
   delivery: none           # 交付/打包：只在最后一次进入；选原生路线写 skipped
 
 delivery:                  # 收尾问一次：交付到哪（不选就按 native）
-  route: "native"          # native（把 制作文件/产物/ 复制进 导入包/）| st（三件套）| both
+  route: "native"          # native（把 制作文件/产物/ 复制进 导入包/）| st（分包：卡/书/正则/脚本/说明）| both
   st_name: ""              # 角色卡名，默认 = project.name；世界书名 = "<st_name> 世界书"（= 文件名）
   files: []                # 相对 导入包/ 的文件名列表：<st_name>（纯净）.json / 正则.json / <st_name> 世界书.json
 

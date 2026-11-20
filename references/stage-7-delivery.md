@@ -9,7 +9,7 @@
 - `project.stages_requested` 里的阶段都已 `done`（有 `partial` 就先问一句"还差 X，先打包还是补完"）。
 - 要出酒馆包，必须有 `rolecard` 与 `world-bible`；缺任一个就只能走原生产物，或先回阶段 1 / 2。
 - 阶段 `opening` / `statusbar` 没做也能打包：只是正则那一件少脚本，第一楼是纯文字开场。
-- 做了 `mvu` → 卡里要带 `data.extensions.tavern_helper.scripts`（MVU 加载器 + 变量结构），`正则.json` 要带隐藏 `<UpdateVariable>` 的两条；交付说明里多一句"进酒馆助手把这两个脚本启用"。**不带脚本的 MVU 包等于没做变量系统**，而且不会报错。
+- 做了 `mvu` → 另发 `<世界名> 酒馆助手脚本.json`（MVU 加载器 + 变量结构），`正则.json` 带隐藏 `<UpdateVariable>` 两条，卡里**不内嵌**。导入说明写「导入后手动打开那个文件夹」。**不带脚本的 MVU 包等于没做变量系统**，且不报错。
 - **`导入包/` 此刻应该是空的**。里面有任何东西（HTML、正则、卡）都是流程跑错了，先把它们挪回 `制作文件/产物/` 再进本阶段。
 
 ## 追问
@@ -21,10 +21,10 @@
 | 选项 | 交出什么 | 谁用 |
 |---|---|---|
 | **原生产物**（默认） | 把 `制作文件/产物/` 里的 YAML + HTML 复制进 `导入包/` | 自己留着改、喂给别的 AI、当代稿 |
-| **SillyTavern 三件套** | `<世界名>（纯净）.json` + `正则.json` + `<世界名> 世界书.json`，用户自己装配 | 想在酒馆里跑 |
+| **SillyTavern 分包** | 卡 + 世界书 + 正则 +（脚本、前端 html、导入说明），各自单独导入 | 想在酒馆里跑 |
 | **两者都要** | 上面两份都留 | 想改又想在酒馆里跑 |
 
-三件套是**分开的三份**，各自单独导入、由用户自己组合。不做单文件内嵌卡——那种卡改一处要重新导一次整卡，世界书和正则也没法单独迭代。
+交付是**分开的几份**，各自单独导入。不做单文件内嵌卡——改一处要重导整卡，书和正则也没法单独迭代。
 
 不问的：文件叫什么（默认 = `project.name`）、放哪（就是 `导入包/`）、要不要头像（不生成图片）、导入顺序（说明里给）。用户主动要别的名字时照填。
 
@@ -32,7 +32,7 @@
 
 | 选择 | 我做什么 | 交出什么 |
 |---|---|---|
-| **要，帮我导并测** | 先跑交付门校验器，再 `python scripts/st-import.py --st auto --pkg <三件套目录>`（逐件导入：卡 / 世界书 / 正则），有界面再 `node scripts/st-probe.js --char <卡名>` 量 iframe 高度 | 一行结论 + 逐项 PASS/WARN；没成就把卡在哪一步说清 |
+| **要，帮我导并测** | 先跑交付门校验器，再 `python scripts/st-import.py --st auto --pkg 导入包`（逐件导入：卡 / 世界书；正则与脚本只校验不代劳），有界面再 `node scripts/st-probe.js --char <卡名>` 量 iframe 高度 | 一行结论 + 逐项 PASS/WARN；没成就把卡在哪一步说清 |
 | **不用，给我文件** | 只跑校验器与肉眼三条 | 文件 + 四句话（装配四步、渲染开关、世界书挂哪、触发词该出现在哪条消息） |
 
 不问第二问的两种情况：`project.sillytavern` 是 `null`（没装）、或 `running_url` 是空（装了没在跑）。这时只说一句"现在没有在跑的实例，启动后要我导也说一声"，然后把文件交出去。
@@ -41,13 +41,14 @@
 
 ## 判断标准
 
-- **三件各管一件事**：卡只装"每轮都要在的骨架"，世界书装"按需加载的细节"，正则装"把标签渲染成界面"。同一段话只在一处出现。
-- **卡是纯净的**：`data.character_book` 不写，`data.extensions.regex_scripts` 写空数组。**唯一例外**是 `mvu` 阶段的 `extensions.tavern_helper.scripts`——它不是世界书也不是正则，是脚本本体，必须跟着卡走（或者单独发 `酒馆助手脚本-*.json`，两者选一，别都做）。卡里塞内嵌书会让"改一条设定"变成"重导整卡"，用户也没法单独换世界书。
-- **世界书名三处一致**：`<世界名> 世界书.json` 的**文件名** = 酒馆里的书名（导入时用文件名建书）；卡里 `data.extensions.world` 写同一个名字。名字不一致，卡导进去后不会自动挂上书。
-- **第一楼不是裸标签**：`first_mes` 里的标签必须能被 `正则.json` 里某个 `findRegex` 接住；接不住就把 `first_mes` 换成一句普通开场白。
+- **分包不内嵌**：卡装骨架、世界书装细节、正则装界面、脚本装数值，**卡里三样都不内嵌**（`character_book` / `regex_scripts` / `tavern_helper`）。内嵌的每一件在酒馆里都有一套静默授权规则（S-28 / S-29 / 脚本白名单），分开的四件导入失败时当场报错。
+- **卡是纯净的**：`character_book` 不写、`regex_scripts` 为 `[]`、`tavern_helper` 不写（C09 / C10 / C12 各拦一个）。
+- **世界书名三处一致**：书的**文件名** = 酒馆里的书名 = 卡里 `data.extensions.world`。不一致时卡导进去不会自动挂书，也不报错（S-29）。
+- **界面不是文件**：`.html` 导不进酒馆，它只是**粘贴素材**（记事本打开 → 复制 → 粘到那条正则的替换里）。所以交出去的 `正则.json` 里是**醒目的待粘占位** `【尚未粘贴界面】…`：留空等于删掉这行，留裸标签只剩六个字，都看不出该干什么。
+- **第一楼不是裸标签**：`first_mes` 里的标签要被 `正则.json` 里某条 `findRegex` 接住，接不住就换成普通开场白。
 - **界面看 DOM，不看消息文本**：`first_mes` 存的就是六个字 `<建卡向导>`，替换在显示层发生。所以"消息里只有标签"可能失败也可能正常——判据是那一楼有没有 iframe/控件、控制台有无报错。出来时 `TH-render` + iframe≈674px（`srcdoc` 约 1.9 万字），出不来时 iframe=0 且**毫无报错**（S-28）。
-- **内容有预算**：`description` ≤8000 字（校验器 X01 盯着）。群像卡的主要篇幅在人物条目里，不在 `description`。
-- **名字与契约一致**：卡名 = `delivery.st_name` = 卡文件名（不含"（纯净）"）；世界书名 = 书文件名 = `extensions.world`。
+- **名字与契约一致**：卡名 = `delivery.st_name` = 卡文件名（不含"（纯净）"）。
+- **必给 `导入说明.txt`**：四个默认关着的开关全靠这张纸。
 
 ## 生成
 
@@ -74,23 +75,14 @@
 | `tags` / `data.tags` | 类型、基调、`rating` 各一个 |
 | `creator` / `character_version` | `"RP-Factory"` / `"1.0"`（改一次设定加 0.1） |
 | `spec` / `spec_version` | `"chara_card_v2"` / `"2.0"` |
-| `data.extensions.world` | `<世界名> 世界书`——与世界书文件名逐字一致 |
-| `data.extensions.regex_scripts` | `[]`（正则单独一份，不内嵌） |
+| `data.extensions.world` | `<世界名> 世界书`——与书名逐字一致 |
+| `data.extensions.regex_scripts` | `[]`（正则单独一份） |
 | `data.extensions.talkativeness` / `fav` / `depth_prompt` | `"0.5"` / `false` / `{prompt: "", depth: 4, role: "system"}` |
 | `create_date` | `YYYY-MM-DD` |
 
-**默认不写 `character_book`**，书单独一份、靠 `extensions.world` 同名挂上。要给用户单文件交付时才启用第二入口：
+**不写 `character_book`**：书单独一份，靠 `extensions.world` 同名挂上。
 
-```bash
-python scripts/embed-book.py --card "<世界名>（纯净）.json" --book "<世界名> 世界书.json"     --name "<世界名> 世界书" --out "<世界名>（内嵌书）.json"
-```
-
-脚本把 native 条目反向映射成 v2 `character_book`（`keys`/`secondary_keys`/`insertion_order`/`enabled`，位置完整值放 `extensions.position`——ST 只认这条，见 `references/st-correctness.md` S-15），顶层与 `data` 各写一份，然后**回读比对**：自己复刻一遍 `convertCharacterBook`，逐字段核对，有任何字段 ST 不认就报出来（退出码 1）。三个必须交底的代价：
-
-1. 导入后书名叫 `character_book.name`（缺省才是 `<角色名>'s Lorebook`），**必须与 `extensions.world` 逐字一致**，否则书落成另一个名字、一条都不激活（S-29；书已存在时连提示都不弹，S-24）。
-2. 卡在世界书未选的状态下保存，ST 会删掉 `data.character_book`（S-16）。导入完必须把书选上再存。
-
-顶层与 `data` 里同名字段都填同一份内容：ST 读 `data`，别的工具读顶层。
+> 「把书内嵌进卡」的第二入口（`scripts/embed-book.py`）v1.2.00 删了：它造出的卡正是 C09 要拦的。内嵌书的四个触发前提（S-16 / S-24 / S-29）仍留在 `references/st-correctness.md`，看别人的卡时用得上。
 
 ### 三、世界书装什么（`<世界名> 世界书.json`）
 
@@ -122,44 +114,72 @@ python scripts/embed-book.py --card "<世界名>（纯净）.json" --book "<世�
 
 一个 **数组**，一条正则一个对象，字段见 `templates/regex-frontend.json`（单对象文件也能导）。
 
-- 阶段 5 有 → 一条：`scriptName` 带"建卡向导"，`findRegex` 只匹配标签（`/<建卡向导>/g`），`placement: [2]`（AI 输出）、`markdownOnly: true`、`runOnEdit: true`。
-- 有 MVU：隐藏更新块的提示词与显示规则均启用。有变量状态栏就保留挂载标签；无面板时可用空替换隐藏它。
+- 阶段 5 有 → 一条：`findRegex` 只匹配标签（`/<建卡向导>/g`）、`placement: [2]`、`markdownOnly: true`、`runOnEdit: true`。
+- 有 MVU：隐藏更新块的提示词与显示规则均启用。有变量状态栏就保留挂载标签；无面板时可用空替换隐藏它（隐藏类正则的空替换合法，S-26）。
 - 有状态栏：MVU 路径匹配 `<StatusPlaceHolderImpl/>`，替换成读取本楼 stat_data 的界面；文本路径匹配项目标签，按选定的数据路径配置捕获组。
-- `replaceString` 的 HTML 用 `templates/wizard-ui.html` / `templates/statusbar.html` 填，改完留到收尾一检，不在这里单独跑。
+- **带界面的两条 `replaceString` 交出去时是待粘占位**，不是 HTML 也不是空：
+
+```text
+【尚未粘贴界面】打开「<世界名> 开局前端.html」，全选复制（从 <!DOCTYPE html> 到 </html>），
+粘到本条正则的「替换」里覆盖这段话。
+```
+
+- 源文件留在 `制作文件/产物/{wizard-ui,statusbar-ui}.html`，交付时复制成 `<世界名> 开局前端.html` / `<世界名> 状态栏.html` 放进 `导入包/`。
 - 内联脚本里需要 HTML 实体时用 `\u0026` 拼（`'\u0026amp;'`）——酒馆会把消息里的实体再解一次码，写 `&amp;` 会让脚本语法错误、界面塌成 2px。
 
-### 五、装配四步（写进 `creator_notes`，也是交付说明里的四句话）
+### 五、脚本装什么（`<世界名> 酒馆助手脚本.json`，只有做了 `mvu` / `ejs` 才有）
 
-1. **世界书**：世界书面板 → 导入 → 选 `<世界名> 世界书.json`。**文件名就是书名**（改文件名 = 换书名）。
-2. **角色卡**：角色页 → 导入 → 选 `<世界名>（纯净）.json`。导完在卡片设置里把世界书选成 `<世界名> 世界书`（卡里已写 `extensions.world`，同名时自动挂上，小地球会变绿）。
-3. **正则**：设置 → 扩展 → 正则 → 导入 → 选 `正则.json`。导入时问"导入为全局 / 角色专属 / 预设"，选**全局**（不用白名单）。这一件必须界面点，脚本写 `settings.json` 会被运行中的客户端盖掉。
-4. **渲染**：设置 → 扩展 → 酒馆助手 → 打开"消息渲染"（`render.enabled`）。回聊天，第一条消息应出现建卡向导。
-5. **脚本**（只有做了 `mvu`）：酒馆助手 → 脚本库 → 把卡里的两条脚本**启用**（`script.enabled.characters` 要包含这个卡）。不启用时 MVU 静默不跑，变量永远是初值。
+形状照插件自己的导出：单脚本就是 `templates/tavern-script.json` 那个对象；两条以上用文件夹包一层：
 
-### 六、文件放哪
+```json
+{ "type": "folder", "enabled": false, "name": "<世界名>", "id": "<uuid>", "scripts": [ … , … ] }
+```
+
+- 正文从 `mvu` 阶段的 `tavern-script-*.json` 原样搬，**不要手抄**（会漂移）。
+- `enabled` 写什么都无所谓：插件导入时一律置 `false` 并重生成 `id`（TH-11），要用户手动打开，这一条必须进导入说明。
+- **不要同时内嵌进卡**：内嵌那份要进角色白名单才跑；与单独导入的同一份同时启用会跑两遍、数值翻倍。
+
+### 六、装配五步（写进 `creator_notes`，也是 `导入说明.txt` 的骨架）
+
+1. **世界书**：世界书面板 → 导入 → `<世界名> 世界书.json`（文件名就是书名）。
+2. **角色卡**：角色页 → 导入 → `<世界名>（纯净）.json`，确认小地球变绿。
+3. **正则 + 界面**：正则扩展 → 导入 `正则.json`，目标选**全局**；再手动把 `.html` 粘进那条正则的替换里。
+4. **脚本**：酒馆助手脚本库 → 导入 `<世界名> 酒馆助手脚本.json` → **手动打开那个文件夹**；确认「消息渲染」开着。
+5. **初始化**：进聊天发一条消息让 MVU 跑一遍，看状态栏有没有数字。
+
+照 `templates/import-guide.txt` 的骨架落成 `导入包/导入说明.txt`，删掉本包没有的段落。
+
+### 七、文件放哪
 
 **`导入包/` 在选定路线之前必须是空的**——过程产物一律在 `制作文件/` 里，交付时才复制过来：
 
 ```
 <项目>/制作文件/产物/            # 运行期的终稿，一直在这
   world-bible.yaml · rolecard/*.yaml · scene/*.yaml · axis/*.yaml
-  opening-ui.html · regex-opening.json（草稿）· statusbar-ui.html
+  wizard-ui.html · statusbar-ui.html · regex-opening.json（草稿）
+  mvu/tavern-script-*.json
 
-<项目>/导入包/                 # 交付前：空；选定路线后才有内容
+<项目>/导入包/                 # 交付前：空；选定路线后才有内容；平铺，不建子目录
   # 路线 = st
-  <世界名>（纯净）.json
-  正则.json
-  <世界名> 世界书.json
+  <世界名>（纯净）.json          # 卡：什么都不内嵌
+  <世界名> 世界书.json           # 文件名 = 书名 = extensions.world
+  正则.json                    # 界面两条的替换是待粘占位
+  <世界名> 开局前端.html         # 粘贴素材
+  <世界名> 状态栏.html           # 做状态栏才有
+  <世界名> 酒馆助手脚本.json     # 做了 mvu/ejs 才有
+  导入说明.txt                  # 必给
   # 路线 = native → 把 制作文件/产物/ 的树原样复制过来（YAML + HTML）
   # 路线 = both → 上面两套都在
 ```
 
-复制用 `cp -r`，别移动：`制作文件/产物/` 是唯一可回溯的源，丢了就没法重出。
+**C15** 查五件：交付前空、平铺、五槽齐、内容与文件名对得上（内容嗅探）、待粘占位有配套 html。
+
+复制用 `cp -r`，别移动：`制作文件/产物/` 是可回溯的源。
 
 ## 写回契约
 
 - `stages.7` → `done` / `skipped`（用户选纯原生路线时也 `done`——交付这一刻确实发生了；`skipped` 只在没做交付时用）。
-- `delivery.route` → `native` / `st` / `both`；`delivery.st_name`；`delivery.files[]` 写**相对 `导入包/`** 的文件名（`白潮（纯净）.json`、`正则.json`、`白潮 世界书.json`）。
+- `delivery.route` → `native` / `st` / `both`；`delivery.st_name`；`delivery.files[]` 写**相对 `导入包/`** 的文件名（卡 / 世界书 / 正则 / 脚本 / 两个 html / 导入说明）。
 - `artifacts` 追加三条：`st-card`（`path` = `导入包/白潮（纯净）.json`）、`st-regex`、`st-worldbook`。
 - `decisions` 记：路线、`first_mes` 来源、条目清单（每人/每地一条还是合并）、`description` 字数、世界书名。
 - `hard_settings` 不动——打包不产生新设定；缺设定回对应阶段补，不在这一阶段现编。
@@ -173,11 +193,11 @@ python scripts/st-import.py --st auto --pkg "导入包"
 node scripts/st-probe.js --st http://127.0.0.1:8000 --char "<卡名>"
 ```
 
-`st-import.py --pkg <目录>` 认三件套并逐件处理：
+`st-import.py --pkg <目录>` 按内容认件，逐件处理：
 
 1. 卡：`POST /api/characters/import`（`preserved_name` = 卡名，同名覆盖旧卡），回读 `/api/characters/all` 比卡名 / `first_mes` / `extensions.world`。
 2. 世界书：`POST /api/worldinfo/import`（字段名 `avatar`，**文件名即书名**），回读 `/api/worldinfo/get` 比条目数、常驻字数。
-3. 正则：**只校验，不动设置**（`scriptName` / `findRegex` 齐不齐、`node --eval "new RegExp(...)"` 能不能编译、用了 `$1` 有没有捕获组），然后交代用户自己去界面导。
+3. 正则：**只校验，不动设置**（`scriptName` / `findRegex` 齐不齐、`node --eval "new RegExp(...)"` 能不能编译、用了 `$1` 有没有捕获组），然后交代用户自己去界面导（界面导完还要粘 html）。
 
 **为什么正则不能脚本代劳**：运行中的酒馆是**客户端**持有 `extension_settings`。脚本 `POST /api/settings/save` 写进去 2 条，磁盘上能查到；但页面一刷新、或客户端下一次自动保存，就用内存里的旧数组把文件盖回去了——实测写完再打开一次角色卡，磁盘又变回 0 条。所以这一件只能界面导（`扩展 → 正则 → 导入`，选数组文件会一次导完），或者等酒馆关掉再改 `settings.json`。**不要**对用户说"正则已经导好了"。
 
@@ -218,7 +238,7 @@ python scripts/check-stage.py delivery <项目根>
 2. 卡：`spec == "chara_card_v2"`、`spec_version == "2.0"`、`data` 十四必填字段齐全；**不许有 `character_book`（C19）**；`data.extensions.regex_scripts` 必须为空（C20）；`extensions.world` 非空（C21）。
 3. 书：`entries` 是**对象**不是数组（W01）；每条 `uid` == 键、`content` 非空、`key` 是数组、`position` ∈ 0–7、`order` 是数字、`disable` 是布尔；非常驻且无 `key` = 失败；常驻合计 ≤8000（X02）。
 4. 正则：数组（R01）；每条 `scriptName` 非空、`findRegex` 能被 JS 编译（有 node 就实测）、`placement` 数组、`markdownOnly: true`；用了 `$1` 却没捕获组 = 失败。
-5. 交叉：`extensions.world` == 世界书文件名（去 `.json`）（X03）；做了 `mvu` 时卡里必须有 `tavern_helper.scripts` 且正则里有隐藏更新块的规则（X06）；`first_mes` 里的标签能被某条正则接住（X04）；三件的占位符 0 命中（X05）。
+5. 交叉：`extensions.world` == 世界书文件名（去 `.json`）（X03）；做了 `mvu` 时独立脚本文件里有 MVU 加载器且正则里有隐藏更新块（X06）；`first_mes` 里的标签能被某条正则接住（X04）；三件的占位符 0 命中（X05）；带界面的替换要么是待粘占位、要么是完整 HTML（R07）。
 6. 调优：绿灯关键词 <8、未 `excludeRecursion`、`position` 2·3·5·6、`key` 带逗号、`order` 全同、`selective: false` 给 WARN；常驻字数只打印不判定（`W09`）。
 
 还有四条肉眼过：

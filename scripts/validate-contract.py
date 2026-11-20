@@ -12,6 +12,7 @@
 `role-cards` / `secret-layer`、scene-sheet 的 path 写成一个目录——机器不报错，人也不会看。
 """
 import sys
+import json
 import pathlib
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -46,13 +47,13 @@ STAGE_ARTIFACT = {
     'ejs': {'ejs-controller'},
     'opening': {'opening-ui'},
     'statusbar': {'statusbar-ui'},
-    'delivery': {'st-card', 'st-regex', 'st-worldbook'},
+    'delivery': {'st-card', 'st-regex', 'st-worldbook', 'st-script'},
 }
 
 ARTIFACT_TYPES = {
     'project-profile', 'world-bible', 'rolecard', 'scene-sheet', 'axis-system',
     'mvu-schema', 'mvu-initvar', 'mvu-entries', 'mvu-regex', 'ejs-controller',
-    'opening-ui', 'statusbar-ui', 'st-card', 'st-regex', 'st-worldbook',
+    'opening-ui', 'statusbar-ui', 'st-card', 'st-regex', 'st-worldbook', 'st-script',
 }
 # 历史漂移里出现过的错名，直接点出来，比「不在枚举内」更好用
 LEGACY_ALIASES = {
@@ -277,8 +278,55 @@ def check_layout(root):
         warn('C17', f'作品根下只该有 `制作文件/` 与 `导入包/`，多出：{", ".join(extra[:6])}')
 
 
+def sniff_json(path):
+    """按内容认这份 json 是什么（card / book / regex / script / unknown）。
+
+    文件名是可以写错的，内容不会。`世界书.json` 里装的其实是卡——这种错在酒馆里表现成
+    “导入失败”或“导入成功但什么也没有”，没人能立刻指出来。
+    """
+    try:
+        data = json.loads(path.read_text(encoding='utf-8'))
+    except Exception:
+        return 'unknown'
+    if isinstance(data, list):
+        if data and all(isinstance(x, dict) and 'findRegex' in x for x in data):
+            return 'regex'
+        if data and all(isinstance(x, dict) and ('keys' in x or 'key' in x) for x in data):
+            return 'book'
+        return 'unknown'
+    if isinstance(data, dict):
+        spec = str(data.get('spec') or '')
+        inner = data.get('data')
+        if spec.startswith('chara_card') or (isinstance(inner, dict) and 'first_mes' in inner):
+            return 'card'
+        if 'entries' in data:
+            return 'book'
+        if data.get('type') in ('script', 'folder'):
+            return 'script'
+        if 'findRegex' in data:
+            return 'regex'
+    return 'unknown'
+
+
+def slot_of(name):
+    """按文件名判它该是哪个槽位。"""
+    if name.endswith('.txt'):
+        return 'guide' if '导入说明' in name else 'stray'
+    if name.endswith('.html'):
+        return 'frontend' if ('前端' in name or '状态栏' in name) else 'stray'
+    if name.endswith('.json'):
+        if '世界书' in name:
+            return 'book'
+        if '酒馆助手脚本' in name:
+            return 'script'
+        if '正则' in name:
+            return 'regex'
+        return 'card'
+    return 'stray'
+
+
 def check_output_dirs(c, root):
-    """导入包/ 是交付目录：交付前必须空着（C15）。"""
+    """导入包/ 是交付目录：交付前空着，交付后五个槽位齐、平铺、内容与文件名对得上（C15）。"""
     s = stage_map(c.get('stages'))
     d = as_dict(c.get('delivery'))
     route = d.get('route') if d else None
@@ -295,14 +343,62 @@ def check_output_dirs(c, root):
     if not items:
         fail('C15', '`stages.delivery: done` 但 `导入包/` 是空的')
         return
-    if route in ('st', 'both'):
-        want = {'正则.json'}
-        names = set(items)
-        if not any(n.endswith('世界书.json') for n in names):
-            fail('C15', '酒馆路线缺 `<世界名> 世界书.json`')
-        missing = want - names
-        if missing:
-            fail('C15', f'酒馆路线缺 {", ".join(sorted(missing))}')
+    if route not in ('st', 'both'):
+        return
+
+    dirs = [p.name for p in out.iterdir() if p.is_dir()]
+    if dirs:
+        fail('C15', f'`导入包/` 要平铺，不要子目录：{", ".join(sorted(dirs)[:4])}')
+
+    slots = {}
+    for name in items:
+        slots.setdefault(slot_of(name), []).append(name)
+    stray = slots.get('stray', [])
+    if stray:
+        fail('C15', f'`导入包/` 里有不认识的文件：{", ".join(stray[:5])}'
+                    f'（只收 卡 / 世界书 / 正则 / 酒馆助手脚本 / 前端 html / 导入说明）')
+
+    for slot, want, cn in (('card', None, '角色卡'), ('book', None, '世界书'),
+                           ('regex', None, '正则')):
+        names = slots.get(slot, [])
+        if len(names) != 1:
+            fail('C15', f'酒馆路线要且只要一份{cn}，现在 {len(names)} 份：{", ".join(names) or "没有"}')
+
+    needs_script = (s.get('mvu') == 'done') or (s.get('ejs') == 'done')
+    if needs_script and not slots.get('script'):
+        fail('C15', '`mvu`/`ejs` 已 done，但 `导入包/` 缺 `<世界名> 酒馆助手脚本.json`'
+                    '（脚本不内嵌进卡）')
+    if not needs_script and slots.get('script'):
+        warn('C15', '没做 `mvu`/`ejs` 却发了酒馆助手脚本：确认里面确实有东西要跑')
+
+    if not slots.get('guide'):
+        fail('C15', '酒馆路线缺 `导入说明.txt`（四个默认关着的开关全靠它写清）')
+
+    fronts = slots.get('frontend', [])
+    for name in slots.get('regex', [])[:1]:
+        try:
+            rules = json.loads((out / name).read_text(encoding='utf-8'))
+        except Exception:
+            rules = []
+        if isinstance(rules, dict):
+            rules = [rules]
+        for rule in rules if isinstance(rules, list) else []:
+            if not isinstance(rule, dict):
+                continue
+            if not str(rule.get('replaceString', '')).startswith('【尚未粘贴界面】'):
+                continue
+            title = str(rule.get('scriptName', ''))
+            want = '状态栏' if '状态栏' in title else '前端'
+            if not any(want in f for f in fronts):
+                fail('C15', f'`{name}` 里的「{title}」界面还没粘进去，但 `导入包/` 没有对应的 '
+                            f'`<世界名> {want}.html`：用户永远粘不上')
+
+    expect = {'card': '角色卡', 'book': '世界书', 'regex': '正则', 'script': '酒馆助手脚本'}
+    for slot, cn in expect.items():
+        for name in slots.get(slot, []):
+            kind = sniff_json(out / name)
+            if kind != slot:
+                fail('C15', f'`{name}` 按内容看是「{kind}」，不是{cn}——文件名与内容对不上')
 
 
 def check_player_agency(c):
@@ -466,7 +562,7 @@ def main():
         'C12': 'hard_settings / pending / decisions 形状',
         'C13': 'decisions[].state 四态与「未答≠委托」',
         'C14': 'partial 阶段必须挂 pending',
-        'C15': '导入包/ 交付前空、交付后三件齐',
+        'C15': '导入包/ 交付前空；交付后五槽齐（卡/世界书/正则/脚本/说明）、平铺、内容与文件名对得上',
         'C16': 'player_agency 三档自洽（放宽须用户确认，delegated 须有时长）',
         'C17': '作品根下只许 制作文件/ 与 导入包/（旧布局要迁移）',
     }

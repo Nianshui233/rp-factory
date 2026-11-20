@@ -113,7 +113,7 @@
 - [ ] 三条常驻条目齐：更新规则（每变量 type/range/format/check）、`变量列表`（内容逐字符 `{{format_message_variable::stat_data}}`）、输出格式（JSON Patch + `delta` 自定义 op）
 - [ ] 世界书 `uid` == `entries` 的键（错位会让条目在面板里静默消失）
 - [ ] 两条隐藏正则齐：`<UpdateVariable>` 的 `promptOnly` 与 `markdownOnly` 各一条
-- [ ] 卡里带 `data.extensions.tavern_helper.scripts`（MVU 加载器 + 变量结构），交付说明写明"进酒馆助手启用脚本"
+- [ ] 脚本单独一份 `<世界名> 酒馆助手脚本.json`（MVU 加载器 + 变量结构），卡里不内嵌；导入说明写明"导入后手动打开文件夹"
 - [ ] `ejs` 做与不做有明确判据：不做时 `stages.ejs: skipped` 并记一条 decisions；做了必须写清"整段文本随档位切换"
 - [ ] 控制器只读 `stat_data`，不自己算数值；`getvar` 的路径带 `stat_data.` 前缀
 - [ ] 控制器用 `typeof` 防重声明 + `var`；被控条目全部 `disable: true`

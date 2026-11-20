@@ -193,6 +193,14 @@ getAllEnabledScriptButtons()  // {script_id: [{button_id, button_name}]}
 
 **装了不等于跑了**：脚本开关在 `extension_settings.tavern_helper.script.enabled.{global, presets[], characters[]}`（设置字段名 `tavern_helper`，**TH-07**）。卡包自带脚本时，`script.enabled.characters` 里没有这张卡就不会执行——这是「数值系统一动不动」的第一嫌疑。
 
+**导入的脚本默认是关的**（TH-11）：`src/panel/script/Toolbar.vue:94` 在解析文件后直接 `script_tree.enabled = false;`，下一行还把 `id` 换成新的 uuid（`:95`）。所以「成功导入脚本」这个提示不等于它在跑：
+
+- 单脚本 → 导入后在脚本库里把那条打开；
+- 文件夹（`{type:'folder', scripts:[…]}`）→ **文件夹本身**是关的，`enabled` 过滤发生在文件夹这一层（`src/store/scripts.ts:86`：`.filter(item => item.enabled)`），里面的子脚本各自的 `enabled` 只在文件夹打开后才起作用；
+- 导入目标同样三选一：全局 / 角色 / 预设���选「角色」才跟这张卡绑定。
+
+`id` 被重生成意味着**不能靠 id 判断是不是同一份脚本**；同一份内容导入两次会得到两条独立脚本，两条都开就会跑两遍。
+
 ---
 
 ## 十、生成、注入、宏、正则

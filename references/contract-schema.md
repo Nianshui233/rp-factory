@@ -39,9 +39,9 @@
 | `delivery.*` | 阶段 `delivery`（收尾那一问）；写定后改路线只改 `route`，不重命名 `st_name` |
 | `hard_settings` | 各阶段追加，只有用户确认的才 `locked` |
 
-`artifacts[].type` 只有十四类：`project-profile` / `world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `mvu-schema` / `mvu-initvar` / `mvu-entries` / `mvu-regex` / `ejs-controller` / `opening-ui` / `statusbar-ui` / `st-card` / `st-regex` / `st-worldbook`。不许自造（实操里出现过 `role-cards`、`secret-layer`——前者该写 `rolecard`，后者不是产物）。
+`artifacts[].type` 只有十五类：`project-profile` / `world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `mvu-schema` / `mvu-initvar` / `mvu-entries` / `mvu-regex` / `ejs-controller` / `opening-ui` / `statusbar-ui` / `st-card` / `st-regex` / `st-worldbook` / `st-script`。不许自造（实操里出现过 `role-cards`、`secret-layer`——前者该写 `rolecard`，后者不是产物）。
 
-`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`制作文件/产物/world-bible.yaml`），不用绝对路径、不许含 `..`、同一路径不许出现两次。**运行期产物都在 `制作文件/产物/`**；`导入包/` 交付前必须为空（C15）。有多张同类卡时 `path` 指向目录（`制作文件/产物/rolecard/`），`type` 仍是 `rolecard` / `scene-sheet`——文件数不改变产物类别，别为卡多另起类型。表现层一份产物可落两三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分（界面 HTML、正则 JSON、可选 `frontend-prompt.yaml`——两阶段共用文件名，后写的追加字段不覆盖）。酒馆三件套同理：三个文件都写 `delivery`，`type` 分别为 `st-card` / `st-regex` / `st-worldbook`，`path` 在 `导入包/` 根下；`正则.json` 是装配导出件，HTML 与正则草稿仍记在 `制作文件/产物/`。
+`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`制作文件/产物/world-bible.yaml`），不用绝对路径、不许含 `..`、同一路径不许出现两次。**运行期产物都在 `制作文件/产物/`**；`导入包/` 交付前必须为空（C15）。有多张同类卡时 `path` 指向目录（`制作文件/产物/rolecard/`），`type` 仍是 `rolecard` / `scene-sheet`——文件数不改变产物类别，别为卡多另起类型。表现层一份产物可落两三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分（界面 HTML、正则 JSON、可选 `frontend-prompt.yaml`——两阶段共用文件名，后写的追加字段不覆盖）。酒馆分包同理：卡 / 正则 / 世界书 / 脚本四个文件都算 `delivery` 的产物，`type` 分别为 `st-card` / `st-regex` / `st-worldbook` / `st-script`，`path` 在 `导入包/` 根下；`导入说明.txt` 与界面 `.html`（粘贴素材）也是交付件，但只是 `delivery.files[]` 里的一项，不必各占一个 type。正则草稿与界面源文件仍记在 `制作文件/产物/`。
 
 `project.workspace` 与 `project.name` 必须同时更新：前者是用户确认的**工作区**（父目录）绝对路径，后者是子文件夹名（= 世界名，未定时为 `未命名项目`）。项目实际路径 = `<workspace>/<name>/`。只改一个 = 指向一个不存在的目录。
 

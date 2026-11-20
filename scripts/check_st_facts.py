@@ -68,6 +68,8 @@ FACTS: list[tuple[str, str, int, str]] = [
     (REGEX_INDEX, "accountStorage.setItem(checkKey, 'true');", 1617, "S-28"),
     (REGEX_INDEX, "const template = await renderExtensionTemplateAsync('regex', 'embeddedScripts', {});", 1618, "S-28"),
     (WORLD_INFO, "const bookName = characters[chid]?.data?.character_book?.name", 5744, "S-29"),
+    (REGEX_INDEX, "$('#import_regex_file').on('change', async function () {", 1750, "S-30"),
+    (REGEX_INDEX, "template.find('#regex_import_target_scoped').on('input', () => (target = SCRIPT_TYPES.SCOPED));", 1754, "S-30"),
 ]
 
 # 酒馆助手（JS-Slash-Runner 4.12.1 / f9c95ab）的锚点。插件才是把 HTML 送上屏的那一层，
@@ -83,6 +85,8 @@ TH_FACTS: list[tuple[str, str, int, str]] = [
     ("src/panel/render/use_collapse_code_block.ts", "if ($div.children('iframe').length > 0) {", 43, "TH-08"),
     ("@types/iframe/event.d.ts", "CHAT_CHANGED: 'chat_id_changed';", 206, "TH-09"),
     ("@types/iframe/exported.mvu.d.ts", "VARIABLE_UPDATE_ENDED: 'mag_variable_update_ended';", 115, "TH-10"),
+    ("src/panel/script/Toolbar.vue", "script_tree.enabled = false;", 94, "TH-11"),
+    ("src/panel/script/Toolbar.vue", "script_tree.id = uuidv4();", 95, "TH-11"),
 ]
 
 

@@ -1,0 +1,44 @@
+{
+  "type": "folder",
+  "enabled": false,
+  "name": "白潮",
+  "id": "7f1c9a10-0000-4a11-9b21-0aa1b2c3d400",
+  "icon": "fa-solid fa-folder",
+  "color": "",
+  "scripts": [
+    {
+      "type": "script",
+      "enabled": true,
+      "name": "MVU",
+      "id": "7f1c9a10-0001-4a11-9b21-0aa1b2c3d401",
+      "content": "import 'https://testingcf.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate/artifact/bundle.js';\n",
+      "info": "",
+      "button": {
+        "enabled": false,
+        "buttons": []
+      },
+      "data": {},
+      "export_with": {
+        "data": false,
+        "button": false
+      }
+    },
+    {
+      "type": "script",
+      "enabled": true,
+      "name": "变量结构",
+      "id": "7f1c9a10-0002-4a11-9b21-0aa1b2c3d402",
+      "content": "// 变量结构 · 白潮\n// 由 制作文件/产物/axis-system.yaml 投影生成（wick 0–100 初值 68 / tide 0–100 初值 22）。\n// 交付时同时给两份：本文件原文 + templates/tavern-script.json 包一层塞进卡的 tavern_helper.scripts。\n\nimport { registerMvuSchema } from 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js';\n\n// 刻度(初值, 上界)：非数字与越界都接住——.catch 挡 NaN，clamp 挡越界，prefault 挡缺字段\nconst 刻度 = (初值, 上界) =>\n  z.coerce.number().catch(初值).transform(v => _.clamp(v, 0, 上界)).prefault(初值);\n\nconst 单人数值 = z.object({\n  wick: 刻度(68, 100),   // 灯芯：100 记忆完整 ↔ 0 忘尽，只降不升\n  tide: 刻度(22, 100),   // 潮压：0 静潮 ↔ 100 漫潮\n}).prefault({});\n\nconst Schema = z.object({\n  世界: z.object({\n    日期: z.string().catch('潮历四十七年 · 第三次涨潮'),\n    时段: z.enum(['晨', '昼', '暮', '夜']).catch('夜'),\n    地点: z.string().catch('第七塔'),\n  }).prefault({}),\n\n  主角: z.object({\n    姓名: z.string().catch('旅人'),\n    位置: z.string().catch('第七塔 · 塔基'),\n  }).prefault({}),\n\n  角色: z.object({\n    祁昭: 单人数值,\n  }).prefault({}),\n});\n\n$(() => {\n  registerMvuSchema(Schema);\n});\n",
+      "info": "",
+      "button": {
+        "enabled": false,
+        "buttons": []
+      },
+      "data": {},
+      "export_with": {
+        "data": false,
+        "button": false
+      }
+    }
+  ]
+}

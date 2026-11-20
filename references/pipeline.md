@@ -63,7 +63,7 @@
 
 **10. `变量门`（仅阶段 `mvu` / `ejs`）** 交给两个脚本判：`python scripts/validate-mvu.py 制作文件/产物/mvu --contract 制作文件/项目记录/contract.yaml --book "<世界书>"`（M01–M13）与 `python scripts/validate-ejs.py 制作文件/产物/ejs/<控制器>.ejs --book "<世界书>"`（E01–E08），退出码都要是 0。要点：数值字段有 `.catch(初值)`、夹取上界等于轴的 `range`、`[initvar]` 已禁用且键与 schema 对得上、`变量列表` 内容逐字符等于 `{{format_message_variable::stat_data}}`、两条隐藏 `<UpdateVariable>` 的正则齐备且能编译、控制器的分支边界单调、被控条目全部 `disable: true`。**没装酒馆助手就别开这个阶段**，别产出跑不起来的东西。细则见两个阶段文件。
 
-**11. `交付门`（仅阶段 `delivery`）** 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "导入包" --contract 制作文件/项目记录/contract.yaml`，退出码 0 才算过。查的事：三件齐全（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`）；做了 `mvu` 阶段时卡内必须有 `tavern_helper.scripts` 且正则里必须有隐藏 `<UpdateVariable>` 的两条（X06 专查这个——缺了 MVU 静默不跑）；卡里不许有 `character_book`、`extensions.regex_scripts` 必须为空（否则又回到「改一条设定重导整卡」）；世界书是 native 对象形状、`uid` 与键对齐；`extensions.world` == 世界书文件名（不一致卡不会自动挂书）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点一条；常驻合计 ≤8000；三件占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、装配四步齐全。细则见 `references/stage-7-delivery.md`。交付门过了、用户也说「帮我导」，就接着跑 `scripts/st-import.py --pkg`（三件逐件导入 + 回读自检）与 `scripts/st-probe.js`（量 iframe 高度）；这三步是流水线，不额外收门。验收结论逐条落 `制作文件/项目记录/验收.yaml`（见 `references/acceptance.md`）。
+**11. `交付门`（仅阶段 `delivery`）** 交给脚本判：`python scripts/validate-st-package.py "导入包" --contract 制作文件/项目记录/contract.yaml`，退出码 0 才算过。查：五槽齐（卡 / 正则 / 世界书 / 酒馆助手脚本 / 导入说明，后两槽按阶段条件出现，C15 与 P01 管）；**卡里三样都不内嵌**（`character_book` / `regex_scripts` / `tavern_helper`，C09/C10/C12）；做了 `mvu` 时独立脚本里有 MVU 加载器、正则里有两条隐藏 `<UpdateVariable>`（X06）；带界面的正则替换是待粘占位且包里配了 `.html`（R07）；世界书 native 形状、`uid` 对齐、`extensions.world` == 文件名；`description` ≤8000 且轴名齐全；占位符 0 命中。肉眼再过两条：实体名都在 `naming` 里、装配五步齐全。细则见 `references/stage-7-delivery.md`。交付门过了、用户也说「帮我导」，再跑 `scripts/st-import.py --pkg` 与 `scripts/st-probe.js`，这三步是流水线不额外收门。验收结论落 `制作文件/项目记录/验收.yaml`。
 
 **12. `阶段门`（贯穿全程）** 一次只做一个阶段：做完就停，汇总「本轮落下什么 / 哪些是替你定的 / 哪些还悬着 / 下一步」然后等回话。不许一条回复里连做两段，不许交付后弹「继续吗」。用户说「全流程」也只代表不用逐段问。
 
@@ -107,7 +107,7 @@
 
 ## 六、输出纪律
 
-- **写哪**：运行期所有产物写 `制作文件/产物/`（`world-bible.yaml` / `rolecard/` / `scene/` / `axis/` / `mvu/` 的 schema 与条目 / `ejs/` 的控制器与改写清单 / 界面 HTML 与正则草稿）；`导入包/` 是交付目录，**选定路线之前必须空着**（校验器 C15 盯着）。`delivery` 才把它填上：原生路线复制 `产物/` 的树，酒馆路线只放三件套。
+- **写哪**：运行期所有产物写 `制作文件/产物/`（`world-bible.yaml` / `rolecard/` / `scene/` / `axis/` / `mvu/` 的 schema 与条目 / `ejs/` 的控制器与改写清单 / 界面 HTML 与正则草稿）；`导入包/` 是交付目录，**选定路线之前必须空着**（校验器 C15 盯着）。`delivery` 才把它填上：原生路线复制 `产物/` 的树，酒馆路线放五槽（卡 / 世界书 / 正则 / 脚本 / 导入说明 + 界面 html），平铺不建子目录。
 - 终稿只输出模板本体，不加前言、结语、"以下是……"。
 - 移除全部 `#` 注释行与被注释掉的可选结构。
 - 文本模态是一个 ```yaml 代码块；代码块之外只允许四样：设计说明（≤ 5 句）、补全清单、待确认清单、运行示例（仅数值系统）。
