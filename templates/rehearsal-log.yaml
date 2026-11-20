@@ -4,6 +4,7 @@
 rounds:
   # - round: 1
   #   judged: R1            # R1 代演玩家 / R2 OOC / R3 口癖漂移 / R4 数值闸门
+#   evidence: 实际输出     # 既有设定 / 实际输出 / 作者观察 / 诊断假设（四类不许混）
   #   symptom: ""           # 具体看到什么，不写"感觉不对"
   #   root_cause: ""
   #   change: {file: "最终产物/<世界名>（纯净）.json", field: "data.post_history_instructions"}
