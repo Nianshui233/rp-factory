@@ -144,6 +144,9 @@ def plan(stage: str, root: Path) -> list[tuple[str, list[str]]]:
                 args += ["--contract", str(contract)]
             jobs.append(("validate-st-package.py", args))
             jobs.append(("validate_st_semantics.py", list(args)))
+            ledger = root / "创作痕迹" / "验收.yaml"
+            if ledger.exists():
+                jobs.append(("check_acceptance.py", [str(ledger.parent)]))
 
     return jobs
 

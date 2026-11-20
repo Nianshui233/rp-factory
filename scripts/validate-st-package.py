@@ -335,8 +335,14 @@ def validate_card(card: dict, card_path: Path | None, book_path: Path | None, re
         rep.fail("C11", "data.extensions.world 为空：世界书导入后不会自动挂到卡上")
     elif book_path is not None and not book_path.exists():
         rep.warn("C11", f"extensions.world = {world!r}，但没给世界书文件")
+    elif book_path is not None and world != book_path.stem:
+        # ST 靠「书名 == extensions.world」绑定（world-info.js:1128 push 的是书名）；
+        # 名字对不上时导入不报错、小地球不亮，只在聊天里表现为「设定全忘了」。
+        rep.fail("C11", f"extensions.world = {world!r} ≠ 世界书文件名 {book_path.stem!r}："
+                        "ST 按书名绑卡，对不上就静默不挂书。改卡里的 extensions.world，"
+                        "或把世界书文件重命名成这个名字。")
     else:
-        rep.ok("C11", f"extensions.world = {world!r}")
+        rep.ok("C11", f"extensions.world = {world!r}（与世界书文件名一致）")
     return data
 
 
@@ -531,8 +537,8 @@ def find_files(arg: str) -> tuple[Path | None, Path | None, Path | None]:
             regex = regex or f
         elif "（纯净）" in f.name or "(纯净)" in f.name or "pure" in low:
             card = card or f
-        else:
-            card = card or f
+        elif '"spec"' in f.read_text(encoding="utf-8", errors="ignore")[:600]:
+            card = card or f  # 没按命名惯例，但确实是张卡
     return card, regex, book
 
 

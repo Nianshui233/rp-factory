@@ -261,7 +261,7 @@ def check_delivery(c):
 
 
 def check_output_dirs(c, root):
-    """最终产物/ 是交付目录：交付前必须空着（C13）。"""
+    """最终产物/ 是交付目录：交付前必须空着（C15）。"""
     s = stage_map(c.get('stages'))
     d = as_dict(c.get('delivery'))
     route = d.get('route') if d else None
@@ -270,22 +270,22 @@ def check_output_dirs(c, root):
     items = sorted(p.name for p in out.iterdir()) if out.is_dir() else []
     if not delivered:
         if items:
-            fail('C13', f'`stages.delivery` 还没 done，但 `最终产物/` 已有 {len(items)} 项：{", ".join(items[:5])}（过程产物应放 创作痕迹/产物/）')
+            fail('C15', f'`stages.delivery` 还没 done，但 `最终产物/` 已有 {len(items)} 项：{", ".join(items[:5])}（过程产物应放 创作痕迹/产物/）')
         return
     if not route:
-        fail('C13', '`stages.delivery: done` 但 `delivery.route` 为空')
+        fail('C15', '`stages.delivery: done` 但 `delivery.route` 为空')
         return
     if not items:
-        fail('C13', '`stages.delivery: done` 但 `最终产物/` 是空的')
+        fail('C15', '`stages.delivery: done` 但 `最终产物/` 是空的')
         return
     if route in ('st', 'both'):
         want = {'正则.json'}
         names = set(items)
         if not any(n.endswith('世界书.json') for n in names):
-            fail('C13', '酒馆路线缺 `<世界名> 世界书.json`')
+            fail('C15', '酒馆路线缺 `<世界名> 世界书.json`')
         missing = want - names
         if missing:
-            fail('C13', f'酒馆路线缺 {", ".join(sorted(missing))}')
+            fail('C15', f'酒馆路线缺 {", ".join(sorted(missing))}')
 
 
 def check_naming(c):
@@ -409,7 +409,7 @@ def main():
         'C12': 'hard_settings / pending / decisions 形状',
         'C13': 'decisions[].state 四态与「未答≠委托」',
         'C14': 'partial 阶段必须挂 pending',
-        'C13': '最终产物/ 交付前空、交付后三件齐',
+        'C15': '最终产物/ 交付前空、交付后三件齐',
     }
     bad = {r for r, _ in fails}
     for r, name in rules.items():

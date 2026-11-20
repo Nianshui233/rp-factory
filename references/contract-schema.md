@@ -40,7 +40,7 @@
 
 `artifacts[].type` 只有十四类：`project-profile` / `world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `mvu-schema` / `mvu-initvar` / `mvu-entries` / `mvu-regex` / `ejs-controller` / `opening-ui` / `statusbar-ui` / `st-card` / `st-regex` / `st-worldbook`。不许自造（一次实操里出现过 `role-cards`、`secret-layer`——前者该写 `rolecard`，后者根本不是产物）。
 
-`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`创作痕迹/产物/world-bible.yaml`），不用绝对路径、不许含 `..`、同一路径不许出现两次。**运行期所有产物都在 `创作痕迹/产物/` 下**；`最终产物/` 是交付目录，交付前必须为空（校验器 C13 盯着）。多张角色卡或有多张场景卡时，`path` 指向目录（`创作痕迹/产物/rolecard/`），`type` 仍是 `rolecard` / `scene-sheet`——文件数不改变产物类别，别为"有 14 张卡"另起一个类型。表现层一份产物落两到三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分：界面 HTML、正则 JSON，以及可选的提示词条目 `frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个；建卡向导通常不需要它）。酒馆三件套同理：三个文件都写 `delivery`，`type` 分别是 `st-card` / `st-regex` / `st-worldbook`，`path` 在 `最终产物/` 根下；`正则.json` 是装配用的导出件，`opening` / `statusbar` 的 HTML 与正则草稿仍记在 `创作痕迹/产物/` 下。
+`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`创作痕迹/产物/world-bible.yaml`），不用绝对路径、不许含 `..`、同一路径不许出现两次。**运行期产物都在 `创作痕迹/产物/`**；`最终产物/` 交付前必须为空（C15）。有多张同类卡时 `path` 指向目录（`创作痕迹/产物/rolecard/`），`type` 仍是 `rolecard` / `scene-sheet`——文件数不改变产物类别，别为卡多另起类型。表现层一份产物落两到三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分：界面 HTML、正则 JSON，以及可选的提示词条目 `frontend-prompt.yaml`（两个阶段共用一个文件名，后写的追加字段，不覆盖前一个；建卡向导通常不需要它）。酒馆三件套同理：三个文件都写 `delivery`，`type` 分别是 `st-card` / `st-regex` / `st-worldbook`，`path` 在 `最终产物/` 根下；`正则.json` 是装配用的导出件，`opening` / `statusbar` 的 HTML 与正则草稿仍记在 `创作痕迹/产物/` 下。
 
 `project.workspace` 与 `project.name` 必须同时更新：前者是用户确认的**工作区**（父目录）绝对路径，后者是子文件夹名（= 世界名，未定时为 `未命名项目`）。项目实际路径 = `<workspace>/<name>/`。只改一个 = 指向一个不存在的目录。
 
@@ -80,7 +80,7 @@ python scripts/check-stage.py <阶段名> <项目根>      # 阶段收尾一检�
 python scripts/validate-contract.py <创作痕迹/contract.yaml>   # 只看契约时单独跑
 ```
 
-它查 C01–C13：`project` 必填与 `stages_requested` 枚举、九个阶段名各自的取值在 `none/partial/done/skipped` 内、`artifact.type` 在十四类枚举内、`path` 相对且真实存在、**`done` 的阶段有对应产物**（`mvu` 至少要有 `mvu-schema`/`mvu-initvar`/`mvu-entries` 之一，`ejs` 要有 `ejs-controller`）、`delivery.route` 与 `files` 自洽、`naming` 收口（阶段 4 完成后 `axes` 不许再带 `provisional`）、`hard_settings.source` 以 `用户确认`/`推导` 开头、`最终产物/` 在交付前必须空。
+它查 C01–C15：`project` 必填与 `stages_requested` 枚举、九个阶段名各自的取值在 `none/partial/done/skipped` 内、`artifact.type` 在十四类枚举内、`path` 相对且真实存在、**`done` 的阶段有对应产物**（`mvu` 至少要有 `mvu-schema`/`mvu-initvar`/`mvu-entries` 之一，`ejs` 要有 `ejs-controller`）、`delivery.route` 与 `files` 自洽、`naming` 收口（阶段 4 完成后 `axes` 不许再带 `provisional`）、`hard_settings.source` 以 `用户确认`/`推导` 开头、`最终产物/` 交付前须空（C15）；C13/C14 见上表。
 
 `partial` 不会被判失败，但必须出现在 `pending[]` 里（哪一项、为什么、缺什么才到 `done`）——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。
 
