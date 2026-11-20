@@ -116,6 +116,7 @@ disable-model-invocation: true
 | `references/pipeline.md` | 阶段表、占位符、十四道门、自检四类、命名门四步、输出纪律 |
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
+| `references/acceptance.md` | 六层证据（源码/脚本/离线/浏览器/真机/人眼）、谁能签哪一层、验收账本格式 |
 | `references/decisions.md` | 四态（confirmed / proposed / pending / rejected）、缺口三级、未答≠委托、交付四句 |
 | `references/dual-mode.md` | 两种模态的对照、切换、渲染、注释剥离 |
 | `references/st-correctness.md` | 会静默失效的 ST 语义事实（S-01…S-M3）：正则/世界书/卡/宏四类，每条带 `public/…:line` 源码锚点 |

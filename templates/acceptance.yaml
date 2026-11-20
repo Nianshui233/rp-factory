@@ -1,0 +1,23 @@
+# 验收账本：创作痕迹/验收.yaml
+# 六层证据见 references/acceptance.md。L5/L6 只能 by: human，脚本自签会被 check_acceptance.py 判失败。
+entries:
+  # - layer: L2
+  #   item: 契约校验
+  #   evidence: "python scripts/validate-contract.py 创作痕迹/contract.yaml → exit 0"
+  #   verdict: pass
+  #   by: script
+  # - layer: L1
+  #   item: 正则分组语法
+  #   evidence: "public/scripts/extensions/regex/engine.js:422（ST 1.19.0）"
+  #   verdict: pass
+  #   by: assistant
+  # - layer: L4
+  #   item: 状态栏窄屏布局
+  #   evidence: "没测：本机没有手机视口"
+  #   verdict: skipped
+  #   why: 用户只要桌面端
+  # - layer: L5
+  #   item: 三件导入真机
+  #   evidence: "手动导入后回读：卡在列表、书已挂卡、开局出现状态栏"
+  #   verdict: pass
+  #   by: human
