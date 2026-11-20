@@ -117,6 +117,20 @@ def check(path: Path) -> tuple[list[str], list[str], list[str]]:
     if not any(f.startswith("F08") for f in fail):
         ok.append("F08 样式与脚本均内联")
 
+    # F09 可访问的最小两条：键盘能到、有可访问名（其余十条靠人看，见 references/frontend-conventions.md）
+    clickable = re.findall(r"<(div|span)([^>]*onclick\s*=[^>]*)>", text, re.I)
+    keyboardless = [m[1][:60] for m in clickable
+                    if not re.search(r"role\s*=|tabindex\s*=", m[1], re.I)]
+    if keyboardless:
+        warn.append(f"F09 {len(keyboardless)} 个 onclick 挂在 div/span 上且没有 role/tabindex："
+                    f"键盘与读屏都到不了，换成 <button> 或补 role+tabindex+键盘处理")
+    empty_btn = re.findall(r"<button[^>]*>\s*</button>", text, re.I)
+    if empty_btn:
+        warn.append(f"F09 {len(empty_btn)} 个 <button> 里没有文字也没有图标标签："
+                    f"补 aria-label，否则读屏只念「按钮」")
+    if not keyboardless and not empty_btn:
+        ok.append("F09 可点击元素键盘可达、有可访问名")
+
     return fail, warn, ok
 
 
