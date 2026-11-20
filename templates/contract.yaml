@@ -58,9 +58,11 @@ hard_settings: []          # 已锁定、不可改
   #   source: "用户确认"     # 用户确认 | 推导（推导项不算锁定）
   #   locked_at_stage: 1
 
-pending: []                # [待定…] 汇总，- {stage: 1, item: "", why: ""}
+pending: []                # [待定…] 汇总，- {stage: 1, item: "", why: ""}（partial 阶段必须有一条）
 
-decisions: []              # 用户拍的板，- {stage: 1, question: "", answer: "", why: ""}
+decisions: []              # 谁拍的板，- {stage: 1, question: "", answer: "", why: "", state: confirmed}
+  # state: confirmed 用户说了要 / proposed 我替用户定的（必须写 why）/ pending 悬着 / rejected 被否掉
+  # 也收过程决策 {date, item, choice, because, state}；四态规则见 references/decisions.md
 
 artifacts: []              # 产物索引，正文不在这里
   # - type: world-bible    # project-profile | world-bible | rolecard | scene-sheet | axis-system

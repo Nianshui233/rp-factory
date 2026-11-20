@@ -55,7 +55,7 @@
 - **没过就改，改完重跑同一条命令**，不逐个子命令挑着跑。
 - 全流程收尾想再确认一遍，跑 `check-stage.py all`。
 
-**7. `契约门`（阶段收尾一检时一并跑）** 跑 `python scripts/validate-contract.py 创作痕迹/contract.yaml`，退出码 0 才算过：阶段状态在枚举内、`done` 的阶段真有对应产物、`artifacts[].type` 没自造、`path` 指向真实文件、`delivery` 与 `files` 自洽、`naming.axes` 在阶段 4 后不再带 `provisional`。`partial` 必须挂进 `pending[]`——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。
+**7. `契约门`（阶段收尾一检时一并跑）** 跑 `python scripts/validate-contract.py 创作痕迹/contract.yaml`，退出码 0 才算过：阶段状态在枚举内、`done` 的阶段真有对应产物、`artifacts[].type` 没自造、`path` 指向真实文件、`delivery` 与 `files` 自洽、`naming.axes` 在阶段 4 后不再带 `provisional`。`partial` 必须挂进 `pending[]`（C14 专查）——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。`decisions[].state` 四态与「未答≠委托」见 `references/decisions.md`（C13）。
 
 **8. `联网门`（仅 `project.web_research: true`）** 每次落笔前先检索（不限阶段，含局部改动），交付前复核一遍本份产物里的全部外部专名；每条检索记进 `创作痕迹/检索来源.md`，且进入本阶段后必须比之前多出至少 1 条——没有新增条目 = 没查，不许交付。逐阶段要查什么见 `references/web-research.md` 第一节的逐阶段检索量。没检索到就记 `未检索到` 并改走确认清单，不编造。细则见 `references/web-research.md`。
 

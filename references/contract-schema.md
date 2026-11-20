@@ -21,8 +21,8 @@
 | `content_boundaries` | `nsfw`（开局第三问）、`rating`、`hard_no`、`soft_no` |
 | `naming` | `world`、`factions[]`、`places[]`、`systems[]`、`axes[]`、`schema_axes[]`（`mvu` 阶段实际投影进 zod 的轴名，供交付校验查漏）、`ui_tags`（表现层标签名） |
 | `hard_settings` | 已锁定的硬设定，`source` 必须标 `用户确认` 或 `推导` |
-| `pending` | 待定项汇总 |
-| `decisions` | 用户拍过的板。两种形状都收：阶段决策 `{stage, question, answer}`、过程决策 `{date, item, choice, because}` |
+| `pending` | 待定项汇总（`partial` 阶段必须有一条，否则 C14 失败） |
+| `decisions` | 谁拍的板。两种形状都收：阶段决策 `{stage, question, answer}`、过程决策 `{date, item, choice, because}`；可挂 `state: confirmed / proposed / pending / rejected`，`proposed` 必须带 `why`，写着「没回答」的条目不许是 `confirmed`（C13）。四态含义见 `references/decisions.md` |
 | `artifacts` | 产物索引，`type` 只能是九类之一（见第六节表） |
 
 ## 三、独占写者

@@ -30,6 +30,9 @@ STAGE_NUM = {1: 'world', 2: 'cast', 3: 'scenes', 4: 'axes',
              5: 'opening', 6: 'statusbar', 7: 'delivery'}
 STAGES = STAGE_ORDER
 STAGE_STATES = {'none', 'partial', 'done', 'skipped'}
+# decisions[].state：确认 / 我提的 / 还悬着 / 被否掉（见 references/decisions.md）
+DECISION_STATES = {'confirmed', 'proposed', 'pending', 'rejected'}
+UNANSWERED_MARKERS = ('没回答', '没有回答', '未回答', '未答', '没答', '未确认', '没确认', '用户未定')
 ROUTES = {'native', 'st', 'both'}
 HARD_SOURCES = {'用户确认', '推导'}
 
@@ -164,6 +167,17 @@ def check_stages(c):
             fail('C04', f'`stages.{n}` = {v!r}，只能是 {" / ".join(sorted(STAGE_STATES))}')
     if s.get('world') == 'skipped' and any(s.get(n) not in (None, 'none', 'skipped') for n in ('cast', 'scenes', 'axes')):
         warn('C04', '`stages.world` 是 skipped，但后续阶段已推进；世界观缺位时下游只能靠推断')
+
+    # C14：partial 必须挂 pending——否则「先放着」会变成没人回头
+    pending_stages = set()
+    for item in (c.get('pending') or []):
+        item = as_dict(item)
+        if item.get('stage') is not None:
+            pending_stages.add(STAGE_NUM.get(item['stage'], item['stage']))
+    for n in STAGES:
+        if s.get(n) == 'partial' and n not in pending_stages:
+            fail('C14', f'`stages.{n}` = partial，但 `pending` 里没有这一阶段缺什么：'
+                        f'补一条 {{stage: {n}, item: <缺什么>}}，否则后面会建在没收口的块上')
 
 
 def check_artifacts(c, root):
@@ -321,6 +335,22 @@ def check_lists(c):
                     return f in item and item[f] not in (None, '')
                 if not any(all(present(f) for f in need) for need in options):
                     fail('C12', f'`decisions` 第 {i} 条既不是 {{stage,question,answer}} 也不是 {{item,choice}}')
+                    continue
+                state = item.get('state')
+                if state is None:
+                    continue
+                if state not in DECISION_STATES:
+                    fail('C13', f'`decisions` 第 {i} 条 state = {state!r}，只能是 '
+                                f'{" / ".join(sorted(DECISION_STATES))}')
+                    continue
+                if state == 'proposed' and not (present('why') or present('because')):
+                    fail('C13', f'`decisions` 第 {i} 条是 proposed：写清 `why`——'
+                                f'是替用户拍的还是还欠一句确认，两者后面的动作不同')
+                if state == 'confirmed':
+                    blob = ' '.join(str(item.get(f, '')) for f in ('answer', 'choice', 'because', 'why'))
+                    if any(m in blob for m in UNANSWERED_MARKERS):
+                        fail('C13', f'`decisions` 第 {i} 条写着「没回答」却是 confirmed：'
+                                    f'未答不是委托，该记 proposed 或 pending')
                 continue
             for f in options[0]:
                 if not item.get(f):
@@ -377,6 +407,8 @@ def main():
         'C10': 'delivery 路线与文件自洽',
         'C11': 'naming 表与 provisional 收口',
         'C12': 'hard_settings / pending / decisions 形状',
+        'C13': 'decisions[].state 四态与「未答≠委托」',
+        'C14': 'partial 阶段必须挂 pending',
         'C13': '最终产物/ 交付前空、交付后三件齐',
     }
     bad = {r for r, _ in fails}
