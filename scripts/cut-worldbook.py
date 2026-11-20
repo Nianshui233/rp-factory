@@ -103,7 +103,9 @@ def build_entry(uid: int, item: dict, content: str, defaults: dict) -> dict:
         "position": pick("position", 0),
         "disable": bool(item.get("disable", False)),
         "excludeRecursion": bool(pick("exclude_recursion", True)),
-        "preventRecursion": False,
+        # 常驻条目每轮都在，是唯一稳定往递归缓冲里灌东西的来源：默认反向锁死。
+        # 关键词条目默认放开（它本来就是要靠正文点出关联实体才拉人的）。
+        "preventRecursion": bool(pick("prevent_recursion", bool(pick("constant", False)))),
         "delayUntilRecursion": False,
         "probability": pick("probability", 100),
         "useProbability": True,
@@ -120,7 +122,7 @@ def build_entry(uid: int, item: dict, content: str, defaults: dict) -> dict:
         "sticky": 0,
         "cooldown": 0,
         "delay": 0,
-        "ignoreBudget": False,
+        "ignoreBudget": bool(pick("ignore_budget", False)),
         "outletName": "",
         "triggers": [],
         "matchPersonaDescription": False,

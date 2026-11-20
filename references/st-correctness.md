@@ -75,8 +75,8 @@ ST 读的是 `findRegex` / `replaceString` / `placement` / `markdownOnly` / `pro
 **[S-10] `position` 枚举是 8 个值，不只是「前/后」**
 `{ before:0, after:1, ANTop:2, ANBottom:3, atDepth:4, EMTop:5, EMBottom:6, outlet:7 }`（`public/scripts/world-info.js:855`）。`4`（@D）必须同时给 `depth`；`7`（outlet）必须同时给 `outletName`，内容靠 `{{outlet::<name>}}` 宏取用（`macros.js:654`）。
 
-**[S-11] `order` 越大越靠前**
-排序是 `(a, b) => b.order - a.order`（`world-info.js:88`）。「按顺序读」的直觉在这里是反的；两条同 `order` 的相对位置不稳定。
+**[S-11] `order` 越大，装得越早、最终落在越靠下的位置**
+排序是 `(a, b) => b.order - a.order`（`world-info.js:88`），先按降序取、再逐条 `unshift` 进位置桶（`world-info.js:5206` 起），所以**同一位置内最终是 order 升序**——order 越大越靠后（越强）。两条同 `order` 的相对位置不稳定。
 
 **[S-12] 预算与激活门槛**
 `world_info_budget = 25`（占上下文的百分比，`world-info.js:73`）、`world_info_budget_cap = 0`（不设绝对上限，`:81`）、`world_info_min_activations = 0`（`:70`）。单条可用 `ignoreBudget` 越过预算（`convertCharacterBook` 里 `ignoreBudget: entry.extensions?.ignore_budget ?? false`，`:5669`）。条目写太多不会报错，只会**悄悄被预算挤掉最后几条**。
@@ -93,6 +93,21 @@ ST 读的是 `findRegex` / `replaceString` / `placement` / `markdownOnly` / `pro
 - `disable: !entry.enabled`（`:5640`）——**`enabled` 缺省 = 禁用**。V2 卡里省掉 `enabled: true` 的条目，导入后全是灰的。
 - `position: entry.extensions?.position ?? (entry.position === 'before_char' ? 0 : 1)`（`:5636`）——字符串 `position` 只识别 `'before_char'`，`'after_char'` 靠 fallback 侥幸正确，其余任何字符串（如 `'before_an'`）**一律落到 after**。
 - `order: entry.insertion_order`（`:5635`）——不写就是 `undefined`，排序随之失序；`extensions` 里那些键是 snake_case（`exclude_recursion` / `prevent_recursion` / `scan_depth` / `match_whole_words` / `group_override`…），写成 camelCase 会被当成没写。
+
+**[S-31] 预算是硬墙，而且默认不报警**
+`budget = Math.round(world_info_budget * maxContext / 100) || 1`（`world-info.js:4736`），`budget_cap > 0` 时取较小值（`:4738`）。装填循环里 `!entry.ignoreBudget && (textToScanTokens + 新条目 ≥ budget)` 时 `continue`（`:5061`）——**这条跳过、后面的继续试**，同时置 `token_budget_overflowed`，递归随之停下（`:5097`）。`world_info_overflow_alert` 默认 `false`（`:76`）：溢出只进 console，界面什么都不说。`world_info_budget > 100` 会被强制改回 25（`:946`）。
+
+**[S-32] 同一轮命中的装填顺序：sticky 优先，其余按 `order` 降序**
+`isBSticky - isASticky || (sortedEntriesIndex.get(a) - sortedEntriesIndex.get(b))`（`world-info.js:4999-5002`）。代码里**没有「常数优先于关键词」「直接命中优先于递归带出」这两条**——常驻条目先装只是因为我们习惯给它高 `order`。
+
+**[S-33] 正文以 `@@` 开头会被当装饰器剥掉**
+`parseDecorators`（`world-info.js:4635` 调用、`:4655` 定义）：`@@@` 是转义（`if (data.startsWith('@@@'))`，`:4659`），`@@activate` / `@@dont_activate` 是强制开关。一条正文以 `@@` 开头的条目，**导入后第一段凭空消失且不报错**。`comment` 上限 `MAX_COMMENT_LENGTH = 100`。
+
+**[S-34] `include_names` 只加在「最近 N 条的发言者」身上**
+`coreChat.map(x => world_info_include_names ? `${x.name}: ${x.mes}` : x.mes).reverse()`（`public/script.js:4624`）。默认 `true`（`world-info.js:74`）。关掉它，名字就只能靠正文里出现来命中——「角色一说话就点亮他的条目」这套玩法直接失效。
+
+**[S-35] 递归是全局设置，书里只有三个字段**
+`world_info_recursive` 默认 `false`（`world-info.js:75`），`max_recursion_steps = 0` 表示不限层（`:82`）。书文件里能写的只有 `excludeRecursion`（不被拉入）、`preventRecursion`（不拉别人）、`delayUntilRecursion`（只在第 N 层命中）。**用户那边一开递归，这三个字段就是全部防线**——实测 `尸变纪元` 46 条启用条目里有 58 条「正文点名别人关键词」的边。
 
 ---
 

@@ -61,12 +61,12 @@ MIT 精神的自用工具，无担保。**它不能替你保证「好玩」**—
 | --- | ---: | --- |
 | 阶段 | 9 个 | `world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery` |
 | 硬门 | 14 道 | 从开工门到自创字段门，编号 0–13，判据只写在 `references/pipeline.md` |
-| 参考页 | 22 份 | 阶段做法、契约规范、ST 语义事实、酒馆助手接口、验收、试演、去 AI 味 |
+| 参考页 | 23 份 | 阶段做法、契约规范、ST 语义事实、世界书引擎、酒馆助手接口、验收、试演、去 AI 味 |
 | 骨架 | 23 份 | 契约 + 四类设定 + MVU 五件 + 两个界面 + 交付四件 + 导入说明 + 世界书切割计划，填完即交付 |
 | 校验器 | 9 个 + 1 个总检 | 结构、语义、前端、变量、EJS、验收账本；`check-stage.py` 按阶段自动挑 |
 | 断言 | 责任分散但**可数** | `C01–C17` / `R00–R07` / `W00–W16` / `X01–X07` / `S-01–S-30+S-M1–M3` / `TH-01–TH-11` / `F01–F14` / `P01–P09` / `A00–A06` |
 | 单测 | 166 个 | `python -m unittest discover -s tests -t .` |
-| 源码锚点 | 48 条 | 36 条 ST 1.19.0 + 12 条酒馆助手 4.12.1，漂了会红 |
+| 源码锚点 | 56 条 | 44 条 ST 1.19.0 + 12 条酒馆助手 4.12.1，漂了会红 |
 
 ## 开始用
 
@@ -152,7 +152,7 @@ delivery   → 白潮（纯净）.json / 正则.json / 白潮 世界书.json
 | --- | --- | --- |
 | `scripts/validate-contract.py` | `C00–C17` | 契约自洽：阶段状态、产物索引、交付路线、命名表、演出许可三档 |
 | `scripts/validate-rolecard.py` | 1–12 | 角色卡骨架、占位符、事实分级（稳定 / 临时）、越界标记 |
-| `scripts/validate-st-package.py` | `C` `R` `W` `X` | 分包结构：卡字段、卡内不许内嵌、正则数组、世界书条目与**条目逐字来自原稿**（W17/W18）、跨文件绑定 |
+| `scripts/validate-st-package.py` | `C` `R` `W` `X` | 分包结构：卡字段、卡内不许内嵌、正则数组、世界书条目与**条目逐字来自原稿**（W17/W18）、单字/子串关键词（W19/W20）、`@@` 装饰器与常驻扇出（W21/W22）、跨文件绑定 |
 | `scripts/validate_st_semantics.py` | `S-01–S-30` | **只抓静默失效**：两套正则方言、`$<name>`、书位置枚举、卡内 scoped 正则未授权、书名绑定、正则导入目标 |
 | `scripts/validate-frontend.py` | `F01–F14` | HTML 骨架、外链、危险 API、实体、事件名、相对路径、裸定时器 |
 | `scripts/validate-mvu.py` | — | 变量结构可编译、`[initvar]` 与 schema 对齐、更新条目、隐藏正则 |
@@ -172,7 +172,7 @@ SillyTavern 有一类错误不抛异常、不写日志、界面上也不报错�
 - 内嵌书不带 `name` → 落成 `<卡名>'s Lorebook`，与你写的名字不是同一个
 - 前端代码块里没有 `html>` / `<head>` / `<body` → 判定不是界面，直接渲染成文字
 
-这些坑每一条都对应 `references/st-correctness.md` 里的一行源码锚点，`check_st_facts.py` 会在 ST 升级后把这些锚点重新验一遍（44 条，含酒馆助手侧 10 条）。
+这些坑每一条都对应 `references/st-correctness.md` 里的一行源码锚点，`check_st_facts.py` 会在 ST 升级后把这些锚点重新验一遍（56 条，含酒馆助手侧 12 条）。
 </details>
 
 ## 产物长什么样
@@ -244,7 +244,7 @@ skill 最容易悄悄变胖：每加一句话，每个阶段都多读一遍。
 ```bash
 bash scripts/run_checks.sh                       # 包自身：结构 + 单测 + 加载预算
 bash scripts/run_checks.sh <某创作目录>            # 再加：契约 / 交付包 / 语义 / 验收
-PYTHONIOENCODING=utf-8 python scripts/check_st_facts.py   # 44 条源码锚点是否还站得住
+PYTHONIOENCODING=utf-8 python scripts/check_st_facts.py   # 56 条源码锚点是否还站得住
 python scripts/measure_load.py                    # 九阶段加载量 vs 基线
 ```
 

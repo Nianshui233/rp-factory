@@ -15,6 +15,8 @@
 #   constant        true 才常驻；常驻合计参考 ≤8000 字
 #   order           同位置内越大越靠下；按 95–100 / 70–90 / 70 三档排
 #   position/depth  默认 0 / 4；状态栏协议用 4 + 小 depth
+#   prevent_recursion  常驻条目默认 true（每轮都在，会往递归缓冲里灌东西）；关键词条目默认 false
+#   ignore_budget   只有状态栏协议该开：它是每轮都要在的界面锚点，被预算挤掉等于状态栏消失
 #   skip            有意不写进书的原稿文件或节，写在这里（脚本会据此不报「漏切」）
 
 book_name: "<世界名> 世界书"
@@ -26,6 +28,7 @@ defaults:
   selective: true
   exclude_recursion: true
   match_whole_words: false
+  # prevent_recursion 不在这里设：常驻条目自动 true，关键词条目自动 false
 
 skip:
   - "未决事项"        # 台账留在 制作文件/，不进上下文

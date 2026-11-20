@@ -77,6 +77,10 @@ REGEX_SCRIPT_FIELDS = {
     "substituteRegex": int, "minDepth": (int, type(None)), "maxDepth": (int, type(None)),
 }
 
+# 资料库式世界书：控制器条目用 getwi(null, '<条目名>') 按状态取用被 disable 的资料条目。
+# 只认第一参数为 null/undefined 的调用（带书名的跨书引用不要求本地存在）。
+GETWI_LOCAL = re.compile(r"""getwi\(\s*(?:null|undefined)\s*,\s*['"]([^'"]+)['"]""")
+
 # 文件名里不能出现的字符（sanitize-filename 会干掉它们，干完就对不上 extensions.world 了）
 BAD_FILENAME_CHARS = set('/\\:*?"<>|')
 
@@ -483,6 +487,10 @@ def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
     const_chars = 0
     orders: list[float] = []
     tune = {"keys": [], "rec": [], "mww": [], "pos": [], "sel": []}
+    # W19–W22 用：单字关键词、正文开头的 @@ 装饰器、常驻条目正文里点了谁的关键词
+    shorts: list[str] = []
+    at_prefix: list[tuple[str, bool]] = []  # (uid, 是否 @@@ 转义)
+    const_bodies: dict[str, tuple[str, list[str]]] = {}
     for uid, e in entries.items():
         tag = f"条目 {uid}"
         if not isinstance(e, dict):
@@ -525,6 +533,12 @@ def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
 
         # 调优项
         plain = [k for k in keys if isinstance(k, str) and k.strip() and not (k.startswith("/") and k.endswith("/"))]
+        shorts += [k for k in plain if len(k.strip()) == 1]
+        head = content.lstrip()
+        if head.startswith("@@"):
+            at_prefix.append((str(uid), head.startswith("@@@")))
+        if e.get("constant") and e.get("preventRecursion") is not True:
+            const_bodies[str(uid)] = (content, plain)
         if isinstance(e.get("order"), (int, float)):
             orders.append(float(e["order"]))
         if not e.get("constant") and not disabled:
@@ -558,6 +572,66 @@ def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
         rep.warn("W16", f"关键词条目 selective=false：{', '.join(tune['sel'])}——UI 上会显示成蓝灯行为")
     if len(orders) >= 3 and len(set(orders)) == 1:
         rep.warn("W15", f"所有条目 order 都是 {orders[0]:g}：没分档，按 95–100 / 70–90 / 70 三档排")
+
+    if shorts:
+        rep.warn("W19", f"单字关键词：{sorted(set(shorts))}。在任意句子里都成立，"
+                          "include_names 关着时会把整条 3k 字的条目拉进来；改用双字以上的词或正则加边界")
+
+    # W20：短词是长词的子串（灯 / 灯所）——短词一命中，长词那条也跟着亮。同一条目内的互含无害，不计。
+    owner: dict[str, set[str]] = {}
+    for uid, e in entries.items():
+        if not isinstance(e, dict):
+            continue
+        for k in e.get("key", []) or []:
+            if isinstance(k, str) and k.strip() and not (k.startswith("/") and k.endswith("/")):
+                owner.setdefault(k.strip(), set()).add(str(uid))
+    plain_keys = sorted(owner)
+    wide = sorted({(s, l) for s in plain_keys if len(s) <= 2
+                   for l in plain_keys if s != l and s in l and owner[s] != owner[l]})
+    if wide:
+        shown = "；".join(f"{s} ⊂ {l}（条目 {'/'.join(sorted(owner[s]))} → {'/'.join(sorted(owner[l]))}）"
+                          for s, l in wide[:6])
+        rep.warn("W20", f"关键词互为子串且不同属一条：{shown}。短词一命中，长词那条也跟着亮。"
+                          "只留长的，或把短的删掉重配")
+
+    if at_prefix:
+        for uid, escaped in at_prefix:
+            if escaped:
+                rep.warn("W21", f"条目 {uid} 的正文以 @@@ 开头：那是转义，前三个字符会被解析成 `@@`，"
+                                 "正文实际从第三行开始")
+            else:
+                rep.fail("W21", f"条目 {uid} 的正文以 @@ 开头：ST 会把它当装饰器（@@activate / @@dont_activate）"
+                                 "整段剥离，正文第一段凭空消失。要真的以 @@ 开头就写 @@@")
+
+    # W22：常驻条目点名了别的条目的关键词——递归一开，它每轮都在，等于永久点亮器
+    fanout = []
+    for uid, (body, own) in const_bodies.items():
+        for k in sorted(set(all_keys) - set(own)):
+            if len(k) >= 2 and k in body:
+                fanout.append(f"{uid}→{k}")
+    if fanout:
+        rep.warn("W22", f"常驻条目没加 preventRecursion 却在正文里点了别的条目的关键词：{fanout[:8]}。"
+                          "递归开着时它们每轮都在，等于永久点亮器（把关键词条目变成半个常驻）")
+
+    # W23/W24：资料库式（disable 条目 + 控制器 getwi 取用）的两条断链点
+    #   控制器取的名字在书里不存在 → getwi 静默返回空，界面上像“这一段没写”
+    #   disable 的[data]/[阶段]条目没人取 → 死数据，白占文件、白给模型当误导
+    local_refs: set[str] = set()
+    for e in entries.values():
+        if isinstance(e, dict):
+            local_refs |= set(GETWI_LOCAL.findall(str(e.get("content", ""))))
+    comments = {str(e.get("comment", "")).strip() for e in entries.values() if isinstance(e, dict)}
+    missing = sorted(r for r in local_refs if r not in comments)
+    if missing:
+        rep.fail("W24", f"getwi() 取的条目名在书里不存在：{missing}——控制器会静默拿到空串，界面像"
+                          "“这段没写”。名字必须与条目 comment 逐字相同（含 [] 前缀与·分隔符）")
+    orphans = sorted(str(e.get("comment", "")).strip() for e in entries.values()
+                     if isinstance(e, dict) and (e.get("disable") is True or e.get("enabled") is False)
+                     and str(e.get("comment", "")).strip().startswith(("[data]", "[阶段]"))
+                     and str(e.get("comment", "")).strip() not in local_refs)
+    if orphans:
+        rep.warn("W23", f"disable 的[data]/[阶段]条目没有任何控制器取用：{orphans}——它们永远不会进上下文。"
+                          "要么写进控制器的 getwi()，要么删掉")
 
     dupes = sorted({k for k in all_keys if all_keys.count(k) > 1})
     if dupes:

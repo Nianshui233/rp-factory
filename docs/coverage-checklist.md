@@ -172,12 +172,14 @@
 | D13 | 交付 | 打包不产生新设定；缺设定回对应阶段补 | references/stage-7-delivery.md · references/dual-mode.md | [x] |
 | D14 | 交付 | 世界书参数套餐：三灯取舍、`order` 三档、`position` 风险、`excludeRecursion` | references/worldbook-tuning.md · templates/st-worldbook.json | [x] |
 | D15 | 交付 | 关键词 8–15 个、纯文本 key 不支持逗号、标题与关键词不进上下文 | references/worldbook-tuning.md | [x] |
-| D16 | 交付 | 预算与插入优先级：常驻 5000 字、单条 ≤1000 字、Context 25%、常驻→命中→递归 | references/worldbook-tuning.md · scripts/validate-st-package.py | [x] |
+| D16 | 交付 | 预算 = `Context % × 上下文`（溢出静默，Alert 默认关）；常驻 ≤8000 字、单条 ≤1000 字；装填只看 sticky 与 `order` | references/worldbook-tuning.md · references/st-correctness.md（S-31/S-32）· scripts/validate-st-package.py | [x] |
 | D17 | 交付 | 递归 / 概率 / inclusion group / 时间效果的正确用法 | references/worldbook-tuning.md | [x] |
 | D18 | 交付 | 交付说明附全局激活设置推荐表（扫描深度 / 预算 / 递归 / 整词匹配） | references/worldbook-tuning.md · references/stage-7-delivery.md | [x] |
 | D19 | 交付 | 插入位置效力阶梯（含 `2/3` 作者注档与常数 + `@D` 等价作者注） | references/worldbook-tuning.md · references/stage-7-delivery.md | [x] |
 | D20 | 交付 | 先位置后 `order`、按重要性排布、首尾 0.9% 强记忆区 | references/worldbook-tuning.md | [x] |
-| D21 | 交付 | 分档设定：阶段词当关键词（含两条代价说明） | references/worldbook-tuning.md · references/stage-7-delivery.md | [x] |
+| D21 | 交付 | 分档设定：阶段词当关键词（含两条代价说明） | references/worldbook-writing.md · references/stage-7-delivery.md | [x] |
+| D22 | 交付 | 引擎机制：扫描缓冲、逐条判定顺序、装填与组装、递归三字段、`@@` 装饰器、大卡四种做法 | references/worldbook-engine.md · references/st-correctness.md（S-31…S-35） | [x] |
+| D23 | 交付 | 关键词宽度：禁单字与泛词（W19）、跨条目子串（W20）、常驻扇出（W22） | references/worldbook-tuning.md · scripts/validate-st-package.py | [x] |
 | D22 | 交付 | 中文世界书名与 `extensions.world` 的匹配（本机已修，老版本重命名补救） | references/stage-7-delivery.md | [x] |
 
 ### 2026-11-20 实操复盘补项
