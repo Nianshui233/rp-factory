@@ -703,4 +703,8 @@ git commit -m "test: 结构断言 + replay fixture + 一键全检"
 
 ## 状态
 
-六个 commit 在分支 `feat/absorb-tw-experience` 上；`bash scripts/run_checks.sh` 全绿（114 tests）。分支**未合入 main**，也**未在真实项目上跑过**。
+**示例包补上账本**：`examples/dry-run-盐湖守夜人/创作痕迹/验收.yaml` 从无到有（13 条：L1 两条指向 `check_st_facts.py` 退出码、L2 三条指向三个校验器、L4 六条带 dimension、L5/L6 由维护者签 `skipped` 并写 why）。跑出来只剩一条 A05 警告——「整本账没有 L5/L6 的 pass」，这是应该留着的：示例包确实没进过真机、没人试演过，`check-stage.py delivery` 因此 PASS-with-warning。
+
+**顺手修的两个真 bug**：`validate-contract.py` 传目录时 `next((a, b), None)` 直接 TypeError（`next()` 要迭代器，元组不是），且把 `创作痕迹` 当项目根传进去会让 `<workspace>/<name>` 全错——已改为 `next((c for c in candidates if c.exists()), candidates[0])` 与 `root = arg.parent if arg.name == '创作痕迹' else arg`，并新增 `tests/test_contract_dir_arg.py`（3 测试，含把崩溃本身锁成回归）。
+
+八个 commit 在分支 `feat/absorb-tw-experience` 上；`bash scripts/run_checks.sh` 全绿（117 tests）。分支**未合入 main**，也**未在真实项目上跑过**。

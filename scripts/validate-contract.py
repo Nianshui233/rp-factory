@@ -400,10 +400,11 @@ def main():
         return 2
     arg = pathlib.Path(sys.argv[1])
     if arg.is_dir():
-        path = next((arg / '创作痕迹' / 'contract.yaml', arg / 'contract.yaml'), None)
-        if not path or not path.exists():
-            path = arg / '创作痕迹' / 'contract.yaml'
-        root = arg
+        # 目录可以是项目根，也可以直接是 创作痕迹/（有人习惯 cd 进去再跑）。
+        # 注意 next() 要的是迭代器：传元组会 TypeError，必须套 iter()。
+        candidates = (arg / '创作痕迹' / 'contract.yaml', arg / 'contract.yaml')
+        path = next((c for c in candidates if c.exists()), candidates[0])
+        root = arg.parent if arg.name == '创作痕迹' else arg
     else:
         path, root = arg, arg.parent.parent
     if not path.exists():

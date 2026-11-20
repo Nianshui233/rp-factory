@@ -1,0 +1,79 @@
+# 验收账本：创作痕迹/验收.yaml
+# 六层证据见 references/acceptance.md。L5/L6 只能 by: human，脚本自签会被 check_acceptance.py 判失败。
+#
+# 这是一份**示例账本**：产物只在本机离线环境跑过，没进过真实 SillyTavern。
+# 所以 L5/L6 如实写 skipped 并给出原因——示例包不该有人替它签真机与人眼。
+entries:
+  - layer: L1
+    item: 正则分组语法
+    evidence: "python scripts/check_st_facts.py → exit 0（29 锚点全中，含 engine.js:422 的 $1 / $<name>）"
+    verdict: pass
+    by: script
+  - layer: L1
+    item: 世界书挂载依赖卡名
+    evidence: "python scripts/check_st_facts.py → exit 0（含 world-info.js:5744 的「<卡名>'s Lorebook」）"
+    verdict: pass
+    by: script
+  - layer: L2
+    item: 契约校验（C01–C16）
+    evidence: "python scripts/validate-contract.py 创作痕迹/contract.yaml → exit 0"
+    verdict: pass
+    by: script
+  - layer: L2
+    item: 阶段收尾一检
+    evidence: "python scripts/check-stage.py all → exit 0（8 个检查全过）"
+    verdict: pass
+    by: script
+  - layer: L2
+    item: 语义校验（S 系列）
+    evidence: "python scripts/validate_st_semantics.py 最终产物 → exit 0（0 失败 0 警告）"
+    verdict: pass
+    by: script
+  - layer: L4
+    dimension: dom
+    item: 状态栏挂载
+    evidence: "python scripts/st-probe.js --json：1 个 iframe、高 412px、preCount 0、页面错误 0"
+    verdict: pass
+    by: assistant
+  - layer: L4
+    dimension: console
+    item: 首屏无报错
+    evidence: "st-probe 采集 pageerror 0 条、console error 0 条"
+    verdict: pass
+    by: assistant
+  - layer: L4
+    dimension: import
+    item: 三件套整体导入
+    evidence: "st-probe 的 import 段：正则进入列表、脚本可启用"
+    verdict: pass
+    by: assistant
+  - layer: L4
+    dimension: fresh_chat
+    item: 新聊天冷启动
+    evidence: "开新聊后 statusbar iframe 出现，高度 412px 未塌"
+    verdict: pass
+    by: assistant
+  - layer: L4
+    dimension: interaction
+    item: 数值变化触发界面刷新
+    evidence: "手改消息里的 <StatusPlaceHolderImpl/> 数值段后，进度条随之变化"
+    verdict: pass
+    by: assistant
+  - layer: L4
+    dimension: style
+    item: 窄屏与 200% 缩放
+    evidence: "没测：本机只有桌面视口，示例包不宣称移动端适配"
+    verdict: skipped
+    why: 示例包交付范围是桌面端；真要做移动端要在 L5 真机上补测
+  - layer: L5
+    item: 三件导入真机
+    evidence: "没做：示例包只验证到离线浏览器探针"
+    verdict: skipped
+    why: "示例包维护者决定不签真机：真机导入必须人类亲手做，示例包不替所有人造这个签"
+    by: human
+  - layer: L6
+    item: 人类试演
+    evidence: "没做：示例包没有试演对象"
+    verdict: skipped
+    why: "示例包维护者决定不签试演：试演见 references/rehearsal.md，需要真实对话与人判读"
+    by: human
