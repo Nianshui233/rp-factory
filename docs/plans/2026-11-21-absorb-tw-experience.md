@@ -654,3 +654,53 @@ git commit -m "test: 结构断言 + replay fixture + 一键全检"
 | **cast 阶段** | **−260**（−1,000 硬门 + 700 试演 + 40 指针） |
 
 即：功能变多，加载量反而比现在低。
+
+---
+
+# 第二轮：全仓通读后的六项（2026-11-21 晚）
+
+第一轮只取了「产物合规 + 验收纪律」相关方法。用户随后要求把 TavernWeave 全仓读一遍，再取能吸收的部分。23 个 skill、275 份 md 读完，筛出 18 项候选，按「能不能脚本判 / 是否改契约 / 是否与现有体系冲突」三条筛成 6 件做、3 件延后、5 件不做（不做清单见提交记录，理由都在）。
+
+## 做了什么
+
+| # | 项 | 落点 |
+|---|---|---|
+| 1 | L4 十一维验收矩阵 + 脚本抓四维 | `scripts/check_acceptance.py` A06、`scripts/st-probe.js --json/--report`、`references/acceptance.md` 第三节 |
+| 2 | 演出许可三档 + 角色卡事实分级 | 契约 `player_agency`（C16）、`validate-rolecard.py` 第 11/12 条、`templates/rolecard.yaml` 的 `facts`、`references/decisions.md` 第六节 |
+| 3 | 四类证据 + 最小响应集合 | `references/rehearsal.md`（R1 改按 `player_agency.mode` 判） |
+| 4 | 世界书条目的文本契约 | `references/worldbook-writing.md`（新 L2，按需加载） |
+| 5 | P09 绝对化失衡 | `scripts/check_prose.py` + 夹具 |
+| 6 | 正则双方言 / 缺 replaceString / 空 findRegex | `references/st-correctness.md` S-25…S-27 + `validate_st_semantics.py` + 三个锚点 |
+| 6b | 状态四分割 + 畸形数据诊断态 + 无障碍两条 | `references/frontend-conventions.md`、`validate-frontend.py` F09 |
+
+## 延后（等触发条件）
+
+- **条件表法**（一个维度内条件互斥、覆盖全部合法状态）：等做「关系阶段/多轴状态」的卡时写进 `worldbook-writing.md` 的一节。
+- **安全 Z 系列扫描器**：先只做一条规则（远端加载须声明 provenance + fallback + readiness），真有大卡要交再扩成规则族。
+- **产物体积预算**（`fileBytes` / `promptBytes` / `regexBytes` / `helperScriptBytes`…）：与 `measure_load.py` 重叠度高，遇到实际性能投诉再做。
+
+## 不做（附理由）
+
+- **最小充分机制阶梯 E01**：与三灯/套餐是两套哲学，并存会分裂判断；只取「禁用泛关键词」。
+- **五状态机 AUDIT→SWEEP→GATE**：为「审别人代码」设计，我们是生产者、单流水线；只借「重写是硬停」。
+- **抗分形执行 + 蓝图分层**：无蓝图体系，只借「单一续接指针」（`创作痕迹/进度.md`）。
+- **迁移夹具 / 资料三维分离（canon/fanon/continuity）**：服务二创接手，等真做 `takeover.md` 时一起补。
+- **世界设计七问 / 开场六检查**：`stage-1`、`stage-6` 已有更贴流程的版本；开场只取「从样例提方法不搬事实」。
+
+## 体积账（实测，Ruling ④）
+
+| 项 | 增量 |
+|---|---|
+| `contract-schema.md`（`player_agency` 行 + 指针，回收等量冗余后） | +63 / 阶段 |
+| `stage-2-world…` 指针 + 事实分级 + 回收 | cast 另 +94 |
+| `worldbook-writing.md` 指针 | world +130、delivery +112 |
+| `SKILL.md` 索引两行 | +55 / 阶段 |
+| `frontend-conventions.md` 两段 | opening / statusbar +312 |
+| 新增 L2 文件（`worldbook-writing.md`） | 不进任何阶段加载表：0 |
+| 新增脚本与测试 | 0 |
+
+绝对上限 26,000 未被突破（delivery 25,966）。基线一律改写为实测值，每次都在共用文件里回收了等量冗余。
+
+## 状态
+
+六个 commit 在分支 `feat/absorb-tw-experience` 上；`bash scripts/run_checks.sh` 全绿（114 tests）。分支**未合入 main**，也**未在真实项目上跑过**。
