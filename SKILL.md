@@ -125,6 +125,7 @@ disable-model-invocation: true
 | `references/worldbook-writing.md` | 世界书条目文本契约：句子功能、五档强度、知识度数、语义不变量 |
 | `references/dual-mode.md` | 两种模态的对照、切换、渲染、注释剥离 |
 | `references/st-correctness.md` | 会静默失效的 ST 语义事实（S-01…S-M3）：正则/世界书/卡/宏四类，每条带 `public/…:line` 源码锚点 |
+| `references/tavern-helper.md` | 酒馆助手 4.12.1 接口速查：渲染链路、srcdoc 约束、iframe 全局、变量/消息/事件、失效清单 |
 | `references/frontend-conventions.md` | 表现层机制、HTML 骨架、正则 JSON、提示词条目、前端门 |
 | `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 `world` / `cast` / `scenes` / `axes`：世界观 / 角色卡 / 场景卡 / 数值系统 |
 | `references/stage-mvu.md` | 阶段 `mvu`：轴 → zod 结构 / `[initvar]` / 三条更新条目 / 两条隐藏正则 / 卡内脚本 |
@@ -135,8 +136,8 @@ disable-model-invocation: true
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
 | `templates/mvu-schema.js` / `mvu-initvar.yaml` / `mvu-entries.yaml` / `regex-mvu.json` / `tavern-script.json` / `ejs-controller.ejs` | 变量系统的五份骨架 + 分档控制器 |
-| `scripts/check-stage.py` · `detect-sillytavern.py` · `st-import.py` · `st-probe.js` | 阶段收尾一检（按阶段自动调下面这些校验器）、环境探测、导入酒馆并实测 |
-| `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` · `validate-mvu.py` · `validate-ejs.py` · `validate_st_semantics.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 七个校验器（由 `check-stage.py` 在阶段收尾统一调用） |
+| `scripts/check-stage.py` | 阶段收尾一检：按阶段自动调下面这些校验器 |
+| `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py`（F01–F14） · `validate-mvu.py` · `validate-ejs.py` · `validate_st_semantics.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 七个校验器 |
 | `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（探测静默跑；导入与验收只在用户点头后跑） |
 | `scripts/check_prose.py` | P01–P09 去 AI 味提示（解释腔 / 情绪直说 / 陈词比喻 / 模板标签 / 绝对化失衡），自检门顺手跑 |
 | `check_st_facts.py` + `tests/` | 复核 `st-correctness.md` 的源码锚点、加载量预算、全套单测（改完跑 `python -m unittest discover -s tests -t .`） |
@@ -147,7 +148,7 @@ disable-model-invocation: true
 
 ## 九、交付形态
 
-- 文本模态：设定产物是一个 ```yaml 代码块，块外只允许设计说明、补全清单、待确认清单、运行示例；工程模态写进 `<工作区>/<世界名>/创作痕迹/产物/`，每个产物一个文件。**`最终产物/` 在交付前必须空着**——那是交付目录，不是工作目录。
+- 文本模态：设定产物是一个 ```yaml 代码块，块外只允许设计说明、补全清单、待确认清单、运行示例；工程模态写进 `<工作区>/<世界名>/创作痕迹/产物/`，每个产物一个文件。**`最终产物/` 在交付前必须空着**——那是交付目录。
 - 表现层例外：两个前端交付 **HTML（完整文档）+ 正则 JSON + 提示词条目 YAML** 三个代码块 / 三个文件；HTML 与 JSON 是对 ST 与酒馆助手的落地件，不套 YAML 骨架。
 - 打包例外：`delivery` 阶段交**三件 JSON**（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`），落在 `最终产物/` 根下，用户自己装配；`创作痕迹/产物/` 里的 YAML 与 HTML 原样保留。
 细节在 `references/dual-mode.md`；改模态只换渲染目标，不重跑阶段。

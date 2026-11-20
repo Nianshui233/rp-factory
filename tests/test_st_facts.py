@@ -84,5 +84,57 @@ class TestCheckStFacts(unittest.TestCase):
             self.assertIn("找不到", problems[0])
 
 
+TH_FACTS = [
+    ("src/util/is_frontend.ts", "return ['html>', '<head>', '<body']", 2, "TH-01"),
+    ("src/iframe/predefine.js", "'EjsTemplate', 'TavernHelper'", 12, "TH-06"),
+]
+
+
+def _make_th_tree(root: Path, shift: int = 0) -> None:
+    (root / "src" / "util").mkdir(parents=True, exist_ok=True)
+    (root / "src" / "iframe").mkdir(parents=True, exist_ok=True)
+    front = ["// filler"] * (1 + shift)
+    front.append("  return ['html>', '<head>', '<body'].some(tag => content.includes(tag));")
+    (root / "src" / "util" / "is_frontend.ts").write_text("\n".join(front) + "\n", encoding="utf-8")
+    pre = ["// filler"] * (11 + shift)
+    pre.append("result = result.merge(_.pick(window.parent, ['EjsTemplate', 'TavernHelper']));")
+    (root / "src" / "iframe" / "predefine.js").write_text("\n".join(pre) + "\n", encoding="utf-8")
+
+
+class TestTavernHelperFacts(unittest.TestCase):
+    """TH-xx 锚点走的是插件仓库，根目录可换，缺失时要能区分「跳过」与「失效」。"""
+
+    def test_plugin_anchors_pass(self):
+        mod = _load()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _make_th_tree(root)
+            self.assertEqual(mod.verify(TH_FACTS, root, tolerance=0, label="酒馆助手"), [])
+
+    def test_plugin_drift_mentions_plugin_not_st(self):
+        mod = _load()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _make_th_tree(root, shift=40)
+            problems = mod.verify(TH_FACTS, root, tolerance=2, label="酒馆助手")
+            self.assertTrue(problems)
+            self.assertTrue(all("酒馆助手" in p for p in problems), problems)
+
+    def test_default_plugin_root_is_configurable(self):
+        mod = _load()
+        self.assertTrue(hasattr(mod, "DEFAULT_TH_ROOT"))
+        self.assertTrue(hasattr(mod, "TH_FACTS"))
+        self.assertTrue(all(row[3].startswith("TH-") for row in mod.TH_FACTS))
+
+    def test_plugin_root_missing_does_not_fail_the_run(self):
+        mod = _load()
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "nope"
+            code = mod.main(["--st-root", str(Path(tmp) / "also-nope"), "--th-root", str(missing), "--json"])
+            # ST 根不存在 → 有失败；但只要 TH 根不在，就不该额外吐出 TH 组问题
+            self.assertEqual(code, 1)
+
+
+
 if __name__ == "__main__":
     unittest.main()

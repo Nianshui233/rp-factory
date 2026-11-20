@@ -131,6 +131,72 @@ def check(path: Path) -> tuple[list[str], list[str], list[str]]:
     if not keyboardless and not empty_btn:
         ok.append("F09 可点击元素键盘可达、有可访问名")
 
+    # F10 手写事件名字符串：eventOn / eventSource.on 的常量值是别名，键名 ≠ 字符串
+    #   tavern_events.CHAT_CHANGED 的值是 'chat_id_changed'，CHARACTER_DELETED 的值是 'characterDeleted'
+    literal_events = []
+    for pat in (
+        r"\bevent(?:On|Once|Emit|EmitAndWait|RemoveListener|OnButton)\(\s*['\"]",
+        r"\beventSource\.(?:on|once|emit|removeListener)\(\s*['\"]",
+    ):
+        literal_events.extend(m.group(0)[:40] for m in re.finditer(pat, text))
+    if literal_events:
+        warn.append(
+            f"F10 {len(literal_events)} 处事件名写成了字符串（{literal_events[0]}…）："
+            "常量值不等于键名（CHAT_CHANGED 实际是 'chat_id_changed'，CHARACTER_DELETED 是 'characterDeleted'），"
+            "手写必错，改用 tavern_events.* / iframe_events.* / Mvu.events.*（references/tavern-helper.md 第七节）"
+        )
+    else:
+        ok.append("F10 事件名走常量")
+
+    # F11 相对路径资源：srcdoc 模式不加 <base>，相对路径会落到 about:srcdoc
+    rel = []
+    for m in re.finditer(r"<(?:img|script|iframe|source|audio|video|embed)\b[^>]*\bsrc\s*=\s*['\"]([^'\"]+)['\"]", text, re.I):
+        url = m.group(1).strip()
+        if url.startswith(("http://", "https://", "//", "/", "data:", "blob:", "#")) or url.startswith("{{"):
+            continue
+        rel.append(url[:50])
+    for m in re.finditer(r"url\(\s*['\"]?([^)'\"]+)", text, re.I):
+        url = m.group(1).strip()
+        if url.startswith(("http://", "https://", "//", "/", "data:", "blob:", "#", "var(")) or url.startswith("{{"):
+            continue
+        rel.append(url[:50])
+    if rel:
+        warn.append(
+            f"F11 {len(rel)} 处相对路径资源（{', '.join(sorted(set(rel))[:3])}）："
+            "楼层 iframe 默认用 srcdoc，不带 <base>，相对路径解析到 about:srcdoc 会 404。"
+            "改成 data: URI 内联，或酒馆内绝对路径 /img/…、/characters/…（tavern-helper.md 第二节）"
+        )
+    else:
+        ok.append("F11 无相对路径资源")
+
+    # F12 直接操作父窗口文档：跨 frame 写 DOM 会绕开渲染与事件链
+    if re.search(r"\b(?:window\.)?(?:parent|top)\.document\b", text):
+        warn.append(
+            "F12 直接操作父窗口 document：楼层 iframe 是同源但独立渲染上下文，"
+            "改父文档不会触发酒馆的重渲染与事件，也会在切换聊天后残留。"
+            "改用 setChatMessages({message_id}) 重渲染本楼，或走 TavernHelper 接口（tavern-helper.md 第五节）"
+        )
+    else:
+        ok.append("F12 不直接操作父文档")
+
+    # F13 refresh:'all'：整条聊天重载并触发 CHAT_CHANGED，是「刷新一楼」的重锤
+    if re.search(r"refresh\s*:\s*['\"]all['\"]", text):
+        warn.append(
+            "F13 用了 refresh: 'all'：会重载整条聊天、触发 CHAT_CHANGED 并打断其它界面。"
+            "只想刷新被改的楼层就用 'affected'（默认值）（tavern-helper.md 第五节）"
+        )
+    else:
+        ok.append("F13 没有用 refresh:'all'")
+
+    # F14 定时器泄漏：iframe 卸载时 TH 只自动清事件监听，定时器要自己收
+    if "setInterval(" in text and "clearInterval(" not in text:
+        warn.append(
+            "F14 起了 setInterval 却没有 clearInterval：界面反复重渲染后旧定时器还在跑，"
+            "会重复写变量、抢 DOM。在 pagehide 或重渲染入口里清掉（tavern-helper.md 第三节）"
+        )
+    else:
+        ok.append("F14 无裸定时器")
+
     return fail, warn, ok
 
 

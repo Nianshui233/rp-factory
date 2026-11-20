@@ -741,3 +741,32 @@ delivery 一度 +297 破绝对上限。做法：在同一文件里回收内嵌�
 - 这个包按到底「下一步 → 总览 → 提交」之后会发生什么（是否真生成规范用户消息、是否真改写世界书/变量）。
 - 数值系统：这张卡 `tavern_helper.scripts` 为空，任何操作后数值都不会动；要做对照得导 `创作痕迹/产物/st/爱情公寓·MVU实验.json`。
 - 四个 `ERR_CONNECTION_REFUSED`（疑似某扩展在连本地服务，与本包无关，未定位）。
+
+---
+
+# 第四轮：酒馆助手接口（HTML 前端的地基）
+
+## 为什么
+
+前三轮都在管「产物对不对」，但「HTML 怎么被送上屏」这一层是空的：`frontend-conventions.md` 只讲我们自己模板的约定，`stage-mvu.md:130` 甚至示范了从 jsDelivr 引 MVU —— 而实际决定界面出不出得来的是酒馆助手（JS-Slash-Runner）。真机那一晚的所有「界面没出来」问题，答案全在插件源码里。
+
+## 调研口径
+
+锚定 **4.12.1 / `f9c95ab`**，参考仓库 `D:/AI/RP创作/参考/JS-Slash-Runner` 与已安装副本 `D:/AI/SillyTavern/public/scripts/extensions/third-party/JS-Slash-Runner` 是同一 commit。官方文档在外部站点，仓内权威是 `@types/**`（5,081 行 .d.ts）。
+
+## 落地
+
+- 新增 `references/tavern-helper.md`：渲染链路 7 步、srcdoc 包装硬约束、iframe 全局、变量/消息/显示/事件/MVU 用法、23 个命名空间索引、13 条静默失效清单。**不进任何阶段的 LOAD_MAP**（按需加载，0 常驻成本）。
+- `scripts/check_st_facts.py`：新增 **TH_FACTS**（TH-01…TH-10，指向插件源码）+ `--th-root`（默认参考仓库）；插件根不存在时整组跳过而不是失败，漂移信息里带「酒馆助手」标签以便与 S 组区分。
+- `scripts/validate-frontend.py`：新增 **F10–F14**（事件名写字符串 / 相对路径资源 / 直接操作父文档 / `refresh:'all'` / 裸 `setInterval`），每条都是 warning，且报错文案里带 `tavern-helper.md` 的节号。
+- `tests/`：`test_frontend_th.py`（14 个，含「仓库模板不许被新规则打脸」）+ `test_st_facts.py` 新增 4 个（插件锚点通过/漂移/根缺失）。
+
+## 体积账
+
+`SKILL.md` 只有索引多一行（表内描述压到 40 字），并在同一文件回收「`最终产物/` 是交付目录不是工作目录」「校验器由 check-stage.py 调用」两处冗余，全部阶段 −3/-4（比基线更轻）。新参考页不进 LOAD_MAP，所以阶段加载量不变。
+
+## 仍未验证的
+
+- 只读了源码，没有跑「新规则打旧包」的真机对照（F10–F14 的假阳性率样本只有本仓 3 个模板 + 示例 2 个界面）。
+- `use_blob_url` 模式（有 `<base>`）没实测；文档按源码写，标注了区别。
+- 插件的 `audio` / `extension` / `import_raw` 等命名空间只有签名索引，没有行为验证。

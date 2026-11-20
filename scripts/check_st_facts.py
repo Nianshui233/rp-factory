@@ -7,9 +7,14 @@
 CLI:
     python scripts/check_st_facts.py                      # 用默认 ST 路径
     python scripts/check_st_facts.py --st-root D:/AI/SillyTavern
+    python scripts/check_st_facts.py --th-root D:/path/to/JS-Slash-Runner
     python scripts/check_st_facts.py --tolerance 40        # 放宽行号漂移容忍
     python scripts/check_st_facts.py --json
 退出码：0 全部命中；1 有漂移/缺失；2 参数错误。
+
+锚点分两组：S-xx 指向 SillyTavern 本体（references/st-correctness.md），
+TH-xx 指向酒馆助手插件（references/tavern-helper.md）。插件根目录不存在时
+TH 组自动跳过，不算失败。
 """
 from __future__ import annotations
 
@@ -19,6 +24,7 @@ import sys
 from pathlib import Path
 
 DEFAULT_ST_ROOT = os.environ.get("ST_ROOT", r"D:/AI/SillyTavern")
+DEFAULT_TH_ROOT = os.environ.get("TH_ROOT", r"D:/AI/RP创作/参考/JS-Slash-Runner")
 
 ENGINE = "public/scripts/extensions/regex/engine.js"
 REGEX_INDEX = "public/scripts/extensions/regex/index.js"
@@ -64,6 +70,21 @@ FACTS: list[tuple[str, str, int, str]] = [
     (WORLD_INFO, "const bookName = characters[chid]?.data?.character_book?.name", 5744, "S-29"),
 ]
 
+# 酒馆助手（JS-Slash-Runner 4.12.1 / f9c95ab）的锚点。插件才是把 HTML 送上屏的那一层，
+# 所以它的行为比 ST 本体更容易被写错的文档带偏。路径相对插件仓库根。
+TH_FACTS: list[tuple[str, str, int, str]] = [
+    ("src/util/is_frontend.ts", "return ['html>', '<head>', '<body'].some(tag => content.includes(tag));", 2, "TH-01"),
+    ("src/panel/render/iframe.ts", "html,body{margin:0!important;padding:0;overflow:hidden!important;max-width:100%!important;}", 89, "TH-02"),
+    ("src/panel/render/iframe.ts", "const VARIABLE_EXPRESSION = `var(--TH-viewport-height)`;", 24, "TH-03"),
+    ("src/iframe/adjust_iframe_height.js", "frameElement.style.height = `${height}px`;", 21, "TH-04"),
+    ("src/iframe/adjust_viewport.js", "$('html').css('--TH-viewport-height', `${window.parent.innerHeight}px`);", 1, "TH-05"),
+    ("src/iframe/predefine.js", "result = result.merge(_.pick(window.parent, ['EjsTemplate', 'TavernHelper', 'YAML', 'showdown', 'toastr', 'z']));", 12, "TH-06"),
+    ("src/type/settings.ts", "export const setting_field = 'tavern_helper';", 3, "TH-07"),
+    ("src/panel/render/use_collapse_code_block.ts", "if ($div.children('iframe').length > 0) {", 43, "TH-08"),
+    ("@types/iframe/event.d.ts", "CHAT_CHANGED: 'chat_id_changed';", 206, "TH-09"),
+    ("@types/iframe/exported.mvu.d.ts", "VARIABLE_UPDATE_ENDED: 'mag_variable_update_ended';", 115, "TH-10"),
+]
+
 
 def _find_line(path: Path, needle: str) -> int | None:
     """返回 needle 首次出现的 1-based 行号；找不到返回 None。"""
@@ -77,7 +98,7 @@ def _find_line(path: Path, needle: str) -> int | None:
     return None
 
 
-def verify(rows, root: Path, tolerance: int = 25) -> list[str]:
+def verify(rows, root: Path, tolerance: int = 25, label: str = "ST") -> list[str]:
     """返回问题列表；空表示全部锚点仍然成立。rows 允许 3 元组或 4 元组。"""
     problems: list[str] = []
     for row in rows:
@@ -85,18 +106,19 @@ def verify(rows, root: Path, tolerance: int = 25) -> list[str]:
         code = row[3] if len(row) > 3 else ""
         path = Path(root) / rel
         if not path.exists():
-            problems.append(f"{code} 文件不存在：{rel}（ST 根目录对不上？）")
+            problems.append(f"{code} 文件不存在：{rel}（{label} 根目录对不上？）")
             continue
         found = _find_line(path, needle)
         if found is None:
-            problems.append(f"{code} 找不到特征串：{rel} 里的 {needle!r}——ST 改写了这段，事实表需要复核")
+            problems.append(f"{code} 找不到特征串：{rel} 里的 {needle!r}——{label} 改写了这段，事实表需要复核")
         elif abs(found - expected) > tolerance:
-            problems.append(f"{code} 行号漂移：{rel}:{expected} → 实际 {found}（容差 {tolerance}）")
+            problems.append(f"{code} 行号漂移：{rel}:{expected} → 实际 {found}（容差 {tolerance}，对照的是{label}副本）")
     return problems
 
 
 def main(argv: list[str]) -> int:
     root = Path(DEFAULT_ST_ROOT)
+    th_root = Path(DEFAULT_TH_ROOT)
     tolerance = 25
     as_json = False
     i = 0
@@ -108,6 +130,12 @@ def main(argv: list[str]) -> int:
                 print("--st-root 需要一个路径", file=sys.stderr)
                 return 2
             root = Path(argv[i])
+        elif arg == "--th-root":
+            i += 1
+            if i >= len(argv):
+                print("--th-root 需要一个路径", file=sys.stderr)
+                return 2
+            th_root = Path(argv[i])
         elif arg == "--tolerance":
             i += 1
             try:
@@ -127,19 +155,35 @@ def main(argv: list[str]) -> int:
         i += 1
 
     problems = verify(FACTS, root, tolerance)
+    th_problems = verify(TH_FACTS, th_root, tolerance, "酒馆助手") if th_root.exists() else []
+    th_skipped = not th_root.exists()
+    all_problems = problems + th_problems
     if as_json:
         print(json.dumps({"st_root": str(root), "tolerance": tolerance,
-                          "anchors": len(FACTS), "problems": problems},
+                          "anchors": len(FACTS),
+                          "th_root": str(th_root), "th_anchors": len(TH_FACTS) if not th_skipped else 0,
+                          "th_skipped": th_skipped,
+                          "problems": all_problems},
                          ensure_ascii=False, indent=2))
     else:
         print(f"ST 根目录：{root}（容差 {tolerance} 行，{len(FACTS)} 个锚点）")
         if problems:
             for p in problems:
                 print(f"  ✗ {p}")
-            print("\n有锚点失效：先复核 references/st-correctness.md，再改这张表。")
         else:
             print("  全部锚点命中。")
-    return 1 if problems else 0
+        if th_skipped:
+            print(f"酒馆助手：跳过（{th_root} 不存在，用 --th-root 指定插件仓库）")
+        else:
+            print(f"酒馆助手根目录：{th_root}（{len(TH_FACTS)} 个锚点）")
+            if th_problems:
+                for p in th_problems:
+                    print(f"  ✗ {p}")
+            else:
+                print("  全部锚点命中。")
+        if all_problems:
+            print("\n有锚点失效：先复核 references/st-correctness.md 与 references/tavern-helper.md，再改这张表。")
+    return 1 if all_problems else 0
 
 
 if __name__ == "__main__":
