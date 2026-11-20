@@ -132,6 +132,7 @@ disable-model-invocation: true
 | `scripts/check-stage.py` · `detect-sillytavern.py` · `st-import.py` · `st-probe.js` | 阶段收尾一检（按阶段自动调下面这些校验器）、环境探测、导入酒馆并实测 |
 | `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` · `validate-mvu.py` · `validate-ejs.py` · `validate_st_semantics.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 七个校验器（由 `check-stage.py` 在阶段收尾统一调用） |
 | `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（探测静默跑；导入与验收只在用户点头后跑） |
+| `scripts/check_prose.py` | P01–P08 去 AI 味提示（解释腔 / 情绪直说 / 陈词比喻 / 模板标签），自检门顺手跑 |
 | `scripts/check_st_facts.py` + `tests/` | 复核 `st-correctness.md` 的源码锚点、加载量预算、全套单测（改完跑 `python -m unittest discover -s tests -t .`） |
 
 ## 八、阶段文件约定

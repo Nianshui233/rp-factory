@@ -142,6 +142,12 @@ def main(argv: list[str]) -> int:
     if stage:
         rows = [(s, t) for s, t in rows if s == stage]
     problems = evaluate(rows, max_tokens)
+    skill_tok = estimate(["SKILL.md"])
+    pipe_tok = estimate(["references/pipeline.md"])
+    if skill_tok > SKILL_MD_MAX:
+        problems.append(f"SKILL.md {skill_tok} > {SKILL_MD_MAX}")
+    if pipe_tok > PIPELINE_MAX:
+        problems.append(f"pipeline.md {pipe_tok} > {PIPELINE_MAX}")
 
     if as_json:
         print(json.dumps(
@@ -165,12 +171,6 @@ def main(argv: list[str]) -> int:
         else:
             print("\n全部阶段在预算内。")
 
-    skill_tok = estimate(["SKILL.md"])
-    pipe_tok = estimate(["references/pipeline.md"])
-    if skill_tok > SKILL_MD_MAX:
-        problems.append(f"SKILL.md {skill_tok} > {SKILL_MD_MAX}")
-    if pipe_tok > PIPELINE_MAX:
-        problems.append(f"pipeline.md {pipe_tok} > {PIPELINE_MAX}")
     return 1 if problems else 0
 
 
