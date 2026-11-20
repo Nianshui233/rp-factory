@@ -11,6 +11,10 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PY="${PYTHON:-python}"
 cd "$ROOT" || exit 1
 
+# 版本号只有一处真相：SKILL.md 的 metadata.version（tests/test_version.py 守着）
+VERSION="$(sed -n 's/^  version: *\([0-9.]*\).*/\1/p' SKILL.md | head -1)"
+printf 'rp-factory v%s\n' "${VERSION:-unknown}"
+
 fails=0
 run() {
   local name="$1"; shift

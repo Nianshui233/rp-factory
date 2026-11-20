@@ -59,7 +59,7 @@
 
 **8. `联网门`（仅 `project.web_research: true`）** 每次落笔前先检索（不限阶段，含局部改动），交付前复核一遍本份产物里的全部外部专名；每条检索记进 `创作痕迹/检索来源.md`，且进入本阶段后必须比之前多出至少 1 条——没有新增条目 = 没查，不许交付。逐阶段要查什么见 `references/web-research.md` 第一节的逐阶段检索量。没检索到就记 `未检索到` 并改走确认清单，不编造。细则见 `references/web-research.md`。
 
-**9. `前端门`（仅 `opening` / `statusbar`）** 十条判据只有一份，在 `references/frontend-conventions.md` 第六节，逐条编号、这里不复述；跑 `python scripts/validate-frontend.py <界面.html>` 必须全过。最脆的一条：界面内联脚本里写 HTML 实体，整份界面会静默变成 2px 高。
+**9. `前端门`（仅 `opening` / `statusbar`）** 十条判据只有一份，在 `references/frontend-conventions.md` 第六节，逐条编号；跑 `python scripts/validate-frontend.py <界面.html>` 必须全过。最脆的一条：界面内联脚本里写 HTML 实体，整份界面会静默变成 2px 高。
 
 **10. `变量门`（仅阶段 `mvu` / `ejs`）** 交给两个脚本判：`python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml --book "<世界书>"`（M01–M13）与 `python scripts/validate-ejs.py 创作痕迹/产物/ejs/<控制器>.ejs --book "<世界书>"`（E01–E08），退出码都要是 0。要点：数值字段有 `.catch(初值)`、夹取上界等于轴的 `range`、`[initvar]` 已禁用且键与 schema 对得上、`变量列表` 内容逐字符等于 `{{format_message_variable::stat_data}}`、两条隐藏 `<UpdateVariable>` 的正则齐备且能编译、控制器的分支边界单调、被控条目全部 `disable: true`。**没装酒馆助手就别开这个阶段**，别产出跑不起来的东西。细则见两个阶段文件。
 
