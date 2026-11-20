@@ -96,6 +96,9 @@ ST 核心 grep 无此宏（`public/` 仅 `JS-Slash-Runner` 包里出现）。它
 **[S-23] 聊天渲染一律走 `AI_OUTPUT` / `USER_INPUT`**
 `chatItem.is_user ? USER_INPUT : AI_OUTPUT`（`script.js:4503`），impersonate 也按 `USER_INPUT` 处理（`script.js:6481`）。写在 `REASONING(6)` 上的正则只作用于思维链，不会作用于正文。
 
+**[S-24] 内嵌书不是「导卡就自动挂上」——触发有四个前提**
+`checkEmbeddedWorld(chid)` 在打开角色卡时跑：卡上有 `data.character_book` 才继续；`extensions.world` 已指向一本存在的书时**连提示都不弹**（`world-info.js:5701-5703`）；用户设置里 `world_import_dialog` 关着（`power-user.js:210` 默认 true）就只给一条 toastr；每张卡只提示一次（`AlertWI_<头像>` 存在 accountStorage，`world-info.js:5702`）。真正的导入走 `importEmbeddedWorldInfo`（`:5730`），书名叫 `character_book.name`，缺省 `<角色名>'s Lorebook`（`:5744`）。**卡里 `extensions.world` 写的是外挂书的名字时，内嵌书永远不会被导入**——两个口子同时开必须让名字对得上。
+
 ---
 
 ## 五、肉眼项（脚本查不了的）

@@ -116,6 +116,7 @@ disable-model-invocation: true
 | `references/pipeline.md` | 阶段表、占位符、十四道门、自检四类、命名门四步、输出纪律 |
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
+| `scripts/embed-book.py` | 世界书双入口：把 native 书内嵌进卡（`character_book`），回读比对 ST 转换字段 |
 | `scripts/run_checks.sh` | 一键全检：结构 + 单测 + 加载预算（带创作目录时加查契约/语义/验收） |
 | `references/rehearsal.md` | 试演：四类判据（代演/OOC/口癖/数值闸门）、症状→最小改动字段、≤5 轮、禁整卡重写 |
 | `references/acceptance.md` | 六层证据（源码/脚本/离线/浏览器/真机/人眼）、谁能签哪一层、验收账本格式 |

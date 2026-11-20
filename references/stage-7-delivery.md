@@ -78,7 +78,19 @@
 | `data.extensions.talkativeness` / `fav` / `depth_prompt` | `"0.5"` / `false` / `{prompt: "", depth: 4, role: "system"}` |
 | `create_date` | `YYYY-MM-DD` |
 
-**不写 `character_book`。** 顶层与 `data` 里同名字段都填同一份内容：ST 读 `data`，别的工具读顶层。
+**默认不写 `character_book`**，书单独一份、靠 `extensions.world` 同名挂上。要给用户单文件交付时才启用第二入口：
+
+```bash
+python scripts/embed-book.py --card "<世界名>（纯净）.json" --book "<世界名> 世界书.json"     --name "<世界名> 世界书" --out "<世界名>（内嵌书）.json"
+```
+
+脚本把 native 条目反向映射成 v2 `character_book`（`keys`/`secondary_keys`/`insertion_order`/`enabled`，位置完整值放 `extensions.position`——ST 只认这条，见 `references/st-correctness.md` S-15），顶层与 `data` 各写一份，然后**回读比对**：自己复刻一遍 `convertCharacterBook`，逐字段核对，有任何字段 ST 不认就报出来（退出码 1）。三个必须交底的代价：
+
+1. 导入后书名叫 `character_book.name`，没写就是 `<角色名>'s Lorebook`——与 `<世界名> 世界书` 不是同一个名字。
+2. `extensions.world` 若已指向一本存在的书，ST **不会**导入内嵌书也不提示（S-24）。两个口子同时开，`--name` 必须与 `extensions.world` 一致。
+3. 卡在世界书未选的状态下保存，ST 会删掉 `data.character_book`（S-16）。导入完必须把书选上再存。
+
+顶层与 `data` 里同名字段都填同一份内容：ST 读 `data`，别的工具读顶层。
 
 ### 三、世界书装什么（`<世界名> 世界书.json`）
 

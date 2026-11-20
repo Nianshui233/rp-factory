@@ -5,6 +5,8 @@
 - ALWAYS / LOAD_MAP 描述每个阶段进入时实际会读到的文件（worst case：开关打开时也算进去）。
 - tok 估算：cjk*1.15 + 非 cjk 字符数/3.6（够用即可，不追求与某家 tokenizer 对齐）。
 - BASELINE 是 2026-11-21 改动前的实测值。任何阶段超过基线即为变重。
+- 例外只有一次（Ruling ③）：用户明确要求世界书双入口（内嵌 `character_book`），
+  delivery 阶段因此 +414 tok，基线已改为「吸收完成后的实测值」。绝对上限 26,000 不变。
 
 CLI:
     python scripts/measure_load.py                # 全部阶段 + 结论
@@ -70,7 +72,7 @@ BASELINE: dict[str, int] = {
     "ejs": 15577,
     "opening": 23399,
     "statusbar": 22389,
-    "delivery": 25359,
+    "delivery": 25773,
 }
 
 _CJK = re.compile(r"[\u4e00-\u9fff]")

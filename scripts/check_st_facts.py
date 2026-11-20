@@ -45,6 +45,8 @@ FACTS: list[tuple[str, str, int, str]] = [
     (WORLD_INFO, "keysecondary: entry.secondary_keys || [],", 5630, "S-15"),
     (WORLD_INFO, "position: entry.extensions?.position ?? (entry.position === 'before_char'", 5636, "S-15"),
     (WORLD_INFO, "const bookName = characters[chid]?.data?.character_book?.name", 5744, "S-14"),
+    (WORLD_INFO, "if (characters[chid]?.data?.character_book) {", 5698, "S-24"),
+    (WORLD_INFO, "export async function importEmbeddedWorldInfo(skipPopup = false)", 5730, "S-24"),
     (WORLD_INFO, "books.push(character.data.extensions.world);", 1128, "S-14"),
     (WORLD_INFO, "data.data.character_book = undefined;", 6114, "S-16"),
     (SCRIPT, "export const extension_prompt_roles = {", 494, "S-18"),
