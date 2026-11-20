@@ -71,7 +71,7 @@ disable-model-invocation: true
 
 ## 三、开工前
 
-1. 读 `references/pipeline.md`：阶段表、7 个占位符、十一道门、输出纪律。**这是唯一的公共脊，任何阶段文件里没有的东西都回这里查。**
+1. 读 `references/pipeline.md`：阶段表、7 个占位符、十四道门、输出纪律。**这是唯一的公共脊，任何阶段文件里没有的东西都回这里查。**
 2. 有契约就读契约（`templates/contract.yaml` + `references/contract-schema.md`）；没有就先建一份。
 3. `project.web_research: true` → 先读 `references/web-research.md`，再进阶段（否则跳过，也不许搜）。
 4. 定出**目标阶段**与**当前产物 type**（十四选一：`world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `mvu-schema` / `mvu-initvar` / `mvu-entries` / `mvu-regex` / `ejs-controller` / `opening-ui` / `statusbar-ui` / `st-card` / `st-regex` / `st-worldbook`）；文本还是工程文件按 `references/dual-mode.md` 判，默认文本模态。
@@ -88,25 +88,32 @@ disable-model-invocation: true
 
 ## 六、硬门
 
-0. **开局门**：先问四件——工作区、跑哪几个阶段（多选）、是否启用 NSFW、是否需要联网。四件都确认前不建目录、不落文件、不开工；NSFW 与联网不答都按「否」锁。
-1. **边界门**：由开局门锁定 `content_boundaries`（`nsfw` + `rating` + `hard_no`）。阶段内只在必要时补问边界细节（≤2 题）。未锁定不产出任何设定正文。
-2. **命名门**：交付前按 `references/pipeline.md` 四步核对契约与产物，名字不一致就停下问用户。
-3. **补采访问**：上游缺项先补采访问（≤3 问），问不到才写 `[待定：<缺什么>]`。
-4. **零回溯**：不引用任何包外路径、不登记源文件名。本包自包含，删掉任何外部文件都不影响运行。
-5. **自检门**：每份设定产物交付前内部执行四类检查，不向用户展示检查过程。**产物正文里不许出现构建期占位符**（`【AI补全·可替换】` / `[待定]` / `【未知】` 只允许出现在给用户的补全清单与契约 `pending` 里，落进 YAML 值域即失败）。
-6. **联网门（仅 `web_research: true`）**：每次落笔前先检索（不限阶段、含局部改动）、交付前复核一遍外部专名；查不到就记 `未检索到` 并改走确认清单，**不编造外部事实**。
-7. **前端门（仅 `opening` / `statusbar`）**：交付前按 `references/frontend-conventions.md` 第六节十条自检——标签三处一致、字段两处一致、`markdownOnly: true`、代码块含 `<body>`、数据路径自洽（静态 / `$1` / 聊天 API / MVU 变量四选一）、无外链无 `eval`、无标签时留白、脏值转义、走 MVU 时字段名与轴的 `range` 对齐、`validate-frontend.py` 全过（内联脚本里写 HTML 实体 = 界面静默变 2px 高）。
+十四道门，编号与判据以 `references/pipeline.md` 第三节为唯一权威，本表只做索引（细则、脚本参数、事故现场都在那份文件里）。
 
-8. **交付门（仅 `delivery`）**：由阶段收尾那一检跑（`check-stage.py delivery`，内部先 `validate-contract.py` 再 `validate-st-package.py`），退出码 0 才算过；脚本查的事——三件齐全（纯净卡 / 正则 / 世界书）、卡里无 `character_book` 且 `extensions.regex_scripts` 为空、世界书是 native 对象形状且 `uid` 对齐、`extensions.world` == 世界书文件名、`description` ≤8000 字且含每个轴名、每个角色与每个地点都有条目、正则 `$1` 与捕获组对得上、`first_mes` 的标签能被某个正则接住、三件占位符 0 命中、关键词无重复；做了 `mvu` 还要卡内有 `tavern_helper.scripts` 且正则里有隐藏 `<UpdateVariable>` 的两条。脚本挡不住的再肉眼过两条（实体名都在 `naming` 里、装配四步齐全）。
-9. **阶段门**：一次只推进一个阶段。**阶段做完 → 跑一次 `python scripts/check-stage.py <阶段名> <项目根>`**（唯一的校验时机，过程里不跑；没过就改，改完重跑这一条）→ 停下、汇总（本轮落下什么 / 哪些是你替我定的 / 下一步是什么）→ **等用户回话**。用户说「全都要」也只按顺序一阶段一阶段做，每段之间必须停。禁止在同一条回复里既交付本阶段又发起下一阶段的第一轮提问，禁止交付后立刻弹「要不要继续」的选项——那是在替用户按按钮。
-10. **变量门（仅 `mvu` / `ejs`）**：由阶段收尾那一检跑（`check-stage.py mvu` / `ejs`，内部调 `validate-mvu.py` 与 `validate-ejs.py`），退出码 0 才算过。它查的是事故点：数值字段有没有 `.catch(初值)`（缺了，模型写个"很高"就作废整楼更新）、`[initvar]` 是否禁用、`uid` 是否与键对齐（错位会让条目在面板里静默消失）、两条隐藏 `<UpdateVariable>` 的正则是否齐、被控条目是否全部 `disable: true`。**没装酒馆助手就别开这个阶段**，别产出跑不起来的东西。
-11. **自创字段门**：新增模板里没有的键之前先问用户，得到同意后写进 `contract.decisions`（记：新增了什么、为什么要、不加会丢什么），并在交付说明里点名。**不许用自创块替换模板既有块**（例如另起 `intimacy` 顶替 `nsfw`）；模板已有的键不够用时，优先把信息塞进扩展位（`lore` / `relationships` / `growth_arc`）而不是新造顶层键。
+| # | 门 | 一句话判据 |
+|---|---|---|
+| 0 | 开工门 | 工作区 / 阶段 / NSFW / 联网四件确认后才动笔；NSFW 与联网不答按「否」锁 |
+| 1 | 边界门 | `nsfw` + `rating` + `hard_no` 锁定前不产出任何设定正文 |
+| 2 | 收敛门 | 仅 `world`：四要素齐、判定框架填、张力已定、无致命缺口 |
+| 3 | 补采访问 | 上游缺项先问 ≤3 问，问不到才写 `[待定：…]` |
+| 4 | 零回溯 | 不引用包外路径、不登记源文件名 |
+| 5 | 自检门 | 每份产物交付前内部四类检查；正文不许留构建期占位符 |
+| 6 | 命名门 | 交付前四步核对契约与产物，不一致就停下问 |
+| 7 | 契约门 | 阶段收尾一检里跑 `validate-contract.py`，退出码 0 |
+| 8 | 联网门 | 仅 `web_research: true`：落笔前检索、交付前复核、查不到记 `未检索到` |
+| 9 | 前端门 | 仅 `opening`/`statusbar`：十条 + `validate-frontend.py` |
+| 10 | 变量门 | 仅 `mvu`/`ejs`：`validate-mvu.py` / `validate-ejs.py`；没装助手别开 |
+| 11 | 交付门 | 仅 `delivery`：`check-stage.py delivery` 退出码 0 |
+| 12 | 阶段门 | 一次只推进一个阶段，做完就跑一检、然后停下等用户 |
+| 13 | 自创字段门 | 新键先问、记 `decisions`；不许替换模板既有块 |
+
+一条总则：**门是判定，不是提醒**——能交给脚本的都不许靠肉眼看（脚本清单见第七节）。
 
 ## 七、文件索引
 
 | 文件 | 管什么 |
 |---|---|
-| `references/pipeline.md` | 阶段表、占位符、十一道门、自检四类、命名门四步、输出纪律 |
+| `references/pipeline.md` | 阶段表、占位符、十四道门、自检四类、命名门四步、输出纪律 |
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
 | `references/dual-mode.md` | 两种模态的对照、切换、渲染、注释剥离 |

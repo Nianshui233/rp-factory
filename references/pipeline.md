@@ -33,17 +33,21 @@
 
 七个以外的标记一律不用。`[不适用]` 的模块在终稿中整段移除，不留空壳。
 
-## 三、十一道门
+## 三、十四道门
 
-**`开工门`（阶段 0）** 判"够不够开工"：能否定出目标阶段。不单独提问——题目并入下游首轮。
+**0. `开工门`（阶段 0）** 判"够不够开工"：能否定出目标阶段。不单独提问——题目并入下游首轮。
 
-**`边界门`（任何产物落笔前）** 开局问完就能锁：`content_boundaries.nsfw` 定下开关，随之 `rating` 与 `hard_no` 锁定（`nsfw: false` 时 `hard_no` 至少含「任何性描写」）。开局没答 NSFW 的按「否」锁。阶段首轮不再问边界，只补开工时没问到的细节（≤2 题）。锁定前不产出任何设定正文。
+**1. `边界门`（任何产物落笔前）** 开局问完就能锁：`content_boundaries.nsfw` 定下开关，随之 `rating` 与 `hard_no` 锁定（`nsfw: false` 时 `hard_no` 至少含「任何性描写」）。开局没答 NSFW 的按「否」锁。阶段首轮不再问边界，只补开工时没问到的细节（≤2 题）。锁定前不产出任何设定正文。
 
-**`收敛门`（仅阶段 1）** 同时满足以下全部才提议出终稿：所有关键系统具备"能/不能/代价/上限"四要素；判定框架已填；张力来源已定（单一引擎 → 各方目标与手段明确；多源日常 → `日常/关系/外部` 至少三类各有两条，且 `世界怎么运转` 非空）；无未解决的致命或重要级缺口；硬设定已有 ≥3 条（计法：用户确认的、或用户明确委托决策后标 `【AI补全·可替换】` 且已告知的——委托不等于未定，但必须在末尾说明）；RP 常见场景覆盖验证基本通过。
+**2. `收敛门`（仅阶段 1）** 同时满足以下全部才提议出终稿：所有关键系统具备"能/不能/代价/上限"四要素；判定框架已填；张力来源已定（单一引擎 → 各方目标与手段明确；多源日常 → `日常/关系/外部` 至少三类各有两条，且 `世界怎么运转` 非空）；无未解决的致命或重要级缺口；硬设定已有 ≥3 条（计法：用户确认的、或用户明确委托决策后标 `【AI补全·可替换】` 且已告知的——委托不等于未定，但必须在末尾说明）；RP 常见场景覆盖验证基本通过。
 
-**`自检门`（每份产物交付前，内部执行，不向用户展示）** 四类检查，见第四节。这是"读一遍自己的稿"，不是脚本，不算校验轮次。
+**3. `补采访问`（上游缺项时）** 进某阶段却缺上游产物时，先补采访问 ≤3 问，问不到才写 `[待定：<缺什么>]`；不整张卡铺满占位符。
 
-**`命名门`（每次渲染产物前）** 四步，见第五节。
+**4. `零回溯`** 不引用任何包外路径、不登记源文件名。删掉任何外部文件都不影响本包运行。
+
+**5. `自检门`（每份产物交付前，内部执行，不向用户展示）** 四类检查，见第四节。这是"读一遍自己的稿"，不是脚本，不算校验轮次。**产物正文里不许出现构建期占位符**（`【AI补全·可替换】` / `[待定]` / `【未知】` 只允许出现在给用户的补全清单与契约 `pending` 里，落进 YAML 值域即失败）。
+
+**6. `命名门`（每次渲染产物前）** 四步，见第五节。
 
 **校验的节奏：一个阶段一次，就一次。** 所有脚本检查都收在阶段末尾的一条命令里——`python scripts/check-stage.py <阶段名> <项目根>`（`world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery`，另加 `all` 做全量复核）。它按阶段调对应校验器：契约永远查，`cast` 加 `validate-rolecard.py`，`opening`/`statusbar` 加 `validate-frontend.py`，`mvu` 加 `validate-mvu.py`，`ejs` 加 `validate-ejs.py`，`delivery` 加 `validate-st-package.py`。
 
@@ -51,17 +55,19 @@
 - **没过就改，改完重跑同一条命令**，不逐个子命令挑着跑。
 - 全流程收尾想再确认一遍，跑 `check-stage.py all`。
 
-**`契约门`（阶段收尾一检时一并跑）** 跑 `python scripts/validate-contract.py 创作痕迹/contract.yaml`，退出码 0 才算过：阶段状态在枚举内、`done` 的阶段真有对应产物、`artifacts[].type` 没自造、`path` 指向真实文件、`delivery` 与 `files` 自洽、`naming.axes` 在阶段 4 后不再带 `provisional`。`partial` 必须挂进 `pending[]`——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。
+**7. `契约门`（阶段收尾一检时一并跑）** 跑 `python scripts/validate-contract.py 创作痕迹/contract.yaml`，退出码 0 才算过：阶段状态在枚举内、`done` 的阶段真有对应产物、`artifacts[].type` 没自造、`path` 指向真实文件、`delivery` 与 `files` 自洽、`naming.axes` 在阶段 4 后不再带 `provisional`。`partial` 必须挂进 `pending[]`——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。
 
-**`联网门`（仅 `project.web_research: true`）** 每次落笔前先检索（不限阶段，含局部改动），交付前复核一遍本份产物里的全部外部专名；每条检索记进 `创作痕迹/检索来源.md`，且进入本阶段后必须比之前多出至少 1 条——没有新增条目 = 没查，不许交付。逐阶段要查什么见 `references/web-research.md` 第一节的逐阶段检索量。没检索到就记 `未检索到` 并改走确认清单，不编造。细则见 `references/web-research.md`。
+**8. `联网门`（仅 `project.web_research: true`）** 每次落笔前先检索（不限阶段，含局部改动），交付前复核一遍本份产物里的全部外部专名；每条检索记进 `创作痕迹/检索来源.md`，且进入本阶段后必须比之前多出至少 1 条——没有新增条目 = 没查，不许交付。逐阶段要查什么见 `references/web-research.md` 第一节的逐阶段检索量。没检索到就记 `未检索到` 并改走确认清单，不编造。细则见 `references/web-research.md`。
 
-**`阶段门`（贯穿全程）** 一次只做一个阶段：做完就停，汇总本轮落下什么 + 哪些是替用户定的 + 下一步是哪一阶段，然后等用户回话。不许在同一条回复里连做两个阶段，不许交付后直接弹「继续吗」的选项。用户说「全流程」也只代表不用逐段问，不代表可以一口气做完。
+**9. `前端门`（仅 `opening` / `statusbar`）** 十条判据只有一份，在 `references/frontend-conventions.md` 第六节，逐条编号、这里不复述；跑 `python scripts/validate-frontend.py <界面.html>` 必须全过。最脆的一条：界面内联脚本里写 HTML 实体，整份界面会静默变成 2px 高。
 
-**`变量门`（仅阶段 `mvu` / `ejs`）** 交给两个脚本判：`python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml --book "<世界书>"`（M01–M13）与 `python scripts/validate-ejs.py 创作痕迹/产物/ejs/<控制器>.ejs --book "<世界书>"`（E01–E08），退出码都要是 0。要点：数值字段有 `.catch(初值)`、夹取上界等于轴的 `range`、`[initvar]` 已禁用且键与 schema 对得上、`变量列表` 内容逐字符等于 `{{format_message_variable::stat_data}}`、两条隐藏 `<UpdateVariable>` 的正则齐备且能编译、控制器的分支边界单调、被控条目全部 `disable: true`。细则见两个阶段文件。
+**10. `变量门`（仅阶段 `mvu` / `ejs`）** 交给两个脚本判：`python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml --book "<世界书>"`（M01–M13）与 `python scripts/validate-ejs.py 创作痕迹/产物/ejs/<控制器>.ejs --book "<世界书>"`（E01–E08），退出码都要是 0。要点：数值字段有 `.catch(初值)`、夹取上界等于轴的 `range`、`[initvar]` 已禁用且键与 schema 对得上、`变量列表` 内容逐字符等于 `{{format_message_variable::stat_data}}`、两条隐藏 `<UpdateVariable>` 的正则齐备且能编译、控制器的分支边界单调、被控条目全部 `disable: true`。**没装酒馆助手就别开这个阶段**，别产出跑不起来的东西。细则见两个阶段文件。
 
- 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过。查的事：三件齐全（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`）；做了 `mvu` 阶段时卡内必须有 `tavern_helper.scripts` 且正则里必须有隐藏 `<UpdateVariable>` 的两条（X06 专查这个——缺了 MVU 静默不跑）；卡里不许有 `character_book`、`extensions.regex_scripts` 必须为空（否则又回到「改一条设定重导整卡」）；世界书是 native 对象形状、`uid` 与键对齐；`extensions.world` == 世界书文件名（不一致卡不会自动挂书）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点一条；常驻合计 ≤8000；三件占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、装配四步齐全。细则见 `references/stage-7-delivery.md`。交付门过了、用户也说「帮我导」，就接着跑 `scripts/st-import.py --pkg`（三件逐件导入 + 回读自检）与 `scripts/st-probe.js`（量 iframe 高度）；这三步是流水线，不额外收门。
+**11. `交付门`（仅阶段 `delivery`）** 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过。查的事：三件齐全（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`）；做了 `mvu` 阶段时卡内必须有 `tavern_helper.scripts` 且正则里必须有隐藏 `<UpdateVariable>` 的两条（X06 专查这个——缺了 MVU 静默不跑）；卡里不许有 `character_book`、`extensions.regex_scripts` 必须为空（否则又回到「改一条设定重导整卡」）；世界书是 native 对象形状、`uid` 与键对齐；`extensions.world` == 世界书文件名（不一致卡不会自动挂书）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点一条；常驻合计 ≤8000；三件占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、装配四步齐全。细则见 `references/stage-7-delivery.md`。交付门过了、用户也说「帮我导」，就接着跑 `scripts/st-import.py --pkg`（三件逐件导入 + 回读自检）与 `scripts/st-probe.js`（量 iframe 高度）；这三步是流水线，不额外收门。
 
-**`前端门`（仅 `opening` / `statusbar`）** 十条：标签三处一致（正则 ↔ HTML 的 `TAG` ↔ `frontend-prompt.yaml`）、字段两处一致且能追到产物、`markdownOnly: true`、`replaceString` 的代码块含 `<body>`、数据路径自洽（走 `$1` 注入就必须有捕获组与隐藏 textarea，走静态 / 聊天 API / MVU 变量就必须都没有；走 MVU 时 `findRegex` 是 `<StatusPlaceHolderImpl/>`）、无外链无 `eval` 无 `document.write`、本楼无标签或占位符未被替换时留白不报错、脏值与越界值都安全、跑过 `python scripts/validate-frontend.py <界面.html>` 全过（它专抓内联脚本里的 HTML 实体——那种写法会让整个界面静默变成 2px 高）。细则与机制事实见 `references/frontend-conventions.md`。
+**12. `阶段门`（贯穿全程）** 一次只做一个阶段：做完就停，汇总本轮落下什么 + 哪些是替用户定的 + 下一步是哪一阶段，然后等用户回话。不许在同一条回复里连做两个阶段，不许交付后直接弹「继续吗」的选项。用户说「全流程」也只代表不用逐段问，不代表可以一口气做完。
+
+**13. `自创字段门`（任何产物新增键或块前）** 阶段文件里的模板块和字段是下游脚本与用户的既有习惯，替换或删改会让别人的流程静默失效：要加就加，要改先问一句并把理由记进 `decisions`（记：新增了什么、为什么要、不加会丢什么），并在交付说明里点名；**不许用自创块替换模版既有块**（例如另起 `intimacy` 顶替 `nsfw`），抳不开就优先塞进扩展位（`lore` / `relationships` / `growth_arc`）；契约、MVU schema、世界书条目的既有键名不许自造同义写法。
 
 ## 四、自检门四类
 
