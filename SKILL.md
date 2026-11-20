@@ -97,14 +97,14 @@ disable-model-invocation: true
 | 2 | 收敛门 | 仅 `world`：四要素齐、判定框架填、张力已定、无致命缺口 |
 | 3 | 补采访问 | 上游缺项先问 ≤3 问，问不到才写 `[待定：…]` |
 | 4 | 零回溯 | 不引用包外路径、不登记源文件名 |
-| 5 | 自检门 | 每份产物交付前内部四类检查；正文不许留构建期占位符 |
+| 5 | 自检门 | 交付前四类检查；正文不许留构建期占位符 |
 | 6 | 命名门 | 交付前四步核对契约与产物，不一致就停下问 |
 | 7 | 契约门 | 阶段收尾一检里跑 `validate-contract.py`，退出码 0 |
-| 8 | 联网门 | 仅 `web_research: true`：落笔前检索、交付前复核、查不到记 `未检索到` |
+| 8 | 联网门 | 仅 `web_research: true`：落笔前检索、交付前复核，查不到记 `未检索到` |
 | 9 | 前端门 | 仅 `opening`/`statusbar`：十条 + `validate-frontend.py` |
 | 10 | 变量门 | 仅 `mvu`/`ejs`：`validate-mvu.py` / `validate-ejs.py`；没装助手别开 |
 | 11 | 交付门 | 仅 `delivery`：`check-stage.py delivery` 退出码 0 |
-| 12 | 阶段门 | 一次只推进一个阶段，做完就跑一检、然后停下等用户 |
+| 12 | 阶段门 | 一次一个阶段，做完跑一检、停下等用户 |
 | 13 | 自创字段门 | 新键先问、记 `decisions`；不许替换模板既有块 |
 
 一条总则：**门是判定，不是提醒**——能交给脚本的都不许靠肉眼看（脚本清单见第七节）。
@@ -116,6 +116,8 @@ disable-model-invocation: true
 | `references/pipeline.md` | 阶段表、占位符、十四道门、自检四类、命名门四步、输出纪律 |
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
+| `scripts/run_checks.sh` | 一键全检：结构 + 单测 + 加载预算（带创作目录时加查契约/语义/验收） |
+| `references/rehearsal.md` | 试演：四类判据（代演/OOC/口癖/数值闸门）、症状→最小改动字段、≤5 轮、禁整卡重写 |
 | `references/acceptance.md` | 六层证据（源码/脚本/离线/浏览器/真机/人眼）、谁能签哪一层、验收账本格式 |
 | `references/decisions.md` | 四态（confirmed / proposed / pending / rejected）、缺口三级、未答≠委托、交付四句 |
 | `references/dual-mode.md` | 两种模态的对照、切换、渲染、注释剥离 |
@@ -134,7 +136,7 @@ disable-model-invocation: true
 | `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` · `validate-mvu.py` · `validate-ejs.py` · `validate_st_semantics.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 七个校验器（由 `check-stage.py` 在阶段收尾统一调用） |
 | `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（探测静默跑；导入与验收只在用户点头后跑） |
 | `scripts/check_prose.py` | P01–P08 去 AI 味提示（解释腔 / 情绪直说 / 陈词比喻 / 模板标签），自检门顺手跑 |
-| `scripts/check_st_facts.py` + `tests/` | 复核 `st-correctness.md` 的源码锚点、加载量预算、全套单测（改完跑 `python -m unittest discover -s tests -t .`） |
+| `check_st_facts.py` + `tests/` | 复核 `st-correctness.md` 的源码锚点、加载量预算、全套单测（改完跑 `python -m unittest discover -s tests -t .`） |
 
 ## 八、阶段文件约定
 
