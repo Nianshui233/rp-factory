@@ -88,6 +88,30 @@ class TestAcceptance(unittest.TestCase):
         findings, _ = self._run([_entry()])
         self.assertIn("A05", [f["code"] for f in findings if f["severity"] == "warning"])
 
+    def test_l4_needs_dimension(self):
+        findings, _ = self._run([_entry(layer="L4", by="assistant",
+                                        evidence="headless 打开后有 1 个 iframe，高 412px")])
+        self.assertIn("A06", [f["code"] for f in findings])
+
+    def test_l4_unknown_dimension_is_error(self):
+        findings, _ = self._run([_entry(layer="L4", by="assistant", dimension="looks_fine",
+                                        evidence="headless 打开后有 1 个 iframe，高 412px")])
+        self.assertIn("A06", [f["code"] for f in findings])
+
+    def test_l4_with_dimension_passes(self):
+        findings, _ = self._run([
+            _entry(layer="L4", by="assistant", dimension="dom",
+                   evidence="headless 打开后 1 个 iframe，高 412px，无重复挂载"),
+            _entry(layer="L5", item="酒馆真机导入", verdict="pass", by="human",
+                   evidence="手动导入后回读，三件都在；截图 12:31"),
+        ])
+        self.assertNotIn("A06", [f["code"] for f in findings])
+        self.assertEqual([f for f in findings if f["severity"] == "error"], [], findings)
+
+    def test_other_layers_do_not_need_dimension(self):
+        findings, _ = self._run([_entry()])
+        self.assertNotIn("A06", [f["code"] for f in findings])
+
     def test_missing_ledger_is_error(self):
         mod = _load()
         with tempfile.TemporaryDirectory() as tmp:

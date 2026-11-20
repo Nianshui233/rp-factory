@@ -18,6 +18,7 @@
     A03 L1/L2 的证据必须带退出码（脚本类结论的唯一凭据）
     A04 L5（真机）/ L6（人眼）只能由 human 签，脚本自签即失败
     A05 整本账里没有 L5/L6 的 pass → 警告（没经过人看的交付不算验收过）
+    A06 L4（浏览器）必须写 dimension，且在本文件的 11 维枚举里
 
 用法：
     python scripts/check_acceptance.py <项目根>
@@ -41,6 +42,22 @@ LAYERS = {
 }
 VERDICTS = {"pass", "fail", "skipped"}
 HUMAN_LAYERS = {"L5", "L6"}
+
+# L4 十一条（来历：真机验收里反复漏掉的那几类观察）。
+# 脚本能自动抓的只有前四条——st-probe.js --json 直接产出这四个键；其余必须人填。
+L4_DIMENSIONS = {
+    "import": "导入：卡在侧栏、名字/版本对得上",
+    "fresh_chat": "新聊天：首条消息真的渲染出内容",
+    "console": "控制台：没有新增因果错误或未处理 rejection",
+    "dom": "DOM：挂载数量正确、无重复挂载、没有裸代码块漏出",
+    "dependencies": "依赖：宿主扩展/嵌入脚本/远端加载器按台账到位",
+    "style": "样式：计算尺寸、display、overflow、类名变换正确",
+    "interaction": "交互：点击/键盘/表单/关闭/重复操作符合预期",
+    "data": "数据：改的是目标楼层与作用域，回读确认已持久化",
+    "lifecycle": "生命周期：重载/滑铲/编辑/切聊天不丢行为不重复挂载",
+    "responsive": "响应式：窄屏与宽屏、长中文不裁切",
+    "security": "安全：用户/模型文本保持惰性，无密钥外泄",
+}
 EXIT_HINT = re.compile(r"exit\s*[=:]?\s*\d|退出码\s*\d|exit\s+code\s+\d", re.I)
 
 
@@ -114,6 +131,16 @@ def check_project(root: Path) -> list[dict]:
                                     f"脚本自签等于没验（by = {by or '空'}）")
             elif verdict == "pass":
                 has_human_pass = True
+
+        if layer == "L4":
+            dimension = str(entry.get("dimension") or "").strip()
+            if not dimension:
+                add("error", "A06", f"{label}：L4 必须写 dimension（11 维之一："
+                                     f"{' / '.join(L4_DIMENSIONS)}）——「浏览器里看着行」"
+                                     f"不说明行在哪一维。")
+            elif dimension not in L4_DIMENSIONS:
+                add("error", "A06", f"{label}：dimension = {dimension!r} 不在 11 维内（"
+                                     f"{' / '.join(L4_DIMENSIONS)}）")
 
     if entries and not has_human_pass:
         add("warning", "A05", "整本账里没有 L5/L6 的 pass：没人真正看过成品，"

@@ -10,6 +10,14 @@
  * 用法:
  *   node scripts/st-probe.js --st http://127.0.0.1:8000 --char 白潮
  *   node scripts/st-probe.js --char 白潮 --shot shot.png --chrome "C:/Program Files/Google/Chrome/Application/chrome.exe"
+ *   node scripts/st-probe.js --char 白潮 --json --report 创作痕迹/probe.json
+ *
+ * 它产出的不是「验收通过」，是 L4 里四个可脚本判的维度（references/acceptance.md 第三节）：
+ *   import     卡在侧栏、名字对得上
+ *   fresh_chat 新聊天首条消息真渲染出内容
+ *   console    没有新增页面错误
+ *   dom        挂了 iframe、高度够、没有裸代码块漏出
+ * 另外七维（dependencies/style/interaction/data/lifecycle/responsive/security）只能人看。
  *
  * 退出码: 0 = 至少一个 iframe 渲染出高度；1 = 没渲染；2 = 环境问题（缺依赖/缺 Chrome/连不上）。
  */
@@ -33,6 +41,19 @@ const CHROME_CANDIDATES = [
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
 ].filter(Boolean);
 
+function emit(report, asJson, reportPath) {
+  const payload = { tool: 'st-probe', layer: 'L4', ...report };
+  if (asJson) console.log(JSON.stringify(payload, null, 2));
+  if (reportPath) {
+    try {
+      fs.writeFileSync(reportPath, JSON.stringify(payload, null, 2) + '\n');
+      console.log(`报告: ${reportPath}`);
+    } catch (e) {
+      console.error(`写报告失败（不影响判定）: ${e.message}`);
+    }
+  }
+}
+
 async function main() {
   let puppeteer;
   try {
@@ -51,6 +72,8 @@ async function main() {
   const want = arg('char', '');
   const shot = arg('shot', '');
   const minHeight = Number(arg('min-height', '60'));
+  const asJson = process.argv.includes('--json');
+  const reportPath = arg('report', '');
 
   const browser = await puppeteer.launch({
     executablePath: chrome,
@@ -74,6 +97,9 @@ async function main() {
       return (card.textContent || '').trim().slice(0, 40);
     }, want);
     if (!picked) {
+      // import 维失败也要落报告：账本里记的是「跑过、这一维没过」，不是「没跑」。
+      emit({ card: want || null, dimensions: { import: { ok: false, detail: `没在侧栏找到角色卡${want ? `「${want}」` : ''}` } }, verdict: 'fail' },
+           asJson, reportPath);
       console.error(`没在侧栏找到角色卡${want ? `「${want}」` : ''}：确认它已导入、名字对得上`);
       return 1;
     }
@@ -103,6 +129,26 @@ async function main() {
       } catch (_) { /* 未加载完的 iframe 直接跳过 */ }
     }
 
+    const tallest = Math.max(0, ...report.iframes, ...inner.map(f => f.h));
+
+    // 四个可脚本判的维。detail 是给账本抄的，不要写成「正常」。
+    const dimensions = {
+      import: { ok: true, detail: `侧栏命中「${picked}」` },
+      fresh_chat: {
+        ok: report.mesCount >= 1 && report.text.length > 0,
+        detail: `消息数 ${report.mesCount}，首条正文 ${report.text ? JSON.stringify(report.text) : '（空）'}`,
+      },
+      console: {
+        ok: errors.length === 0,
+        detail: errors.length ? `${errors.length} 条页面错误：${errors.slice(-3).join(' | ')}` : '页面错误 0',
+      },
+      dom: {
+        ok: report.iframes.length > 0 && tallest >= minHeight && report.preCount === 0,
+        detail: `iframe ${report.iframes.length} 个（高度 ${report.iframes.join(', ') || '无'}），` +
+                `最高 ${tallest}px，pre 块 ${report.preCount} 个`,
+      },
+    };
+
     if (shot) {
       await page.screenshot({ path: shot });
       console.log(`截图: ${shot}`);
@@ -111,18 +157,22 @@ async function main() {
     console.log(`角色: ${picked} · 消息数 ${report.mesCount} · 首条正文文字 ${JSON.stringify(report.text)}`);
     console.log(`iframe 高度: ${report.iframes.length ? report.iframes.join(', ') : '（没有 iframe）'}`);
     inner.forEach((f, i) => console.log(`  iframe#${i} 内容高度 ${f.h} · ${JSON.stringify(f.text)}`));
-    if (errors.length) console.log(`页面错误: ${errors.slice(-3).join(' | ')}`);
+    for (const [name, dim] of Object.entries(dimensions)) {
+      console.log(`  [${dim.ok ? 'ok  ' : 'FAIL'}] ${name.padEnd(10)} ${dim.detail}`);
+    }
 
-    const tallest = Math.max(0, ...report.iframes, ...inner.map(f => f.h));
     if (report.iframes.length === 0) {
       console.log('判定: 没渲染成 iframe——检查正则是否启用、酒馆助手是否开启「消息渲染」、消息里是否有 <body>');
+      emit({ card: picked, dimensions, verdict: 'fail' }, asJson, reportPath);
       return 1;
     }
     if (tallest < minHeight) {
       console.log(`判定: iframe 只有 ${tallest}px——多半是内联脚本语法错误（HTML 实体被解码），跑 validate-frontend.py 的 F04`);
+      emit({ card: picked, dimensions, verdict: 'fail' }, asJson, reportPath);
       return 1;
     }
     console.log(`判定: 渲染正常（最高 ${tallest}px）`);
+    emit({ card: picked, dimensions, verdict: 'pass' }, asJson, reportPath);
     return 0;
   } finally {
     await browser.close();
