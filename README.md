@@ -62,7 +62,7 @@ MIT 精神的自用工具，无担保。**它不能替你保证「好玩」**—
 | 阶段 | 9 个 | `world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery` |
 | 硬门 | 14 道 | 从开工门到自创字段门，编号 0–13，判据只写在 `references/pipeline.md` |
 | 参考页 | 22 份 | 阶段做法、契约规范、ST 语义事实、酒馆助手接口、验收、试演、去 AI 味 |
-| 骨架 | 22 份 | 契约 + 四类设定 + MVU 五件 + 两个界面 + 交付四件 + 导入说明，填完即交付 |
+| 骨架 | 23 份 | 契约 + 四类设定 + MVU 五件 + 两个界面 + 交付四件 + 导入说明 + 世界书切割计划，填完即交付 |
 | 校验器 | 9 个 + 1 个总检 | 结构、语义、前端、变量、EJS、验收账本；`check-stage.py` 按阶段自动挑 |
 | 断言 | 责任分散但**可数** | `C01–C17` / `R00–R07` / `W00–W16` / `X01–X07` / `S-01–S-30+S-M1–M3` / `TH-01–TH-11` / `F01–F14` / `P01–P09` / `A00–A06` |
 | 单测 | 166 个 | `python -m unittest discover -s tests -t .` |
@@ -152,7 +152,7 @@ delivery   → 白潮（纯净）.json / 正则.json / 白潮 世界书.json
 | --- | --- | --- |
 | `scripts/validate-contract.py` | `C00–C17` | 契约自洽：阶段状态、产物索引、交付路线、命名表、演出许可三档 |
 | `scripts/validate-rolecard.py` | 1–12 | 角色卡骨架、占位符、事实分级（稳定 / 临时）、越界标记 |
-| `scripts/validate-st-package.py` | `C` `R` `W` `X` | 分包结构：卡字段、卡内不许内嵌、正则数组、世界书条目、跨文件绑定 |
+| `scripts/validate-st-package.py` | `C` `R` `W` `X` | 分包结构：卡字段、卡内不许内嵌、正则数组、世界书条目与**条目逐字来自原稿**（W17/W18）、跨文件绑定 |
 | `scripts/validate_st_semantics.py` | `S-01–S-30` | **只抓静默失效**：两套正则方言、`$<name>`、书位置枚举、卡内 scoped 正则未授权、书名绑定、正则导入目标 |
 | `scripts/validate-frontend.py` | `F01–F14` | HTML 骨架、外链、危险 API、实体、事件名、相对路径、裸定时器 |
 | `scripts/validate-mvu.py` | — | 变量结构可编译、`[initvar]` 与 schema 对齐、更新条目、隐藏正则 |
@@ -183,6 +183,7 @@ SillyTavern 有一类错误不抛异常、不写日志、界面上也不报错�
     项目记录/              # contract.yaml（命名权威+索引+阶段状态+decisions）
                            # 项目档案.yaml / 创作记录.md / 检索来源.md
                            # 验收.yaml（六层证据，L5/L6 只能人签）/ 试演记录.yaml
+                           # 世界书切割.yaml（哪一节切成哪一条，交给 cut-worldbook.py）
     产物/                  # 四类设定 + MVU/EJS + 两个界面的 HTML
   导入包/                  # 交付成品，平铺，交付前必须空着
     白潮（纯净）.json      # 卡：character_book / regex_scripts / tavern_helper 一个都不内嵌

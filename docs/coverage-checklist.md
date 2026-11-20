@@ -112,6 +112,8 @@
 - [ ] `[initvar]` 的初值**至少有一个**故意与 `prefault` 不同，否则验不出它到底有没有被读到
 - [ ] 三条常驻条目齐：更新规则（每变量 type/range/format/check）、`变量列表`（内容逐字符 `{{format_message_variable::stat_data}}`）、输出格式（JSON Patch + `delta` 自定义 op）
 - [ ] 世界书 `uid` == `entries` 的键（错位会让条目在面板里静默消失）
+- [ ] **设定条目是原稿的整节切片**：`scripts/cut-worldbook.py` 用 `制作文件/项目记录/世界书切割.yaml` 切，`W17` 逐字命中 ≥85%、`W18` 原稿没有大段没进书
+- [ ] 协议条目（`[initvar]` / `[mvu_update]` / `[阶段]` / `[ejs]` / `[statusbar]`）带方括号前缀，`--merge-protocol` 带过去而不是手抄
 - [ ] 两条隐藏正则齐：`<UpdateVariable>` 的 `promptOnly` 与 `markdownOnly` 各一条
 - [ ] 脚本单独一份 `<世界名> 酒馆助手脚本.json`（MVU 加载器 + 变量结构），卡里不内嵌；导入说明写明"导入后手动打开文件夹"
 - [ ] `ejs` 做与不做有明确判据：不做时 `stages.ejs: skipped` 并记一条 decisions；做了必须写清"整段文本随档位切换"

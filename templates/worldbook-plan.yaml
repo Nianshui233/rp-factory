@@ -1,0 +1,86 @@
+# 世界书切割计划：哪一节切成哪一条。
+# 脚本只负责「切」——把原稿那一节逐行搬进条目 content，不改写、不摘要。
+# 这里写的是「选择」：叫什么、关键词、顺序、是不是常驻。
+#
+# 用法：
+#   python scripts/cut-worldbook.py --plan 制作文件/项目记录/世界书切割.yaml \
+#       --draft-root 制作文件/产物 --out "导入包/<世界名> 世界书.json"
+#
+# 字段：
+#   section         原稿里的节名（默认按 2 空格缩进的行 `  节名:` 切；`--section-indent` 可改）
+#   from            节所在文件，相对 --draft-root，缺省取 default_from
+#   whole           整份文件当一条（适合 rolecard.yaml / axis-system.yaml 这种一份一个实体）
+#   comment         条目名（编辑器里显示的名字）；缺省用节名/文件名
+#   keys            关键词，8–15 个；常驻条目留空
+#   constant        true 才常驻；常驻合计参考 ≤8000 字
+#   order           同位置内越大越靠下；按 95–100 / 70–90 / 70 三档排
+#   position/depth  默认 0 / 4；状态栏协议用 4 + 小 depth
+#   skip            有意不写进书的原稿文件或节，写在这里（脚本会据此不报「漏切」）
+
+book_name: "<世界名> 世界书"
+default_from: "world-bible.yaml"
+
+defaults:
+  position: 0
+  depth: 4
+  selective: true
+  exclude_recursion: true
+  match_whole_words: false
+
+skip:
+  - "未决事项"        # 台账留在 制作文件/，不进上下文
+  - "frontend-prompt.yaml"   # 表现层用，不是设定
+
+entries:
+  # ---- 设定：一节一刀，整节搬 ----
+  - section: "时间地点与世界范围"
+    order: 96
+    keys: ["白盐镇", "盐镇", "镇上", "第七塔", "塔顶", "灯室", "湖心盐岛", "盐岛", "盐湖", "堤线", "世界范围"]
+
+  - section: "信息分层"
+    constant: true
+    order: 92
+
+  - section: "张力从哪来"
+    constant: true
+    order: 91
+
+  - section: "世界规则"
+    constant: true
+    order: 90
+
+  - section: "势力与社会结构"
+    order: 88
+    keys: ["守夜人", "盐务局", "盐吏", "潮汐教团", "教团", "运盐行会", "行会", "夜班", "灯油税"]
+
+  - section: "AI即兴角色约束"
+    constant: true
+    order: 87
+
+  - section: "常识清单"
+    order: 86
+    keys: ["规矩", "常识", "忌讳", "换班", "灯油", "盐价", "落潮", "宵禁", "名字"]
+
+  - section: "关键历史与时间线"
+    order: 85
+    keys: ["十二年前", "熄灯", "旧志", "守塔任期", "盐潮记录", "潮历", "老守夜人", "交接"]
+
+  - section: "变更边界"
+    constant: true
+    order: 84
+
+  # ---- 整份文件当一条 ----
+  - whole: "rolecard.yaml"
+    comment: "祁昭（主角）"
+    order: 80
+    keys: ["祁昭", "祁", "夜班的", "他", "主角", "守塔人", "灯室里的", "老祁"]
+
+  - whole: "scene-sheet.yaml"
+    comment: "场景速查"
+    order: 78
+    keys: ["守夜所", "盐镇集市", "集市", "塔基", "盐仓", "码头", "瞭望台", "值班室", "地窖", "可破坏物"]
+
+  - whole: "axis-system.yaml"
+    comment: "数值与判定"
+    order: 76
+    keys: ["余量", "wick", "盐潮", "tide", "数值", "判定", "状态栏", "阈值", "轴"]

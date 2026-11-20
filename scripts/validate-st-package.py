@@ -82,6 +82,12 @@ BAD_FILENAME_CHARS = set('/\\:*?"<>|')
 
 # 本包自己的预算：常驻条目合计字数（每轮都要进上下文）
 CONST_BUDGET = 8000
+# 逐字性检查：切出来的条目至少这么多行能在原稿里找到；原稿至少这么多行要进书
+CUT_MIN_RATIO = 0.85
+CUT_MIN_DRAFT = 0.6
+MIN_LINE = 4
+# 原稿目录里这些文件不是给模型看的设定（表现层提示词 / 台账）
+NOT_BOOK_DRAFTS = {"frontend-prompt.yaml"}
 DESC_SOFT = 6000
 DESC_HARD = 8000
 
@@ -394,6 +400,74 @@ def validate_card(card: dict, card_path: Path | None, book_path: Path | None, re
 
 # ---------------------------------------------------------------- 世界书（native）
 
+def norm_line(s: str) -> str:
+    return " ".join(s.split())
+
+
+def check_cut_fidelity(entries: dict, draft_root: Path, rep: Report) -> None:
+    """W17 / W18：世界书条目必须是原稿的切片，不是它的摘要。
+
+    手写条目最常见的病是「顺手压缩」——《常见误解或谣言》压成「有一些谣言」、
+    每级 `behavioral_signs` 压成一句，模型做判断时的唯一依据就没了。
+    这里按**行**比对：切出来的条目每一行都能在原稿里逐字找到；原稿的每一行
+    也该在某条里出现（除非有意不给模型看）。判定只给数字与警告，不阻断。
+    """
+    files = {p.name: p for p in sorted(draft_root.glob("*.yaml")) if p.name not in NOT_BOOK_DRAFTS}
+    if not files:
+        rep.warn("W17", f"找不到原稿（{draft_root}/*.yaml），逐字性没查")
+        return
+    per_file: dict[str, list[str]] = {}
+    blob_parts: list[str] = []
+    for name, p in files.items():
+        lines = [norm_line(l) for l in p.read_text(encoding="utf-8", errors="ignore").splitlines()]
+        per_file[name] = [l for l in lines if len(l) >= MIN_LINE]
+        blob_parts += per_file[name]
+    draft_blob = "\n".join(blob_parts)
+    draft_set = set(blob_parts)
+
+    def traced(line: str) -> bool:
+        return line in draft_set or (len(line) >= 12 and line in draft_blob)
+
+    book_lines: list[str] = []
+    rewritten: list[str] = []
+    for uid, e in entries.items():
+        if not isinstance(e, dict):
+            continue
+        body = [norm_line(l) for l in str(e.get("content") or "").splitlines()]
+        body = [l for l in body if len(l) >= MIN_LINE]
+        book_lines += body
+        if str(e.get("comment") or "").lstrip().startswith("["):
+            continue  # 协议条目（变量初始化 / 更新块 / 阶段控制器）来自阶段 6 模板，不是设定原稿
+        if len(body) < 3:
+            continue
+        hit = sum(1 for l in body if traced(l))
+        ratio = hit / len(body)
+        if ratio < CUT_MIN_RATIO:
+            rewritten.append(f"{e.get('comment')}({ratio:.0%})")
+    if rewritten:
+        rep.warn("W17", f"这些条目不像原稿切片（逐字命中不到 {CUT_MIN_RATIO:.0%}）："
+                         f"{'、'.join(rewritten)}。要用 `scripts/cut-worldbook.py` 按节切，"
+                         "别手写摘要——压掉的每一句都是模型判断时的唯一依据")
+    else:
+        rep.ok("W17", "设定条目都是原稿切片（逐字命中 ≥" f"{CUT_MIN_RATIO:.0%}）")
+
+    book_set = set(book_lines)
+    book_blob = "\n".join(book_lines)
+    dropped: list[str] = []
+    for name, lines in per_file.items():
+        if len(lines) < 10:
+            continue
+        hit = sum(1 for l in lines if l in book_set or (len(l) >= 12 and l in book_blob))
+        ratio = hit / len(lines)
+        if ratio < CUT_MIN_DRAFT:
+            dropped.append(f"{name} {ratio:.0%}（{len(lines) - hit} 行没进书）")
+    if dropped:
+        rep.warn("W18", f"原稿有大段没进世界书：{'；'.join(dropped)}。"
+                         "要么补切一条，要么在 plan 的 skip 里写明「有意不给模型看」")
+    else:
+        rep.ok("W18", "原稿的每一节都能在书里找到")
+
+
 def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
     entries = book.get("entries")
     if not isinstance(entries, dict):
@@ -614,6 +688,7 @@ def find_files(arg: str) -> tuple[Path | None, Path | None, Path | None, Path | 
 def main(argv: list[str]) -> int:
     as_json = "--json" in argv
     contract = None
+    contract_path = None
     if "--contract" in argv:
         idx = argv.index("--contract")
         try:
@@ -624,6 +699,7 @@ def main(argv: list[str]) -> int:
         try:
             import yaml
             contract = yaml.safe_load(cpath.read_text(encoding="utf-8"))
+            contract_path = cpath
         except Exception as exc:  # noqa: BLE001
             print(f"读不到契约 {cpath}：{exc}", file=sys.stderr)
             return 2
@@ -693,6 +769,16 @@ def main(argv: list[str]) -> int:
 
     data = validate_card(card, card_path, book_path, rep)
     entry_count = validate_worldbook(book, book_path, rep) if book else 0
+    if book and isinstance(book.get("entries"), dict):
+        draft_root = None
+        if contract_path is not None and contract_path.name == "contract.yaml":
+            root = contract_path.parent.parent.parent  # …/制作文件/项目记录/contract.yaml
+            draft_root = root / "制作文件" / "产物"
+        if draft_root is None and card_path is not None:
+            guess = card_path.parent.parent / "制作文件" / "产物"
+            draft_root = guess if guess.is_dir() else None
+        if draft_root is not None and draft_root.is_dir():
+            check_cut_fidelity(book["entries"], draft_root, rep)
     script_list = validate_regex_pack(scripts, regex_path, rep)
 
     # ---- 交叉检查 ----
