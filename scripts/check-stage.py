@@ -143,6 +143,7 @@ def plan(stage: str, root: Path) -> list[tuple[str, list[str]]]:
             if contract.exists():
                 args += ["--contract", str(contract)]
             jobs.append(("validate-st-package.py", args))
+            jobs.append(("validate_st_semantics.py", list(args)))
 
     return jobs
 

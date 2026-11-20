@@ -49,7 +49,7 @@
 
 **6. `命名门`（每次渲染产物前）** 四步，见第五节。
 
-**校验的节奏：一个阶段一次，就一次。** 所有脚本检查都收在阶段末尾的一条命令里——`python scripts/check-stage.py <阶段名> <项目根>`（`world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery`，另加 `all` 做全量复核）。它按阶段调对应校验器：契约永远查，`cast` 加 `validate-rolecard.py`，`opening`/`statusbar` 加 `validate-frontend.py`，`mvu` 加 `validate-mvu.py`，`ejs` 加 `validate-ejs.py`，`delivery` 加 `validate-st-package.py`。
+**校验的节奏：一个阶段一次，就一次。** 所有脚本检查都收在阶段末尾的一条命令里——`python scripts/check-stage.py <阶段名> <项目根>`（`world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery`，另加 `all` 做全量复核）。它按阶段调对应校验器：契约永远查，`cast` 加 `validate-rolecard.py`，`opening`/`statusbar` 加 `validate-frontend.py`，`mvu` 加 `validate-mvu.py`，`ejs` 加 `validate-ejs.py`，`delivery` 加 `validate-st-package.py` 与 `validate_st_semantics.py`（后者只抓会静默失效的语义，判据见 `references/st-correctness.md`）。
 
 - **过程中不要跑**：写一个文件跑一次，得到的是"这一行合不合法"，不是"这一阶段能不能交"；反复跑还会让人跳过失败行往下走。
 - **没过就改，改完重跑同一条命令**，不逐个子命令挑着跑。

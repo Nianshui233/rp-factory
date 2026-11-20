@@ -129,7 +129,7 @@ disable-model-invocation: true
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
 | `templates/mvu-schema.js` / `mvu-initvar.yaml` / `mvu-entries.yaml` / `regex-mvu.json` / `tavern-script.json` / `ejs-controller.ejs` | 变量系统的五份骨架 + 分档控制器 |
 | `scripts/check-stage.py` · `detect-sillytavern.py` · `st-import.py` · `st-probe.js` | 阶段收尾一检（按阶段自动调下面这些校验器）、环境探测、导入酒馆并实测 |
-| `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` · `validate-mvu.py` · `validate-ejs.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 六个校验器（由 `check-stage.py` 在阶段收尾统一调用） |
+| `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py` · `validate-mvu.py` · `validate-ejs.py` · `validate_st_semantics.py` | 三件套骨架（纯净卡 / 正则数组 / native 世界书）+ 七个校验器（由 `check-stage.py` 在阶段收尾统一调用） |
 | `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（探测静默跑；导入与验收只在用户点头后跑） |
 | `scripts/check_st_facts.py` + `tests/` | 复核 `st-correctness.md` 的源码锚点、加载量预算、全套单测（改完跑 `python -m unittest discover -s tests -t .`） |
 
