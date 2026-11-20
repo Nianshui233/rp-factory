@@ -50,7 +50,7 @@ ST 读的是 `findRegex` / `replaceString` / `placement` / `markdownOnly` / `pro
 **[S-28] 卡内正则默认不生效，而且「取消一次」就永久静默**
 卡里 `extensions.regex_scripts` 的脚本是 **scoped scripts**：只有 `extension_settings.character_allowed_regex` 里含该头像才参与匹配（`public/scripts/extensions/regex/engine.js:166` `isScopedScriptsAllowed`）。
 授权只有一个入口：打开聊天时 `checkCharEmbeddedRegexScripts()` 跑一次（`public/scripts/extensions/regex/index.js:1606`），没授权就弹确认框——而 `accountStorage.setItem('AlertRegex_<头像>', 'true')` 写在**弹窗之前**（`:1617`），所以用户点一次「取消」，此后 `:1614-1616` 的双重条件永远不成立，**再也不提示**，界面永久不出现且没有任何报错。
-真机实测（1.19.0，2026-11-21，`最终产物/st/爱情公寓.json`）：未授权时消息正文就是 6 个字符的字面量 `<建卡向导>`，`#chat iframe = 0`，控制台干净；点「允许」后同一条消息变成 `TH-render` + 一个 674×664 的 iframe（`srcdoc` 19,504 字符），向导立刻能点。允许之后还要 `reloadCurrentChat()`（`:1623`）才重渲染，切走再切回等价。
+真机实测（1.19.0，2026-11-21，`导入包/st/爱情公寓.json`）：未授权时消息正文就是 6 个字符的字面量 `<建卡向导>`，`#chat iframe = 0`，控制台干净；点「允许」后同一条消息变成 `TH-render` + 一个 674×664 的 iframe（`srcdoc` 19,504 字符），向导立刻能点。允许之后还要 `reloadCurrentChat()`（`:1623`）才重渲染，切走再切回等价。
 **所以卡里带正则 = 把「界面出不出来」押在用户点没点对那个按钮上。**本流水线因此把正则放 `正则.json`（全局脚本，不受这条约束），卡里 `extensions.regex_scripts` 必须是 `[]`。
 
 **[S-29] 内嵌书落盘时用 `character_book.name`，且必须与 `extensions.world` 相等**

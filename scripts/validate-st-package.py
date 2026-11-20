@@ -16,9 +16,9 @@
 - public/scripts/utils.js      regexFromString               正则能不能编译
 
 用法：
-    python scripts/validate-st-package.py <最终产物目录>
+    python scripts/validate-st-package.py <导入包目录>
     python scripts/validate-st-package.py <卡.json> <正则.json> <世界书.json>
-    python scripts/validate-st-package.py <目录> --contract 创作痕迹/contract.yaml
+    python scripts/validate-st-package.py <目录> --contract 制作文件/项目记录/contract.yaml
     python scripts/validate-st-package.py <目录> --json
 
 退出码：0 全通过（警告不算失败）；1 有 FAIL；2 文件读不到。
@@ -601,7 +601,7 @@ def main(argv: list[str]) -> int:
     if card_path is None or not card_path.exists():
         here = Path(args[0])
         seen = sorted(x.name for x in here.iterdir()) if here.is_dir() else []
-        print("读不到角色卡。三件套要放在 `最终产物/` 根下："
+        print("读不到角色卡。三件套要放在 `导入包/` 根下："
               "  <世界名>（纯净）.json · 正则.json · <世界名> 世界书.json"
               f"当前目录里的东西：{seen or '（空）'}"
               "子目录里的旧包（单文件卡 / st/ 里那一坨）要按新规矩重打一次，别原地改。",

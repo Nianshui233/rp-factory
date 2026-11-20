@@ -7,7 +7,7 @@
 - **必须先有 `axis-system.yaml`**。本阶段只做投影：把轴的定义翻译成可执行的字段与夹取，**不重新设计数值**（重新设计 = 同一份数两处真相）。
 - `naming.axes` 已收口（无 `provisional: true`）。还在 `provisional` 就先回阶段 4。
 - 需要酒馆助手（JS-Slash-Runner）+ MVU 脚本。契约 `project.sillytavern.extension_tavern_helper: false` 或整段 `null` → 先说明"这条路要装酒馆助手，没装的话 MVU 不跑"，再问要不要退回纯提示词（本阶段 `skipped`，只交轴表）。
-- `project.web_research: true`：查过 MVU 的现行字段口径（例如有没有官方推荐的 `stat_data` 结构）再动笔，记 `创作痕迹/检索来源.md`。
+- `project.web_research: true`：查过 MVU 的现行字段口径（例如有没有官方推荐的 `stat_data` 结构）再动笔，记 `制作文件/项目记录/检索来源.md`。
 - 用户明说"数值要记住 / 每轮别忘 / 变量会自己更新 / 想要变量管理器"才进；只是"每个角色有好感度"属阶段 4，不是本阶段。
 
 ## 追问
@@ -125,16 +125,16 @@ Schema
 
 **Step 3 · 三条条目**（`templates/mvu-entries.yaml`）：配置逐字抄注释里那三行，不要"优化"。
 
-**Step 4 · 正则**：`cp templates/regex-mvu.json 创作痕迹/产物/mvu/regex-mvu.json`，把第三条按是否做状态栏决定去留。
+**Step 4 · 正则**：`cp templates/regex-mvu.json 制作文件/产物/mvu/regex-mvu.json`，把第三条按是否做状态栏决定去留。
 
 **Step 5 · 卡内脚本**：`templates/tavern-script.json` 包一层 `mvu-schema.js` 的全文；`MVU` 那条的 `content` 是一行 `import 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_module/dist/MVU/index.js';`。
 
-**Step 6 · 自检**：本阶段的脚本校验不在过程里跑，留到收尾：`python scripts/check-stage.py mvu <项目根>`（内部跑 `validate-mvu.py`）。单独跑时用 `python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml`，再 `node --check` 一遍脚本。
+**Step 6 · 自检**：本阶段的脚本校验不在过程里跑，留到收尾：`python scripts/check-stage.py mvu <项目根>`（内部跑 `validate-mvu.py`）。单独跑时用 `python scripts/validate-mvu.py 制作文件/产物/mvu --contract 制作文件/项目记录/contract.yaml`，再 `node --check` 一遍脚本。
 
 ## 写回契约
 
 - `stages.mvu` → `partial` / `done`。
-- `artifacts[]` 三条：`type: mvu-schema`（`path: 创作痕迹/产物/mvu/变量结构.js`）、`mvu-initvar`（`…/[initvar]变量初始化.yaml`）、`mvu-entries`（`…/变量规则.yaml`）；正则若也交，记 `type: mvu-regex`。
+- `artifacts[]` 三条：`type: mvu-schema`（`path: 制作文件/产物/mvu/变量结构.js`）、`mvu-initvar`（`…/[initvar]变量初始化.yaml`）、`mvu-entries`（`…/变量规则.yaml`）；正则若也交，记 `type: mvu-regex`。
 - `naming.schema_axes`：本阶段实际用到的轴名数组（交付校验 X02 读它）。
 - `decisions[]`：抽不抽背包、时间写了哪几层、为什么某些轴没进 schema。
 

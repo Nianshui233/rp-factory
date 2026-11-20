@@ -21,9 +21,9 @@
     S-29 character_book.name ≠ extensions.world          → 书落成另一个名字，一条都不激活
 
 用法：
-    python scripts/validate_st_semantics.py <最终产物目录>
+    python scripts/validate_st_semantics.py <导入包目录>
     python scripts/validate_st_semantics.py <卡.json> <正则.json> <世界书.json>
-    python scripts/validate_st_semantics.py <目录> --contract 创作痕迹/contract.yaml
+    python scripts/validate_st_semantics.py <目录> --contract 制作文件/项目记录/contract.yaml
     python scripts/validate_st_semantics.py <目录> --json
 
 退出码：0 无 error（warning 不算失败）；1 有 error；2 文件读不到 / 参数错误。
@@ -375,8 +375,8 @@ def _read_json(path: Path) -> object | None:
 
 
 def find_files(root: Path) -> dict[str, Path]:
-    """在项目或最终产物目录里认出三件套。"""
-    out_dir = root / "最终产物" if (root / "最终产物").is_dir() else root
+    """在项目或导入包目录里认出三件套。"""
+    out_dir = root / "导入包" if (root / "导入包").is_dir() else root
     found: dict[str, Path] = {}
     regex_path = out_dir / "正则.json"
     if regex_path.is_file():
@@ -412,7 +412,7 @@ def check_project(root: Path, contract: Path | None = None) -> list[dict]:
     rep = Report()
     files = find_files(root)
     if contract is None:
-        auto = root / "创作痕迹" / "contract.yaml"
+        auto = root / "制作文件" / "项目记录" / "contract.yaml"
         contract = auto if auto.is_file() else None
     helper = contract_tavern_helper(contract)
 

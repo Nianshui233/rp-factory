@@ -1,4 +1,4 @@
-# 试演日志：创作痕迹/试演日志.yaml（见 references/rehearsal.md）
+# 试演日志：制作文件/试演日志.yaml（见 references/rehearsal.md）
 # 纪律：≤5 轮，每轮只判一个症状、只改一处；禁止整卡重写。
 # 结论按六层证据记 L5/L6（by: human），脚本不许代签。
 rounds:
@@ -7,7 +7,7 @@ rounds:
 #   evidence: 实际输出     # 既有设定 / 实际输出 / 作者观察 / 诊断假设（四类不许混）
   #   symptom: ""           # 具体看到什么，不写"感觉不对"
   #   root_cause: ""
-  #   change: {file: "最终产物/<世界名>（纯净）.json", field: "data.post_history_instructions"}
+  #   change: {file: "导入包/<世界名>（纯净）.json", field: "data.post_history_instructions"}
   #   re_observed: ""       # 下一轮实际观察
 
 # conclusion:

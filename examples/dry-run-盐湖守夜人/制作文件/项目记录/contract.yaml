@@ -107,20 +107,20 @@ decisions:
   - {stage: "ejs", question: "被控条目从哪来", answer: "拆分原「守夜所（夜班）」并禁用原件", why: "原文 194 字，拆成三份各 240 字上下；人名与地点全部沿用，不新增设定"}
 
 artifacts:
-  - {type: "world-bible", path: "创作痕迹/产物/world-bible.yaml", version: 1}
-  - {type: "rolecard", path: "创作痕迹/产物/rolecard.yaml", version: 1}
-  - {type: "scene-sheet", path: "创作痕迹/产物/scene-sheet.yaml", version: 1}
-  - {type: "axis-system", path: "创作痕迹/产物/axis-system.yaml", version: 1}
-  - {type: "mvu-schema", path: "创作痕迹/产物/mvu/变量结构.js", version: 1}
-  - {type: "mvu-initvar", path: "创作痕迹/产物/mvu/[initvar]变量初始化.yaml", version: 1}
-  - {type: "mvu-entries", path: "创作痕迹/产物/mvu/变量规则.yaml", version: 1}
-  - {type: "mvu-regex", path: "创作痕迹/产物/mvu/regex-mvu.json", version: 1}
-  - {type: "ejs-controller", path: "创作痕迹/产物/ejs/阶段控制器.ejs", version: 1}
-  - {type: "opening-ui", path: "创作痕迹/产物/wizard-ui.html", version: 1}
-  - {type: "opening-ui", path: "创作痕迹/产物/regex-opening.json", version: 1}
-  - {type: "statusbar-ui", path: "创作痕迹/产物/statusbar-ui.html", version: 1}
-  - {type: "statusbar-ui", path: "创作痕迹/产物/regex-statusbar.json", version: 1}
-  - {type: "statusbar-ui", path: "创作痕迹/产物/frontend-prompt.yaml", version: 1}
-  - {type: "st-card", path: "最终产物/白潮（纯净）.json", version: 1}
-  - {type: "st-regex", path: "最终产物/正则.json", version: 1}
-  - {type: "st-worldbook", path: "最终产物/白潮 世界书.json", version: 1}
+  - {type: "world-bible", path: "制作文件/产物/world-bible.yaml", version: 1}
+  - {type: "rolecard", path: "制作文件/产物/rolecard.yaml", version: 1}
+  - {type: "scene-sheet", path: "制作文件/产物/scene-sheet.yaml", version: 1}
+  - {type: "axis-system", path: "制作文件/产物/axis-system.yaml", version: 1}
+  - {type: "mvu-schema", path: "制作文件/产物/mvu/变量结构.js", version: 1}
+  - {type: "mvu-initvar", path: "制作文件/产物/mvu/[initvar]变量初始化.yaml", version: 1}
+  - {type: "mvu-entries", path: "制作文件/产物/mvu/变量规则.yaml", version: 1}
+  - {type: "mvu-regex", path: "制作文件/产物/mvu/regex-mvu.json", version: 1}
+  - {type: "ejs-controller", path: "制作文件/产物/ejs/阶段控制器.ejs", version: 1}
+  - {type: "opening-ui", path: "制作文件/产物/wizard-ui.html", version: 1}
+  - {type: "opening-ui", path: "制作文件/产物/regex-opening.json", version: 1}
+  - {type: "statusbar-ui", path: "制作文件/产物/statusbar-ui.html", version: 1}
+  - {type: "statusbar-ui", path: "制作文件/产物/regex-statusbar.json", version: 1}
+  - {type: "statusbar-ui", path: "制作文件/产物/frontend-prompt.yaml", version: 1}
+  - {type: "st-card", path: "导入包/白潮（纯净）.json", version: 1}
+  - {type: "st-regex", path: "导入包/正则.json", version: 1}
+  - {type: "st-worldbook", path: "导入包/白潮 世界书.json", version: 1}

@@ -10,7 +10,7 @@
  * 用法:
  *   node scripts/st-probe.js --st http://127.0.0.1:8000 --char 白潮
  *   node scripts/st-probe.js --char 白潮 --shot shot.png --chrome "C:/Program Files/Google/Chrome/Application/chrome.exe"
- *   node scripts/st-probe.js --char 白潮 --json --report 创作痕迹/probe.json
+ *   node scripts/st-probe.js --char 白潮 --json --report 制作文件/项目记录/probe.json
  *
  * 它产出的不是「验收通过」，是 L4 里四个可脚本判的维度（references/acceptance.md 第三节）：
  *   import     卡在侧栏、名字对得上

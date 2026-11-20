@@ -3,8 +3,8 @@
 """前端界面自检：查 HTML 骨架、外链、危险 API、内联脚本里的 HTML 实体。
 
 用法:
-    python scripts/validate-frontend.py 最终产物/statusbar-ui.html
-    python scripts/validate-frontend.py 最终产物/          # 递归找 *.html
+    python scripts/validate-frontend.py 导入包/statusbar-ui.html
+    python scripts/validate-frontend.py 导入包/          # 递归找 *.html
 
 退出码: 0 = 全过或只有警告, 1 = 有失败, 2 = 用法/读取错误。
 """

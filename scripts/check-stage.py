@@ -47,7 +47,7 @@ def rel(root: Path, p: Path) -> str:
 
 def contract_artifacts(root: Path, types: set[str]) -> list[Path]:
     """从契约里挑出指定 type 的产物路径（存在且是文件/目录）。"""
-    cpath = root / "创作痕迹" / "contract.yaml"
+    cpath = root / "制作文件" / "项目记录" / "contract.yaml"
     if not cpath.exists():
         return []
     try:
@@ -72,7 +72,7 @@ def contract_artifacts(root: Path, types: set[str]) -> list[Path]:
 
 
 def find_book(root: Path) -> Path | None:
-    for d in (root / "最终产物", root / "创作痕迹" / "产物"):
+    for d in (root / "导入包", root / "制作文件" / "产物"):
         if not d.exists():
             continue
         for p in sorted(d.glob("*.json")):
@@ -88,7 +88,7 @@ def find_book(root: Path) -> Path | None:
 def plan(stage: str, root: Path) -> list[tuple[str, list[str]]]:
     """阶段 → [(脚本, 参数)]。契约永远查；其余按阶段追加。"""
     jobs: list[tuple[str, list[str]]] = []
-    contract = root / "创作痕迹" / "contract.yaml"
+    contract = root / "制作文件" / "项目记录" / "contract.yaml"
     if contract.exists():
         jobs.append(("validate-contract.py", [str(contract)]))
 
@@ -103,7 +103,7 @@ def plan(stage: str, root: Path) -> list[tuple[str, list[str]]]:
         if not htmls:
             pats = {"opening": ["wizard*", "opening*"], "statusbar": ["statusbar*"], "all": ["*.html"]}[stage]
             cand = []
-            for d in (root / "创作痕迹" / "产物", root / "最终产物"):
+            for d in (root / "制作文件" / "产物", root / "导入包"):
                 for pat in pats:
                     cand += list(d.glob(pat))
             htmls = [p for p in cand if p.suffix == ".html"]
@@ -112,7 +112,7 @@ def plan(stage: str, root: Path) -> list[tuple[str, list[str]]]:
 
     book = find_book(root)
     if stage in ("mvu", "all"):
-        mvu_dir = root / "创作痕迹" / "产物" / "mvu"
+        mvu_dir = root / "制作文件" / "产物" / "mvu"
         if mvu_dir.exists():
             args = [str(mvu_dir), "--contract", str(contract)] if contract.exists() else [str(mvu_dir)]
             if book:
@@ -120,7 +120,7 @@ def plan(stage: str, root: Path) -> list[tuple[str, list[str]]]:
             jobs.append(("validate-mvu.py", args))
 
     if stage in ("ejs", "all"):
-        ctrls = sorted((root / "创作痕迹" / "产物" / "ejs").glob("*.ejs"))
+        ctrls = sorted((root / "制作文件" / "产物" / "ejs").glob("*.ejs"))
         ranges = {}
         if ctrls and contract.exists():
             import yaml
@@ -142,7 +142,7 @@ def plan(stage: str, root: Path) -> list[tuple[str, list[str]]]:
             jobs.append(("validate-ejs.py", args))
 
     if stage in ("delivery", "all"):
-        final = root / "最终产物"
+        final = root / "导入包"
         has_card = False
         if final.exists():
             import json  # noqa: PLC0415
@@ -159,7 +159,7 @@ def plan(stage: str, root: Path) -> list[tuple[str, list[str]]]:
                 args += ["--contract", str(contract)]
             jobs.append(("validate-st-package.py", args))
             jobs.append(("validate_st_semantics.py", list(args)))
-            ledger = root / "创作痕迹" / "验收.yaml"
+            ledger = root / "制作文件" / "项目记录" / "验收.yaml"
             if ledger.exists():
                 jobs.append(("check_acceptance.py", [str(ledger.parent)]))
 
@@ -179,7 +179,7 @@ def main(argv: list[str]) -> int:
 
     jobs = plan(stage, root)
     if not jobs:
-        print(f"[FAIL] 阶段 {stage}：没有任何可跑的检查——项目里缺 创作痕迹/contract.yaml？")
+        print(f"[FAIL] 阶段 {stage}：没有任何可跑的检查——项目里缺 制作文件/项目记录/contract.yaml？")
         return 1
 
     print(f"阶段收尾一检 · {stage} · {root}")

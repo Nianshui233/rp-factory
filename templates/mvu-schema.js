@@ -1,5 +1,5 @@
 // 变量结构 · MVU 的 zod schema
-// 由 创作痕迹/产物/axis-system.yaml 投影生成。改数值先改轴，再回来改这里；两份不一致时以轴为准。
+// 由 制作文件/产物/axis-system.yaml 投影生成。改数值先改轴，再回来改这里；两份不一致时以轴为准。
 // 交付：本文件原文一份 + 用 templates/tavern-script.json 包一层塞进卡的 tavern_helper.scripts。
 //
 // 三条不许省的写法：

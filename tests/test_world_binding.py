@@ -31,7 +31,7 @@ CARD = {
 
 
 def build(tmp: Path, world: str, book_name: str) -> Path:
-    pkg = tmp / "最终产物"
+    pkg = tmp / "导入包"
     pkg.mkdir()
     card = json.loads(json.dumps(CARD).replace("@@WORLD@@", world))
     (pkg / "测试世界（纯净）.json").write_text(json.dumps(card, ensure_ascii=False), encoding="utf-8")

@@ -176,7 +176,7 @@ else {
 - `runOnEdit: true`，用户手改消息后界面跟着重算。
 - `substituteRegex: 0`（用原始正则）；`trimStrings` 用于把捕获内容里的多余字符裁掉，默认空数组。
 - 开关给用户一句话：正则扩展 → 导入该 JSON → 确认"仅格式显示"已开；酒馆助手 → 设置里打开"消息渲染"。
-- **草稿与交付分开**：`opening` / `statusbar` 各自写一份草稿（`创作痕迹/产物/regex-opening.json` / `regex-statusbar.json`，单对象即可）；`delivery` 交付时合并成一份 `最终产物/正则.json`（数组，一条界面一个对象）。合并只做拼装，不改 `findRegex` 与 `replaceString`。
+- **草稿与交付分开**：`opening` / `statusbar` 各自写一份草稿（`制作文件/产物/regex-opening.json` / `regex-statusbar.json`，单对象即可）；`delivery` 交付时合并成一份 `导入包/正则.json`（数组，一条界面一个对象）。合并只做拼装，不改 `findRegex` 与 `replaceString`。
 
 ## 五、提示词条目（`frontend-prompt.yaml`）
 

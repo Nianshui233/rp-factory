@@ -7,8 +7,8 @@
 把「他感到恐惧」改写成手抖、退半步、呼吸变浅，而不是删掉那句。
 
 用法：
-    python scripts/check_prose.py 创作痕迹/产物/world-bible.yaml
-    python scripts/check_prose.py 最终产物 --json
+    python scripts/check_prose.py 制作文件/产物/world-bible.yaml
+    python scripts/check_prose.py 导入包 --json
     python scripts/check_prose.py <文件> --strict
 
 跳过：代码块、以 # / | / > / 列表符号 开头的行、纯 YAML 键值行——那里不是散文。

@@ -1,5 +1,5 @@
 // 变量结构 · 白潮
-// 由 创作痕迹/产物/axis-system.yaml 投影生成（wick 0–100 初值 68 / tide 0–100 初值 22）。
+// 由 制作文件/产物/axis-system.yaml 投影生成（wick 0–100 初值 68 / tide 0–100 初值 22）。
 // 交付时同时给两份：本文件原文 + templates/tavern-script.json 包一层塞进卡的 tavern_helper.scripts。
 
 import { registerMvuSchema } from 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js';

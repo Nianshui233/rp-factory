@@ -1,4 +1,4 @@
-# 验收账本：创作痕迹/验收.yaml
+# 验收账本：制作文件/项目记录/验收.yaml
 # 六层证据见 references/acceptance.md。L5/L6 只能 by: human，脚本自签会被 check_acceptance.py 判失败。
 #
 # 这是一份**示例账本**：产物只在本机离线环境跑过，没进过真实 SillyTavern。
@@ -16,7 +16,7 @@ entries:
     by: script
   - layer: L2
     item: 契约校验（C01–C16）
-    evidence: "python scripts/validate-contract.py 创作痕迹/contract.yaml → exit 0"
+    evidence: "python scripts/validate-contract.py 制作文件/项目记录/contract.yaml → exit 0"
     verdict: pass
     by: script
   - layer: L2
@@ -26,7 +26,7 @@ entries:
     by: script
   - layer: L2
     item: 语义校验（S 系列）
-    evidence: "python scripts/validate_st_semantics.py 最终产物 → exit 0（0 失败 0 警告）"
+    evidence: "python scripts/validate_st_semantics.py 导入包 → exit 0（0 失败 0 警告）"
     verdict: pass
     by: script
   - layer: L4

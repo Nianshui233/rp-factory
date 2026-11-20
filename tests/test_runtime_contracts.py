@@ -12,9 +12,9 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "examples/dry-run-盐湖守夜人"
-TRACE = EXAMPLE / "创作痕迹"
+TRACE = EXAMPLE / "制作文件"
 ASSETS = TRACE / "产物"
-PACKAGE = EXAMPLE / "最终产物"
+PACKAGE = EXAMPLE / "导入包"
 
 
 def validate(script, *args):
@@ -38,7 +38,7 @@ class RuntimeContracts(unittest.TestCase):
                         self.assertIn(error, run.stdout)
 
     def test_mvu_rejects_changed_lower_bound(self):
-        contract = yaml.safe_load((TRACE / "contract.yaml").read_text(encoding="utf-8"))
+        contract = yaml.safe_load((TRACE / "项目记录" / "contract.yaml").read_text(encoding="utf-8"))
         contract["naming"]["axes"][0]["range"][0] = -50
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "contract.yaml"
@@ -48,7 +48,7 @@ class RuntimeContracts(unittest.TestCase):
             self.assertIn("M04", run.stdout)
 
     def test_negative_lower_bound_in_schema_matches_contract(self):
-        contract = yaml.safe_load((TRACE / "contract.yaml").read_text(encoding="utf-8"))
+        contract = yaml.safe_load((TRACE / "项目记录" / "contract.yaml").read_text(encoding="utf-8"))
         for axis in contract["naming"]["axes"]:
             axis["range"][0] = -50
         with tempfile.TemporaryDirectory() as folder:
@@ -75,7 +75,7 @@ class RuntimeContracts(unittest.TestCase):
                     script["findRegex"] = "<状态栏>(.*)</状态栏>"
                     script["replaceString"] = "<body>$1</body>"
             target.write_text(json.dumps(scripts, ensure_ascii=False), encoding="utf-8")
-            run = validate("validate-st-package.py", dest, "--contract", TRACE / "contract.yaml")
+            run = validate("validate-st-package.py", dest, "--contract", TRACE / "项目记录" / "contract.yaml")
             self.assertEqual(run.returncode, 1, run.stdout)
             self.assertIn("X07", run.stdout)
 

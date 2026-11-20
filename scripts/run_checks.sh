@@ -36,12 +36,14 @@ if [ "$#" -ge 1 ]; then
     printf '\n!! 创作目录不存在：%s\n' "$DIR"
     fails=$((fails + 1))
   else
-    [ -f "$DIR/contract.yaml" ] && run "契约" "$PY" -X utf8 scripts/validate-contract.py "$DIR"
-    if [ -d "$DIR/最终产物" ]; then
-      run "三件结构" "$PY" -X utf8 scripts/validate-st-package.py "$DIR/最终产物"
-      run "ST 语义" "$PY" -X utf8 scripts/validate_st_semantics.py "$DIR/最终产物"
+    CONTRACT="$DIR/制作文件/项目记录/contract.yaml"
+    LEDGER="$DIR/制作文件/项目记录/验收.yaml"
+    [ -f "$CONTRACT" ] && run "契约" "$PY" -X utf8 scripts/validate-contract.py "$DIR"
+    if [ -d "$DIR/导入包" ]; then
+      run "三件结构" "$PY" -X utf8 scripts/validate-st-package.py "$DIR/导入包"
+      run "ST 语义" "$PY" -X utf8 scripts/validate_st_semantics.py "$DIR/导入包"
     fi
-    [ -f "$DIR/验收.yaml" ] && run "验收账本" "$PY" -X utf8 scripts/check_acceptance.py "$DIR"
+    [ -f "$LEDGER" ] && run "验收账本" "$PY" -X utf8 scripts/check_acceptance.py "$DIR"
   fi
 fi
 

@@ -2,7 +2,7 @@
 """校验 contract.yaml：阶段状态、产物索引、交付路线、命名表是否自洽。
 
 用法：
-    python scripts/validate-contract.py <创作痕迹/contract.yaml>
+    python scripts/validate-contract.py <制作文件/项目记录/contract.yaml>
     python scripts/validate-contract.py <项目根目录>
 
 退出码：0 全部通过（可能有警告）／1 有失败／2 用法错误。
@@ -253,30 +253,47 @@ def check_delivery(c):
         else:
             for f in files:
                 if not isinstance(f, str) or f.startswith('/') or '..' in pathlib.PurePath(f).parts:
-                    fail('C10', f'`delivery.files` 里 {f!r} 必须是相对 `最终产物/` 的文件名')
+                    fail('C10', f'`delivery.files` 里 {f!r} 必须是相对 `导入包/` 的文件名')
         if d.get('st_name') and c.get('naming', {}).get('world'):
             expect = f'{d["st_name"]} 世界书'
             if d.get('worldbook_name') and d['worldbook_name'] != expect:
                 warn('C10', f'`delivery.worldbook_name` = {d["worldbook_name"]!r}，默认应为 {expect!r}')
 
 
+def check_layout(root):
+    """作品根下只许两个文件夹：`制作文件/`（原稿与账本）+ `导入包/`（交付成品）（C17）。"""
+    if not root.is_dir():
+        return
+    for name in ('创作痕迹', '最终产物'):
+        if (root / name).exists():
+            fail('C17', f'发现旧布局 `{name}/`：现在的布局是 `制作文件/项目记录/`（账本）+ '
+                        f'`制作文件/产物/`（原稿与过程产物）+ `导入包/`（交付）。'
+                        f'先迁移再跑（见 references/pipeline.md 第二节），不保留两套')
+    if not (root / '制作文件').is_dir():
+        return
+    extra = sorted(p.name for p in root.iterdir()
+                   if p.name not in ('制作文件', '导入包') and not p.name.startswith('.'))
+    if extra:
+        warn('C17', f'作品根下只该有 `制作文件/` 与 `导入包/`，多出：{", ".join(extra[:6])}')
+
+
 def check_output_dirs(c, root):
-    """最终产物/ 是交付目录：交付前必须空着（C15）。"""
+    """导入包/ 是交付目录：交付前必须空着（C15）。"""
     s = stage_map(c.get('stages'))
     d = as_dict(c.get('delivery'))
     route = d.get('route') if d else None
     delivered = s.get('delivery') == 'done'
-    out = root / '最终产物'
+    out = root / '导入包'
     items = sorted(p.name for p in out.iterdir()) if out.is_dir() else []
     if not delivered:
         if items:
-            fail('C15', f'`stages.delivery` 还没 done，但 `最终产物/` 已有 {len(items)} 项：{", ".join(items[:5])}（过程产物应放 创作痕迹/产物/）')
+            fail('C15', f'`stages.delivery` 还没 done，但 `导入包/` 已有 {len(items)} 项：{", ".join(items[:5])}（过程产物应放 制作文件/产物/）')
         return
     if not route:
         fail('C15', '`stages.delivery: done` 但 `delivery.route` 为空')
         return
     if not items:
-        fail('C15', '`stages.delivery: done` 但 `最终产物/` 是空的')
+        fail('C15', '`stages.delivery: done` 但 `导入包/` 是空的')
         return
     if route in ('st', 'both'):
         want = {'正则.json'}
@@ -400,13 +417,21 @@ def main():
         return 2
     arg = pathlib.Path(sys.argv[1])
     if arg.is_dir():
-        # 目录可以是项目根，也可以直接是 创作痕迹/（有人习惯 cd 进去再跑）。
+        # 目录可以是项目根，也可以是 制作文件/项目记录/（有人习惯 cd 进去再跑）。
         # 注意 next() 要的是迭代器：传元组会 TypeError，必须套 iter()。
-        candidates = (arg / '创作痕迹' / 'contract.yaml', arg / 'contract.yaml')
+        candidates = (arg / '制作文件' / '项目记录' / 'contract.yaml',
+                      arg / '制作文件' / 'contract.yaml',
+                      arg / 'contract.yaml')
         path = next((c for c in candidates if c.exists()), candidates[0])
-        root = arg.parent if arg.name == '创作痕迹' else arg
+        if arg.name == '项目记录':
+            root = arg.parent.parent
+        elif arg.name == '制作文件':
+            root = arg.parent
+        else:
+            root = arg
     else:
-        path, root = arg, arg.parent.parent
+        path = arg
+        root = arg.parent.parent.parent if arg.parent.name == '项目记录' else arg.parent.parent
     if not path.exists():
         print(f'找不到契约：{path}')
         return 2
@@ -423,6 +448,7 @@ def main():
     check_naming(c)
     check_player_agency(c)
     check_lists(c)
+    check_layout(root)
 
     rules = {
         'C00': '契约可解析',
@@ -440,8 +466,9 @@ def main():
         'C12': 'hard_settings / pending / decisions 形状',
         'C13': 'decisions[].state 四态与「未答≠委托」',
         'C14': 'partial 阶段必须挂 pending',
-        'C15': '最终产物/ 交付前空、交付后三件齐',
+        'C15': '导入包/ 交付前空、交付后三件齐',
         'C16': 'player_agency 三档自洽（放宽须用户确认，delegated 须有时长）',
+        'C17': '作品根下只许 制作文件/ 与 导入包/（旧布局要迁移）',
     }
     bad = {r for r, _ in fails}
     for r, name in rules.items():

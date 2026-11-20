@@ -1,7 +1,7 @@
 ---
 name: rp-factory
 metadata:
-  version: 1.0.01
+  version: 1.1.00
 description: 把 RP 构想编译成世界观、角色卡、场景卡、数值系统四类 YAML 设定产物，跨产物命名与硬设定保持一致；可选把数值投影成酒馆变量系统（MVU 的 zod 结构 + 初始化 + 更新条目）与按数值切换的分档控制器（EJS），可选再产开局界面与状态栏两种酒馆前端（正则 + HTML），整条流程跑完可再打一个能直接导入 SillyTavern 的包（角色卡 JSON + 世界书 JSON + 正则）。支持粘贴用提示词条目与工程文件两种交付。仅在用户显式输入 /skill:rp-factory 时执行，不参与自然语言自动匹配。
 disable-model-invocation: true
 ---
@@ -40,13 +40,15 @@ disable-model-invocation: true
 
 ```
 <工作区>/<世界名>/
-  创作痕迹/  contract.yaml（命名权威+索引） · 项目档案.yaml（元信息+类型基调，不进终稿） · 创作记录.md（访谈、决策、卡点） · 检索来源.md（仅联网时）
-  创作痕迹/产物/  world-bible.yaml · rolecard/ · scene/ · axis/ · mvu/（schema 与条目） · ejs/（控制器与改写清单） · 表现层 HTML 与正则（过程产物一律在这）
-  最终产物/  全程空着，只在第十节交付时写入
+  制作文件/项目记录/  契约（命名权威+索引） · 项目档案（元信息+类型基调，不进终稿） · 创作记录（访谈/决策/卡点） · 检索来源（仅联网时） · 验收 · 试演记录（可选）
+  制作文件/产物/  world-bible.yaml · rolecard/ · scene/ · axis/ · mvu/（schema 与条目） · ejs/（控制器与改写清单） · 表现层 HTML 与正则（过程产物一律在这）
+  导入包/  全程空着，只在第十节交付时写入
 ```
 
+根下只有这两个文件夹；不散落 README、清单、脚本或隐藏账本（**C17** 查旧布局与散落文件）。
+
 - 名字未定 → 先建 `未命名项目/`，定名后重命名一次并回写 `project.name` 与 `project.workspace`；说「只要粘贴」→ `project.mode = text`，不建目录，此后不再问。
-- 同名目录已存在 → 先列内容再问「续建还是换名」，**不覆盖**；`创作痕迹/` 不存 YAML 草稿副本，没跑到的阶段不预建空壳。
+- 同名目录已存在 → 先列内容再问「续建还是换名」，**不覆盖**；`制作文件/` 不存 YAML 草稿副本，没跑到的阶段不预建空壳。旧布局（`创作痕迹/` / `最终产物/`）的项目一律先迁移：原稿与账本搬进 `制作文件/`、成品搬进 `导入包/`，搬完重跑校验，不保留两套。
 
 **问二：跑哪几个阶段（多选）**
 
@@ -65,9 +67,9 @@ disable-model-invocation: true
 **问四：需要联网吗**（是/否，问这次创作要不要主动查外部资料，与是否同人无关）
 
 - **否** → `project.web_research: false`，全程不检索，也不许顺手搜。
-- **是** → `project.web_research: true`，**不再问任何东西**。此后不管创作什么（世界观、角色、场景、数值、界面，含局部修改），落笔前都先检索再用；每条记进 `创作痕迹/检索来源.md`（骨架 `templates/research-log.md`）。查什么由阶段内容自己判断，冲突怎么裁、没网怎么降级、版权边界，全在 `references/web-research.md`——**进入任何阶段前先读它**。
+- **是** → `project.web_research: true`，**不再问任何东西**。此后任何阶段（含局部修改）落笔前都先检索再用；每条记进 `制作文件/项目记录/检索来源.md`（骨架 `templates/research-log.md`）。冲突怎么裁、没网怎么降级、版权边界全在 `references/web-research.md`——**进入任何阶段前先读它**。
 - 不答 → 按「否」锁，一句告知可随时开。中途要开 → 回填开关、建检索记录、从当前阶段起开始查，记 `decisions`。
-- **开了这个开关，检索就是每个阶段的前置动作**，不是想起来才做：动笔前按 `references/web-research.md` 第一节的逐阶段检索量查完并落条；交付前 `创作痕迹/检索来源.md` 必须比进入本阶段时多出至少 1 条，否则不许交付、不许进下一阶段。
+- **开了这个开关，检索就是每个阶段的前置动作**，不是想起来才做：动笔前按 `references/web-research.md` 第一节的逐阶段检索量查完并落条；交付前 `制作文件/项目记录/检索来源.md` 必须比进入本阶段时多出至少 1 条，否则不许交付、不许进下一阶段。
 
 四问用结构化选项，**不用** `references/interview-protocol.md` 的问题块格式。写回细节见 `references/contract-schema.md` 第七节。
 
@@ -77,8 +79,7 @@ disable-model-invocation: true
 2. 有契约就读契约（`templates/contract.yaml` + `references/contract-schema.md`）；没有就先建一份。
 3. `project.web_research: true` → 先读 `references/web-research.md`，再进阶段（否则跳过，也不许搜）。
 4. 定出**目标阶段**与**当前产物 type**（十四选一：`world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `mvu-schema` / `mvu-initvar` / `mvu-entries` / `mvu-regex` / `ejs-controller` / `opening-ui` / `statusbar-ui` / `st-card` / `st-regex` / `st-worldbook`）；文本还是工程文件按 `references/dual-mode.md` 判，默认文本模态。
-5. **收尾一步不要忘**：`stages_requested` 里的阶段全部结束后问一次交付形态（原生 / 酒馆包 / 两者都要），选酒馆包进 `delivery`；用户没答按原生收尾，不自作主张打包。
-6. **一次只做一个阶段**：做完就停——汇总这一轮落下什么、把产物摆出来、写清「下一步是哪一阶段、等你说一声」。**不在同一条回复里连着做下一个阶段**，也不在交付后用选项弹窗替用户按下一步（见第六节第 9 条）。
+5. **一次只做一个阶段**：做完就停——汇总这一轮落下什么、把产物摆出来、写清「下一步是哪一阶段、等你说一声」。**不在同一条回复里连着做下一个阶段**。阶段全 `done` 后的收尾问（交付形态）在第十节，不在阶段中途问。
 
 ## 四、做主 skill 的三件事
 
@@ -119,23 +120,23 @@ disable-model-invocation: true
 | `references/interview-protocol.md` | 问题块格式、每阶段预算、补采访问、降级链 |
 | `references/contract-schema.md` | 契约定位、键区、独占写者、冲突规则 |
 | `check_acceptance.py` | 验收账本 A00–A06（L5/L6 只能人签；L4 写 11 维之一） |
-| `scripts/embed-book.py` | 世界书双入口：把 native 书内嵌进卡（`character_book`），回读比对 ST 转换字段 |
-| `scripts/run_checks.sh` | 一键全检：结构 + 单测 + 加载预算（带创作目录时加查契约/语义/验收） |
-| `references/rehearsal.md` | 试演：四类证据、最小响应八种、四类判据（代演/OOC/口癖/数值）、≤5 轮、禁整卡重写 |
-| `references/acceptance.md` | 六层证据（源码/脚本/离线/浏览器/真机/人眼）、谁能签哪一层、验收账本格式 |
-| `references/decisions.md` | 四态（confirmed / proposed / pending / rejected）、缺口三级、未答≠委托、交付四句 |
+| `scripts/embed-book.py` | 世界书双入口：把 native 书内嵌进卡（`character_book`） |
+| `scripts/run_checks.sh` | 一键全检：结构 + 单测 + 加载预算（给创作目录时再查产物） |
+| `references/rehearsal.md` | 试演：四类证据、最小响应八种、四类判据、≤5 轮、禁整卡重写 |
+| `references/acceptance.md` | 六层证据、谁能签哪一层、账本格式 |
+| `references/decisions.md` | 四态（confirmed / proposed / pending / rejected）、缺口三级、未答≠委托 |
 | `references/worldbook-writing.md` | 世界书条目文本契约：句子功能、五档强度、知识度数、语义不变量 |
 | `references/dual-mode.md` | 两种模态的对照、切换、渲染、注释剥离 |
-| `references/st-correctness.md` | 会静默失效的 ST 语义事实（S-01…S-M3）：正则/世界书/卡/宏四类，每条带 `public/…:line` 源码锚点 |
-| `references/tavern-helper.md` | 酒馆助手 4.12.1 接口速查：渲染链路、srcdoc 约束、iframe 全局、变量/消息/事件、失效清单 |
+| `references/st-correctness.md` | 会静默失效的 ST 语义事实（S 系列），每条带 `public/…:line` 锚点 |
+| `references/tavern-helper.md` | 酒馆助手 4.12.1 接口速查：渲染链路、srcdoc、iframe 全局、变量/消息/事件 |
 | `references/frontend-conventions.md` | 表现层机制、HTML 骨架、正则 JSON、提示词条目、前端门 |
 | `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 `world` / `cast` / `scenes` / `axes`：世界观 / 角色卡 / 场景卡 / 数值系统 |
 | `references/stage-mvu.md` | 阶段 `mvu`：轴 → zod 结构 / `[initvar]` / 三条更新条目 / 两条隐藏正则 / 卡内脚本 |
 | `references/stage-ejs.md` | 阶段 `ejs`：分档控制器 + 被控条目（含"什么时候不做"的判据） |
 | `references/stage-5-opening-ui.md` | 阶段 `opening` 开局前端（登场面板 / 建卡向导两形态） |
 | `references/stage-6-statusbar-ui.md` | 阶段 `statusbar` 状态栏前端（有 MVU 走变量、没有走标签） |
-| `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 `delivery` 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning（三灯、套餐、8–15 关键词、位置、预算、递归、概率、十二条自查） |
-| `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `创作痕迹/`，不进终稿） |
+| `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 `delivery` 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning（三灯、套餐、关键词、位置、预算、递归、概率） |
+| `templates/*.yaml` | 契约 + 四份产物 + 项目档案，填完即交付（项目档案归 `制作文件/`，不进终稿） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` | 三个界面骨架、正则导入骨架、提示词条目骨架 |
 | `templates/mvu-schema.js` / `mvu-initvar.yaml` / `mvu-entries.yaml` / `regex-mvu.json` / `tavern-script.json` / `ejs-controller.ejs` | 变量系统的五份骨架 + 分档控制器 |
 | `scripts/check-stage.py` | 阶段收尾一检：按阶段自动调下面这些校验器 |
@@ -150,17 +151,17 @@ disable-model-invocation: true
 
 ## 九、交付形态
 
-- 文本模态：设定产物是一个 ```yaml 代码块，块外只允许设计说明、补全清单、待确认清单、运行示例；工程模态写进 `<工作区>/<世界名>/创作痕迹/产物/`，每个产物一个文件。**`最终产物/` 在交付前必须空着**——那是交付目录。
+- 文本模态：设定产物是一个 ```yaml 代码块，块外只允许设计说明、补全清单、待确认清单、运行示例；工程模态写进 `<工作区>/<世界名>/制作文件/产物/`，每个产物一个文件。**`导入包/` 在交付前必须空着**——那是交付目录。
 - 表现层例外：两个前端交付 **HTML（完整文档）+ 正则 JSON + 提示词条目 YAML** 三个代码块 / 三个文件；HTML 与 JSON 是对 ST 与酒馆助手的落地件，不套 YAML 骨架。
-- 打包例外：`delivery` 阶段交**三件 JSON**（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`），落在 `最终产物/` 根下，用户自己装配；`创作痕迹/产物/` 里的 YAML 与 HTML 原样保留。
+- 打包例外：`delivery` 阶段交**三件 JSON**（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`），落在 `导入包/` 根下，用户自己装配；`制作文件/产物/` 里的 YAML 与 HTML 原样保留。
 细节在 `references/dual-mode.md`；改模态只换渲染目标，不重跑阶段。
 
 ## 十、收尾问（最后才问）
 
-`project.stages_requested` 里的阶段全部 `done` 之后，**问一次、只问一次**：原生产物（默认，把 `创作痕迹/产物/` 复制进 `最终产物/`）/ SillyTavern 三件套（`<世界名>（纯净）.json` + `正则.json` + `<世界名> 世界书.json`，用户自己装配）/ 两者都要。
+`project.stages_requested` 里的阶段全部 `done` 之后，**问一次、只问一次**：原生产物（默认，把 `制作文件/产物/` 复制进 `导入包/`）/ SillyTavern 三件套（`<世界名>（纯净）.json` + `正则.json` + `<世界名> 世界书.json`，用户自己装配）/ 两者都要。
 
 - 写 `delivery.route` 为 `native` / `st` / `both`；选酒馆包才进 `delivery`，选原生就把 `stages.delivery` 写 `skipped`。
-- 不问名字（默认 `project.name`）、不问放哪（`最终产物/` 根下）、不生成头像。
+- 不问名字（默认 `project.name`）、不问放哪（`导入包/` 根下）、不生成头像。
 - 用户没说“打包 / 导入酒馆 / 要角色卡 json / 要世界书”就不要主动提，原生是默认。
 - 中途就要包也行，但必须先跑完已勾阶段；有 `partial` 先问“先打包还是补完”。
 

@@ -261,7 +261,7 @@ builtin.addOneMessage / copyText / renderMarkdown / duringGenerating / reloadCha
 ## 十三、自查命令
 
 ```bash
-python scripts/validate-frontend.py 最终产物/            # F01–F14
+python scripts/validate-frontend.py 导入包/            # F01–F14
 PYTHONIOENCODING=utf-8 python scripts/check_st_facts.py   # S-xx（ST 本体）+ TH-xx（插件）
 PYTHONIOENCODING=utf-8 python scripts/check_st_facts.py --th-root "D:/AI/RP创作/参考/JS-Slash-Runner"
 ```

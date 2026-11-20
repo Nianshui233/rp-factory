@@ -1,7 +1,7 @@
 # 检索来源 · <项目名>
 
 # 仅 contract.project.web_research: true 时存在。一条记录一个事实，按发现顺序编号。
-# 不进最终产物，不登记进 contract.artifacts。
+# 不进导入包，不登记进 contract.artifacts。
 
 - [S01] 来源：<站点/页面标题> · <URL> · 取用：<从这条取了什么>
        可信度：官方 / 授权 / 圈内通行 / 单一出处 / 存疑

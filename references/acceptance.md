@@ -2,7 +2,7 @@
 
 一个问题反复出现：**脚本跑绿了，就宣布「在酒馆里验证通过」**。实际上酒馆没开、iframe 没渲染、用户也没看过成品。事后复盘时谁也说不清「通过」是谁说的。
 
-解法不是更严的自检，而是把结论按**来源**分层，并限制谁能签哪一层。账本落在 `创作痕迹/验收.yaml`，由 `scripts/check_acceptance.py` 检查。
+解法不是更严的自检，而是把结论按**来源**分层，并限制谁能签哪一层。账本落在 `制作文件/项目记录/验收.yaml`，由 `scripts/check_acceptance.py` 检查。
 
 ---
 
@@ -29,7 +29,7 @@ L4 条目比其它层多一个必填字段 `dimension`（见第三节）。
 entries:
   - layer: L2
     item: 契约校验
-    evidence: "python scripts/validate-contract.py 创作痕迹/contract.yaml → exit 0"
+    evidence: "python scripts/validate-contract.py 制作文件/项目记录/contract.yaml → exit 0"
     verdict: pass
     by: script
 
@@ -96,7 +96,7 @@ L4 是最容易糊弄的一层：「浏览器里看着行」不说明行在**哪
 ### 脚本怎么交这四维
 
 ```
-node scripts/st-probe.js --char 白潮 --json --report 创作痕迹/probe.json
+node scripts/st-probe.js --char 白潮 --json --report 制作文件/probe.json
 ```
 
 报告里 `dimensions` 是四个键，直接对应上表的 `import` / `fresh_chat` / `console` / `dom`，每项带 `ok` 与 `detail`。写账本时抄 `detail`，不要重写成「正常」。

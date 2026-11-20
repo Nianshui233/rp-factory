@@ -10,7 +10,7 @@
 - 要出酒馆包，必须有 `rolecard` 与 `world-bible`；缺任一个就只能走原生产物，或先回阶段 1 / 2。
 - 阶段 `opening` / `statusbar` 没做也能打包：只是正则那一件少脚本，第一楼是纯文字开场。
 - 做了 `mvu` → 卡里要带 `data.extensions.tavern_helper.scripts`（MVU 加载器 + 变量结构），`正则.json` 要带隐藏 `<UpdateVariable>` 的两条；交付说明里多一句"进酒馆助手把这两个脚本启用"。**不带脚本的 MVU 包等于没做变量系统**，而且不会报错。
-- **`最终产物/` 此刻应该是空的**。里面有任何东西（HTML、正则、卡）都是流程跑错了，先把它们挪回 `创作痕迹/产物/` 再进本阶段。
+- **`导入包/` 此刻应该是空的**。里面有任何东西（HTML、正则、卡）都是流程跑错了，先把它们挪回 `制作文件/产物/` 再进本阶段。
 
 ## 追问
 
@@ -20,13 +20,13 @@
 
 | 选项 | 交出什么 | 谁用 |
 |---|---|---|
-| **原生产物**（默认） | 把 `创作痕迹/产物/` 里的 YAML + HTML 复制进 `最终产物/` | 自己留着改、喂给别的 AI、当代稿 |
+| **原生产物**（默认） | 把 `制作文件/产物/` 里的 YAML + HTML 复制进 `导入包/` | 自己留着改、喂给别的 AI、当代稿 |
 | **SillyTavern 三件套** | `<世界名>（纯净）.json` + `正则.json` + `<世界名> 世界书.json`，用户自己装配 | 想在酒馆里跑 |
 | **两者都要** | 上面两份都留 | 想改又想在酒馆里跑 |
 
 三件套是**分开的三份**，各自单独导入、由用户自己组合。不做单文件内嵌卡——那种卡改一处要重新导一次整卡，世界书和正则也没法单独迭代。
 
-不问的：文件叫什么（默认 = `project.name`）、放哪（就是 `最终产物/`）、要不要头像（不生成图片）、导入顺序（说明里给）。用户主动要别的名字时照填。
+不问的：文件叫什么（默认 = `project.name`）、放哪（就是 `导入包/`）、要不要头像（不生成图片）、导入顺序（说明里给）。用户主动要别的名字时照填。
 
 **问二（只在答案含酒馆包时问）：要不要我直接导进你正在跑的酒馆，并当场验一遍。**
 
@@ -104,8 +104,8 @@ python scripts/embed-book.py --card "<世界名>（纯净）.json" --book "<世�
 | 信息分层（防剧透） | 1 | `true` | 85 | `4` + `depth: 2` | `[]` |
 | 数值与判定 | 1 | `true` | 84 | `4` + `depth: 2` | `[]` |
 | 文本状态栏协议（仅标签路径） | 1 | `true` | 70 | `4` + `depth: 0` | `[]` |
-| **每个角色**（`创作痕迹/产物/rolecard/*.yaml`） | 每人 1 条 | `false` | 80–78 | `0` | 本名 + `alias[]` + 关系指代 + 绰号（8–15 个） |
-| **每个地点**（`创作痕迹/产物/scene/…` 或 scene-sheet） | 每地点 1 条 | `false` | 76–74 | `0` | 地点名 + 区域名 + 场景指代（8–15 个） |
+| **每个角色**（`制作文件/产物/rolecard/*.yaml`） | 每人 1 条 | `false` | 80–78 | `0` | 本名 + `alias[]` + 关系指代 + 绰号（8–15 个） |
+| **每个地点**（`制作文件/产物/scene/…` 或 scene-sheet） | 每地点 1 条 | `false` | 76–74 | `0` | 地点名 + 区域名 + 场景指代（8–15 个） |
 | 势力 / 时间线 / 常识 / 名词 | 各 1 条 | `false` | 88–82 | `0` | `factions[].name` + `alias[]` |
 
 规矩：
@@ -114,7 +114,7 @@ python scripts/embed-book.py --card "<世界名>（纯净）.json" --book "<世�
 - **人物条目写什么**：该卡的 `psychology` + `behavior` + `attitudes` + `speech`（删掉 `identity.appearance` 以外的外貌细节、删 `nsfw` 块——`nsfw` 分档留一份在「数值与判定」条目里写）。`content` 用 YAML 片段，键名保留。
 - **地点条目写什么**：`概览` + `空间结构` + `关键区域.现场可见` + `出入口与安防` 的可判定物。这是"客厅只有一张长沙发""卫生间只有一个"能进上下文的唯一通道。
 - **数值与判定条目写什么**：每条轴的 `range` / `initial` / `direction` / 各级 `label` 与 `behavioral_signs`（每级压成一句）+ `calc_mod` + `evaluation_order` + `anti_exploit`；多目标轴（`targets[]`）把每人一行初始值列在末尾。**没有这一条，数值系统在角色扮演里等于不存在。**
-- 常驻条目总字数 ≤8000（校验器 X02），单条 ≤1000 字，超了拆条；`未决事项` 不进世界书（它是台账，留在 `创作痕迹/`）。
+- 常驻条目总字数 ≤8000（校验器 X02），单条 ≤1000 字，超了拆条；`未决事项` 不进世界书（它是台账，留在 `制作文件/`）。
 - 每个角色的名字、每个地点的名字都必须在某条的 `key` 里，否则被提及时不加载。
 - `uid` == 键序号，`displayIndex` 同值；`excludeRecursion: true`（绿灯关键词别在递归里反复展开）。
 
@@ -138,29 +138,29 @@ python scripts/embed-book.py --card "<世界名>（纯净）.json" --book "<世�
 
 ### 六、文件放哪
 
-**`最终产物/` 在选定路线之前必须是空的**——过程产物一律在 `创作痕迹/` 里，交付时才复制过来：
+**`导入包/` 在选定路线之前必须是空的**——过程产物一律在 `制作文件/` 里，交付时才复制过来：
 
 ```
-<项目>/创作痕迹/产物/            # 运行期的终稿，一直在这
+<项目>/制作文件/产物/            # 运行期的终稿，一直在这
   world-bible.yaml · rolecard/*.yaml · scene/*.yaml · axis/*.yaml
   opening-ui.html · regex-opening.json（草稿）· statusbar-ui.html
 
-<项目>/最终产物/                 # 交付前：空；选定路线后才有内容
+<项目>/导入包/                 # 交付前：空；选定路线后才有内容
   # 路线 = st
   <世界名>（纯净）.json
   正则.json
   <世界名> 世界书.json
-  # 路线 = native → 把 创作痕迹/产物/ 的树原样复制过来（YAML + HTML）
+  # 路线 = native → 把 制作文件/产物/ 的树原样复制过来（YAML + HTML）
   # 路线 = both → 上面两套都在
 ```
 
-复制用 `cp -r`，别移动：`创作痕迹/产物/` 是唯一可回溯的源，丢了就没法重出。
+复制用 `cp -r`，别移动：`制作文件/产物/` 是唯一可回溯的源，丢了就没法重出。
 
 ## 写回契约
 
 - `stages.7` → `done` / `skipped`（用户选纯原生路线时也 `done`——交付这一刻确实发生了；`skipped` 只在没做交付时用）。
-- `delivery.route` → `native` / `st` / `both`；`delivery.st_name`；`delivery.files[]` 写**相对 `最终产物/`** 的文件名（`白潮（纯净）.json`、`正则.json`、`白潮 世界书.json`）。
-- `artifacts` 追加三条：`st-card`（`path` = `最终产物/白潮（纯净）.json`）、`st-regex`、`st-worldbook`。
+- `delivery.route` → `native` / `st` / `both`；`delivery.st_name`；`delivery.files[]` 写**相对 `导入包/`** 的文件名（`白潮（纯净）.json`、`正则.json`、`白潮 世界书.json`）。
+- `artifacts` 追加三条：`st-card`（`path` = `导入包/白潮（纯净）.json`）、`st-regex`、`st-worldbook`。
 - `decisions` 记：路线、`first_mes` 来源、条目清单（每人/每地一条还是合并）、`description` 字数、世界书名。
 - `hard_settings` 不动——打包不产生新设定；缺设定回对应阶段补，不在这一阶段现编。
 
@@ -169,7 +169,7 @@ python scripts/embed-book.py --card "<世界名>（纯净）.json" --book "<世�
 三个脚本分工：`detect-sillytavern.py` 开局静默跑（找安装与实例）；`st-import.py` 逐件导入并回读；`st-probe.js` 用无头 Chrome 打开酒馆点开卡，量界面高度。
 
 ```
-python scripts/st-import.py --st auto --pkg "最终产物"
+python scripts/st-import.py --st auto --pkg "导入包"
 node scripts/st-probe.js --st http://127.0.0.1:8000 --char "<卡名>"
 ```
 
@@ -200,7 +200,7 @@ node scripts/st-probe.js --st http://127.0.0.1:8000 --char "<卡名>"
 
 ## 试演（用户说「能用」之前）
 
-导入成功只证明「机器能看到界面」。要判断「跑起来像不像」，按 `references/rehearsal.md` 跑试演：≤5 轮、每轮一个症状（R1 代演玩家 / R2 OOC / R3 口癖漂移 / R4 数值闸门）、只改一处并记进 `创作痕迹/试演日志.yaml`。**禁止整卡重写**——那会把已过校验的合规结构一起冲掉。结论记 L5/L6（`by: human`）。
+导入成功只证明「机器能看到界面」。要判断「跑起来像不像」，按 `references/rehearsal.md` 跑试演：≤5 轮、每轮一个症状（R1 代演玩家 / R2 OOC / R3 口癖漂移 / R4 数值闸门）、只改一处并记进 `制作文件/试演日志.yaml`。**禁止整卡重写**——那会把已过校验的合规结构一起冲掉。结论记 L5/L6（`by: human`）。
 
 ## 退出
 
@@ -212,7 +212,7 @@ python scripts/check-stage.py delivery <项目根>
 
 它内部先跑 `validate-contract.py` 再跑 `validate-st-package.py`（想看单条输出也可以单独跑这两个，但判定以这一条命令为准）。
 
-脚本在**本 skill 包**的 `scripts/` 下，不在用户项目里；当前目录不是包根时用绝对路径。第一个参数给 `最终产物/`（也接受单给某个文件）。退出码 0 才叫过。它查的事：
+脚本在**本 skill 包**的 `scripts/` 下，不在用户项目里；当前目录不是包根时用绝对路径。第一个参数给 `导入包/`（也接受单给某个文件）。退出码 0 才叫过。它查的事：
 
 1. **三件都在、不多不少**：`<世界名>（纯净）.json`、`正则.json`、`<世界名> 世界书.json`。
 2. 卡：`spec == "chara_card_v2"`、`spec_version == "2.0"`、`data` 十四必填字段齐全；**不许有 `character_book`（C19）**；`data.extensions.regex_scripts` 必须为空（C20）；`extensions.world` 非空（C21）。

@@ -8,7 +8,7 @@
   正则     只验（scriptName / findRegex 齐全、node 能编译、$1 有捕获组）→ 让用户去界面导
 
 用法:
-    python scripts/st-import.py --st auto --pkg 最终产物
+    python scripts/st-import.py --st auto --pkg 导入包
     python scripts/st-import.py --st http://127.0.0.1:8000 --pkg . --no-verify
     python scripts/st-import.py --st auto --card a.json --regex r.json --worldbook w.json
 

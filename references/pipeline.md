@@ -55,15 +55,15 @@
 - **没过就改，改完重跑同一条命令**，不逐个子命令挑着跑。
 - 收尾想再确认一遍就 `check-stage.py all`。
 
-**7. `契约门`（阶段收尾一检时一并跑）** 跑 `python scripts/validate-contract.py 创作痕迹/contract.yaml`，退出码 0 才算过：阶段状态在枚举内、`done` 的阶段真有对应产物、`artifacts[].type` 没自造、`path` 指向真实文件、`delivery` 与 `files` 自洽、`naming.axes` 在阶段 4 后不再带 `provisional`。`partial` 必须挂进 `pending[]`（C14 专查）——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。`decisions[].state` 四态与「未答≠委托」见 `references/decisions.md`（C13）。
+**7. `契约门`（阶段收尾一检时一并跑）** 跑 `python scripts/validate-contract.py <项目根>`，退出码 0 才算过：阶段状态在枚举内、`done` 的阶段真有对应产物、`artifacts[].type` 没自造、`path` 指向真实文件、`delivery` 与 `files` 自洽、`naming.axes` 在阶段 4 后不再带 `provisional`。`partial` 必须挂进 `pending[]`（C14 专查）——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。`decisions[].state` 四态与「未答≠委托」见 `references/decisions.md`（C13）。
 
-**8. `联网门`（仅 `project.web_research: true`）** 每次落笔前先检索（不限阶段，含局部改动），交付前复核一遍本份产物里的全部外部专名；每条检索记进 `创作痕迹/检索来源.md`，且进入本阶段后必须比之前多出至少 1 条——没有新增条目 = 没查，不许交付。逐阶段要查什么见 `references/web-research.md` 第一节的逐阶段检索量。没检索到就记 `未检索到` 并改走确认清单，不编造。细则见 `references/web-research.md`。
+**8. `联网门`（仅 `project.web_research: true`）** 每次落笔前先检索（不限阶段，含局部改动），交付前复核一遍本份产物里的全部外部专名；每条检索记进 `制作文件/项目记录/检索来源.md`，且进入本阶段后必须比之前多出至少 1 条——没有新增条目 = 没查，不许交付。逐阶段要查什么见 `references/web-research.md` 第一节的逐阶段检索量。没检索到就记 `未检索到` 并改走确认清单，不编造。细则见 `references/web-research.md`。
 
 **9. `前端门`（仅 `opening` / `statusbar`）** 十条判据只有一份，在 `references/frontend-conventions.md` 第六节，逐条编号；跑 `python scripts/validate-frontend.py <界面.html>` 必须全过。最脆的一条：界面内联脚本里写 HTML 实体，整份界面会静默变成 2px 高。
 
-**10. `变量门`（仅阶段 `mvu` / `ejs`）** 交给两个脚本判：`python scripts/validate-mvu.py 创作痕迹/产物/mvu --contract 创作痕迹/contract.yaml --book "<世界书>"`（M01–M13）与 `python scripts/validate-ejs.py 创作痕迹/产物/ejs/<控制器>.ejs --book "<世界书>"`（E01–E08），退出码都要是 0。要点：数值字段有 `.catch(初值)`、夹取上界等于轴的 `range`、`[initvar]` 已禁用且键与 schema 对得上、`变量列表` 内容逐字符等于 `{{format_message_variable::stat_data}}`、两条隐藏 `<UpdateVariable>` 的正则齐备且能编译、控制器的分支边界单调、被控条目全部 `disable: true`。**没装酒馆助手就别开这个阶段**，别产出跑不起来的东西。细则见两个阶段文件。
+**10. `变量门`（仅阶段 `mvu` / `ejs`）** 交给两个脚本判：`python scripts/validate-mvu.py 制作文件/产物/mvu --contract 制作文件/项目记录/contract.yaml --book "<世界书>"`（M01–M13）与 `python scripts/validate-ejs.py 制作文件/产物/ejs/<控制器>.ejs --book "<世界书>"`（E01–E08），退出码都要是 0。要点：数值字段有 `.catch(初值)`、夹取上界等于轴的 `range`、`[initvar]` 已禁用且键与 schema 对得上、`变量列表` 内容逐字符等于 `{{format_message_variable::stat_data}}`、两条隐藏 `<UpdateVariable>` 的正则齐备且能编译、控制器的分支边界单调、被控条目全部 `disable: true`。**没装酒馆助手就别开这个阶段**，别产出跑不起来的东西。细则见两个阶段文件。
 
-**11. `交付门`（仅阶段 `delivery`）** 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "最终产物" --contract 创作痕迹/contract.yaml`，退出码 0 才算过。查的事：三件齐全（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`）；做了 `mvu` 阶段时卡内必须有 `tavern_helper.scripts` 且正则里必须有隐藏 `<UpdateVariable>` 的两条（X06 专查这个——缺了 MVU 静默不跑）；卡里不许有 `character_book`、`extensions.regex_scripts` 必须为空（否则又回到「改一条设定重导整卡」）；世界书是 native 对象形状、`uid` 与键对齐；`extensions.world` == 世界书文件名（不一致卡不会自动挂书）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点一条；常驻合计 ≤8000；三件占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、装配四步齐全。细则见 `references/stage-7-delivery.md`。交付门过了、用户也说「帮我导」，就接着跑 `scripts/st-import.py --pkg`（三件逐件导入 + 回读自检）与 `scripts/st-probe.js`（量 iframe 高度）；这三步是流水线，不额外收门。验收结论逐条落 `创作痕迹/验收.yaml`（六层证据、L5/L6 只能人签、`check_acceptance.py` 查；见 `references/acceptance.md`）。
+**11. `交付门`（仅阶段 `delivery`）** 交给脚本判，不靠肉眼：先跑 `python scripts/validate-st-package.py "导入包" --contract 制作文件/项目记录/contract.yaml`，退出码 0 才算过。查的事：三件齐全（`<世界名>（纯净）.json` / `正则.json` / `<世界名> 世界书.json`）；做了 `mvu` 阶段时卡内必须有 `tavern_helper.scripts` 且正则里必须有隐藏 `<UpdateVariable>` 的两条（X06 专查这个——缺了 MVU 静默不跑）；卡里不许有 `character_book`、`extensions.regex_scripts` 必须为空（否则又回到「改一条设定重导整卡」）；世界书是 native 对象形状、`uid` 与键对齐；`extensions.world` == 世界书文件名（不一致卡不会自动挂书）；`description` ≤8000 字且每个轴名都出现（数值系统不许掉在包外）；每个角色一条、每个地点一条；常驻合计 ≤8000；三件占位符 0 命中。脚本挡不住的再肉眼过两条：实体名都在 `naming` 里、装配四步齐全。细则见 `references/stage-7-delivery.md`。交付门过了、用户也说「帮我导」，就接着跑 `scripts/st-import.py --pkg`（三件逐件导入 + 回读自检）与 `scripts/st-probe.js`（量 iframe 高度）；这三步是流水线，不额外收门。验收结论逐条落 `制作文件/项目记录/验收.yaml`（见 `references/acceptance.md`）。
 
 **12. `阶段门`（贯穿全程）** 一次只做一个阶段：做完就停，汇总「本轮落下什么 / 哪些是替你定的 / 哪些还悬着 / 下一步」然后等回话。不许一条回复里连做两段，不许交付后弹「继续吗」。用户说「全流程」也只代表不用逐段问。
 
@@ -96,7 +96,7 @@
 - YAML 语法正确：列表用 `-`，键值用 `key: value`，缩进统一 2 空格
 - 无空白占位字段（要么填内容，要么标占位符）
 - 结构性键用英文，描述性内容跟随用户语言
-- 终稿不含台账块：`元信息` 与 `类型与基调` 只在 `创作痕迹/项目档案.yaml`（见 `references/stage-1-world-bible.md` 生成节）
+- 终稿不含台账块：`元信息` 与 `类型与基调` 只在 `制作文件/项目记录/项目档案.yaml`（见 `references/stage-1-world-bible.md` 生成节）
 
 ## 五、命名门四步
 
@@ -107,7 +107,7 @@
 
 ## 六、输出纪律
 
-- **写哪**：运行期所有产物写 `创作痕迹/产物/`（`world-bible.yaml` / `rolecard/` / `scene/` / `axis/` / `mvu/` 的 schema 与条目 / `ejs/` 的控制器与改写清单 / 界面 HTML 与正则草稿）；`最终产物/` 是交付目录，**选定路线之前必须空着**（校验器 C15 盯着）。`delivery` 才把它填上：原生路线复制 `产物/` 的树，酒馆路线只放三件套。
+- **写哪**：运行期所有产物写 `制作文件/产物/`（`world-bible.yaml` / `rolecard/` / `scene/` / `axis/` / `mvu/` 的 schema 与条目 / `ejs/` 的控制器与改写清单 / 界面 HTML 与正则草稿）；`导入包/` 是交付目录，**选定路线之前必须空着**（校验器 C15 盯着）。`delivery` 才把它填上：原生路线复制 `产物/` 的树，酒馆路线只放三件套。
 - 终稿只输出模板本体，不加前言、结语、"以下是……"。
 - 移除全部 `#` 注释行与被注释掉的可选结构。
 - 文本模态是一个 ```yaml 代码块；代码块之外只允许四样：设计说明（≤ 5 句）、补全清单、待确认清单、运行示例（仅数值系统）。

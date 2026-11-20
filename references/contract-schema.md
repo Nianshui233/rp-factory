@@ -1,6 +1,6 @@
 # 契约规范
 
-位置：`<工作区>/<世界名>/创作痕迹/contract.yaml`。骨架在 `templates/contract.yaml`。本文件说明它是什么、谁写、冲突怎么办。
+位置：`<工作区>/<世界名>/制作文件/项目记录/contract.yaml`。骨架在 `templates/contract.yaml`。本文件说明它是什么、谁写、冲突怎么办。
 
 ## 一、定位
 
@@ -17,7 +17,7 @@
 |---|---|
 | `project` | 名字（`name` = 项目文件夹名）、**工作区绝对路径**（`workspace`）、模态（`text` / `engineering`）、RP 形式、语言、**本次要跑的阶段**（`stages_requested`，按执行顺序写名字）、**是否联网检索**（`web_research` / `source_ip`）、**SillyTavern 探测结果**（`sillytavern`） |
 | `stages` | 九阶段状态，**名字键**：`world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery`；值 `none` / `partial` / `done` / `skipped`（未勾选写 `skipped`） |
-| `delivery` | `route`（`native` / `st` / `both`）、`st_name`（角色卡名，默 = `project.name`；世界书名另行取 `<st_name> 世界书`）、`files[]`（相对 `最终产物/`） |
+| `delivery` | `route`（`native` / `st` / `both`）、`st_name`（角色卡名，默 = `project.name`；世界书名另行取 `<st_name> 世界书`）、`files[]`（相对 `导入包/`） |
 | `content_boundaries` | `nsfw`（开局第三问）、`rating`、`hard_no`、`soft_no` |
 | `player_agency` | 演出许可：`mode`（`player-controlled` / `limited` / `delegated`）、`allowed`、`excluded`、`scope`、`duration`、`source`。缺省 = `player-controlled` |
 | `naming` | `world`、`factions[]`、`places[]`、`systems[]`、`axes[]`、`schema_axes[]`（`mvu` 阶段实际投影进 zod 的轴名，供交付校验查漏）、`ui_tags`（表现层标签名） |
@@ -41,7 +41,7 @@
 
 `artifacts[].type` 只有十四类：`project-profile` / `world-bible` / `rolecard` / `scene-sheet` / `axis-system` / `mvu-schema` / `mvu-initvar` / `mvu-entries` / `mvu-regex` / `ejs-controller` / `opening-ui` / `statusbar-ui` / `st-card` / `st-regex` / `st-worldbook`。不许自造（实操里出现过 `role-cards`、`secret-layer`——前者该写 `rolecard`，后者不是产物）。
 
-`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`创作痕迹/产物/world-bible.yaml`），不用绝对路径、不许含 `..`、同一路径不许出现两次。**运行期产物都在 `创作痕迹/产物/`**；`最终产物/` 交付前必须为空（C15）。有多张同类卡时 `path` 指向目录（`创作痕迹/产物/rolecard/`），`type` 仍是 `rolecard` / `scene-sheet`——文件数不改变产物类别，别为卡多另起类型。表现层一份产物可落两三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分（界面 HTML、正则 JSON、可选 `frontend-prompt.yaml`——两阶段共用文件名，后写的追加字段不覆盖）。酒馆三件套同理：三个文件都写 `delivery`，`type` 分别为 `st-card` / `st-regex` / `st-worldbook`，`path` 在 `最终产物/` 根下；`正则.json` 是装配导出件，HTML 与正则草稿仍记在 `创作痕迹/产物/`。
+`artifacts` 与 `stages` 各阶段都写自己的那一项，不算冲突。`artifacts[].path` 用**相对项目根**的写法（`制作文件/产物/world-bible.yaml`），不用绝对路径、不许含 `..`、同一路径不许出现两次。**运行期产物都在 `制作文件/产物/`**；`导入包/` 交付前必须为空（C15）。有多张同类卡时 `path` 指向目录（`制作文件/产物/rolecard/`），`type` 仍是 `rolecard` / `scene-sheet`——文件数不改变产物类别，别为卡多另起类型。表现层一份产物可落两三个文件，`type` 都写 `opening-ui` 或 `statusbar-ui`，靠 `path` 区分（界面 HTML、正则 JSON、可选 `frontend-prompt.yaml`——两阶段共用文件名，后写的追加字段不覆盖）。酒馆三件套同理：三个文件都写 `delivery`，`type` 分别为 `st-card` / `st-regex` / `st-worldbook`，`path` 在 `导入包/` 根下；`正则.json` 是装配导出件，HTML 与正则草稿仍记在 `制作文件/产物/`。
 
 `project.workspace` 与 `project.name` 必须同时更新：前者是用户确认的**工作区**（父目录）绝对路径，后者是子文件夹名（= 世界名，未定时为 `未命名项目`）。项目实际路径 = `<workspace>/<name>/`。只改一个 = 指向一个不存在的目录。
 
@@ -71,17 +71,17 @@
 |---|---|---|
 | `project.stages_requested` | 开局多选 | 追加时把该阶段 `skipped` 改 `none` 并记 `decisions`；已 `done` 的不受影响 |
 | `stages.<名字>: skipped` | 没勾的阶段 | 只是「本次不跑」，不等于「不需要」；下游缺输入照旧走补采访问 |
-| `project.web_research`（+ `source_ip`） | 开局第四问 | 中途开关都记 `decisions`；开启即建 `创作痕迹/检索来源.md` 并按 `references/web-research.md` 检索，关闭就停、不补旧账 |
+| `project.web_research`（+ `source_ip`） | 开局第四问 | 中途开关都记 `decisions`；开启即建 `制作文件/项目记录/检索来源.md` 并按 `references/web-research.md` 检索，关闭就停、不补旧账 |
 | `content_boundaries.nsfw` + `rating` | 开局第三问 | 开关一次就重锁 `rating` 并记 `decisions`；关掉时必须清掉已交付产物里的越界内容，只改开关不算数 |
 
 ## 八、写完就跑校验器
 
 ```
 python scripts/check-stage.py <阶段名> <项目根>      # 阶段收尾一检，内部会跑契约校验
-python scripts/validate-contract.py <创作痕迹/contract.yaml>   # 只看契约时单独跑
+python scripts/validate-contract.py <制作文件/项目记录/contract.yaml>   # 只看契约时单独跑
 ```
 
-它查 C01–C16：`project` 必填与 `stages_requested` 枚举、九个阶段名各自的取值在 `none/partial/done/skipped` 内、`artifact.type` 在十四类枚举内、`path` 相对且真实存在、**`done` 的阶段有对应产物**（`mvu` 至少要有 `mvu-schema`/`mvu-initvar`/`mvu-entries` 之一，`ejs` 要有 `ejs-controller`）、`delivery.route` 与 `files` 自洽、`naming` 收口（阶段 4 完成后 `axes` 不许再带 `provisional`）、`hard_settings.source` 以 `用户确认`/`推导` 开头、`最终产物/` 交付前须空（C15）、`player_agency` 三档自洽（C16）；C13/C14 见上表。
+它查 C01–C16：`project` 必填与 `stages_requested` 枚举、九个阶段名各自的取值在 `none/partial/done/skipped` 内、`artifact.type` 在十四类枚举内、`path` 相对且真实存在、**`done` 的阶段有对应产物**（`mvu` 至少要有 `mvu-schema`/`mvu-initvar`/`mvu-entries` 之一，`ejs` 要有 `ejs-controller`）、`delivery.route` 与 `files` 自洽、`naming` 收口（阶段 4 完成后 `axes` 不许再带 `provisional`）、`hard_settings.source` 以 `用户确认`/`推导` 开头、`导入包/` 交付前须空（C15）、`player_agency` 三档自洽（C16）；C13/C14 见上表。
 
 `partial` 不会被判失败，但必须出现在 `pending[]` 里（哪一项、为什么、缺什么才到 `done`）——一次实操里 `stages.1` 停在 `partial` 再没人回头，后面三个阶段全建在没收口的世界观上。
 

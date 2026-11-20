@@ -5,7 +5,7 @@
 规则抄的是被反复踩的坑：自动化脚本跑绿了就宣布「在酒馆里验证通过」，而实际上
 酒馆没开、界面没渲染、用户没看。所以账本把每个结论按来源分层，并且限制谁能签哪一层。
 
-账本位置：`创作痕迹/验收.yaml`（格式见 references/acceptance.md）
+账本位置：`制作文件/项目记录/验收.yaml`（格式见 references/acceptance.md）
 
     entries:
       - {layer: L2, item: 契约校验, evidence: "validate-contract.py → exit 0", verdict: pass, by: script}
@@ -85,11 +85,11 @@ def check_project(root: Path) -> list[dict]:
     def add(severity: str, code: str, message: str) -> None:
         out.append({"severity": severity, "code": code, "message": message})
 
-    path = root / "创作痕迹" / "验收.yaml"
+    path = root / "制作文件" / "项目记录" / "验收.yaml"
     if not path.is_file():
         path = root / "验收.yaml"
     if not path.is_file():
-        add("error", "A00", "找不到 `创作痕迹/验收.yaml`：验收结论必须逐条落账，"
+        add("error", "A00", "找不到 `制作文件/项目记录/验收.yaml`：验收结论必须逐条落账，"
                            f"没有账本就是没有验收（格式见 references/acceptance.md）")
         return out
 

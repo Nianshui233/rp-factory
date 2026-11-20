@@ -1,5 +1,5 @@
 # 契约骨架 · contract.yaml
-# 放到 <工作区>/<世界名>/创作痕迹/contract.yaml，按阶段填写。键名与 references/contract-schema.md 逐字一致，不要改。
+# 放到 <工作区>/<世界名>/制作文件/项目记录/contract.yaml，按阶段填写。键名与 references/contract-schema.md 逐字一致，不要改。
 # 契约是索引与命名权威，不是产物正文。世界观正文、心理层、计算公式一律不进这里。
 
 project:
@@ -30,9 +30,9 @@ stages:                    # 每阶段状态，名字键，不是标量。顺序
   delivery: none           # 交付/打包：只在最后一次进入；选原生路线写 skipped
 
 delivery:                  # 收尾问一次：交付到哪（不选就按 native）
-  route: "native"          # native（把 创作痕迹/产物/ 复制进 最终产物/）| st（三件套）| both
+  route: "native"          # native（把 制作文件/产物/ 复制进 导入包/）| st（三件套）| both
   st_name: ""              # 角色卡名，默认 = project.name；世界书名 = "<st_name> 世界书"（= 文件名）
-  files: []                # 相对 最终产物/ 的文件名列表：<st_name>（纯净）.json / 正则.json / <st_name> 世界书.json
+  files: []                # 相对 导入包/ 的文件名列表：<st_name>（纯净）.json / 正则.json / <st_name> 世界书.json
 
 content_boundaries:        # 边界门：任何产物落笔前必须锁定（开局问完即可锁）
   nsfw: false              # 开局第三问；false 时 rating 写一般向，hard_no 加“任何性描写”
@@ -76,6 +76,6 @@ artifacts: []              # 产物索引，正文不在这里
   # - type: world-bible    # project-profile | world-bible | rolecard | scene-sheet | axis-system
   #                        # | mvu-schema | mvu-initvar | mvu-entries | mvu-regex | ejs-controller
   #                        # | opening-ui | statusbar-ui | st-card | st-regex | st-worldbook
-  #   path: ""             # 相对项目根，运行期一律在 创作痕迹/产物/ 下；文本模态留空（多文件产物写目录，如 创作痕迹/产物/rolecard/）
+  #   path: ""             # 相对项目根，运行期一律在 制作文件/产物/ 下；文本模态留空（多文件产物写目录，如 制作文件/产物/rolecard/）
   #   inline_ref: ""       # 文本模态写产物在会话里的标识
   #   version: 1

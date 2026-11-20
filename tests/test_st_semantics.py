@@ -79,16 +79,16 @@ class TestStSemantics(unittest.TestCase):
         mod = _load()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "最终产物").mkdir()
-            (root / "最终产物" / "测试世界（纯净）.json").write_text(
+            (root / "导入包").mkdir()
+            (root / "导入包" / "测试世界（纯净）.json").write_text(
                 json.dumps(card or _card(), ensure_ascii=False), encoding="utf-8")
-            (root / "最终产物" / "正则.json").write_text(
+            (root / "导入包" / "正则.json").write_text(
                 json.dumps(regex if regex is not None else [_script()], ensure_ascii=False), encoding="utf-8")
-            (root / "最终产物" / "测试世界 世界书.json").write_text(
+            (root / "导入包" / "测试世界 世界书.json").write_text(
                 json.dumps(book or _book(_entry()), ensure_ascii=False), encoding="utf-8")
             if contract is not None:
-                (root / "创作痕迹").mkdir()
-                (root / "创作痕迹" / "contract.yaml").write_text(contract, encoding="utf-8")
+                (root / "制作文件" / "项目记录").mkdir(parents=True)
+                (root / "制作文件" / "项目记录" / "contract.yaml").write_text(contract, encoding="utf-8")
             return mod.check_project(root), root
 
     def _codes(self, findings, severity="error"):

@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.01-blue?style=flat" alt="version" />
-  <img src="https://img.shields.io/badge/tests-153%20passing-brightgreen?style=flat" alt="tests" />
+  <img src="https://img.shields.io/badge/version-1.1.00-blue?style=flat" alt="version" />
+  <img src="https://img.shields.io/badge/tests-161%20passing-brightgreen?style=flat" alt="tests" />
   <img src="https://img.shields.io/badge/gates-14-8A2BE2?style=flat" alt="gates" />
   <img src="https://img.shields.io/badge/stages-9-ff69b4?style=flat" alt="stages" />
   <img src="https://img.shields.io/badge/SillyTavern-1.19.0-4EAA25?style=flat" alt="SillyTavern" />
@@ -64,8 +64,8 @@ MIT 精神的自用工具，无担保。**它不能替你保证「好玩」**—
 | 参考页 | 22 份 | 阶段做法、契约规范、ST 语义事实、酒馆助手接口、验收、试演、去 AI 味 |
 | 骨架 | 21 份 | 契约 + 四类设定 + MVU 五件 + 两个界面 + 三件套，填完即交付 |
 | 校验器 | 9 个 + 1 个总检 | 结构、语义、前端、变量、EJS、验收账本；`check-stage.py` 按阶段自动挑 |
-| 断言 | 责任分散但**可数** | `C01–C16` / `R00–R06` / `W00–W16` / `X01–X07` / `S-01–S-29+S-M1–M3` / `TH-01–TH-10` / `F01–F14` / `P01–P09` / `A00–A06` |
-| 单测 | 153 个 | `python -m unittest discover -s tests -t .` |
+| 断言 | 责任分散但**可数** | `C01–C17` / `R00–R06` / `W00–W16` / `X01–X07` / `S-01–S-29+S-M1–M3` / `TH-01–TH-10` / `F01–F14` / `P01–P09` / `A00–A06` |
+| 单测 | 161 个 | `python -m unittest discover -s tests -t .` |
 | 源码锚点 | 44 条 | 34 条 ST 1.19.0 + 10 条酒馆助手 4.12.1，漂了会红 |
 
 ## 开始用
@@ -92,7 +92,7 @@ MIT 精神的自用工具，无担保。**它不能替你保证「好玩」**—
 ```text
 /skill:rp-factory "盐湖上的守夜人"
   ↓ 开局四问（工作区 / 阶段 / NSFW / 联网），一次问完
-  ↓ 建 创作痕迹/ 与契约，静默探测本机酒馆
+  ↓ 建 制作文件/ 与契约，静默探测本机酒馆
 world      → 世界观四要素、判定框架、三条硬设定
 cast       → 角色卡：背景受控、事实分稳定/临时、演出许可三档
 scenes     → 场景卡：强/弱结构，十块全填或按需
@@ -120,7 +120,7 @@ delivery   → 白潮（纯净）.json / 正则.json / 白潮 世界书.json
 | `ejs` | `阶段控制器.ejs` + 分档条目 | 按数值换提示词；有「什么时候不该做」的判据 |
 | `opening` | `*-ui.html` `regex-*.json` `frontend-prompt.yaml` | 登场面板 / 建卡向导两形态，靠酒馆助手渲染 |
 | `statusbar` | 同上 | 有 MVU 走变量，没有走标签 |
-| `delivery` | 三件套 | 纯净卡（无内嵌书）+ 正则数组 + native 世界书，放 `最终产物/` 根下 |
+| `delivery` | 三件套 | 纯净卡（无内嵌书）+ 正则数组 + native 世界书，放 `导入包/` 根下 |
 </details>
 
 ## 十四道硬门
@@ -150,7 +150,7 @@ delivery   → 白潮（纯净）.json / 正则.json / 白潮 世界书.json
 
 | 脚本 | 规则号 | 只查什么 |
 | --- | --- | --- |
-| `scripts/validate-contract.py` | `C00–C16` | 契约自洽：阶段状态、产物索引、交付路线、命名表、演出许可三档 |
+| `scripts/validate-contract.py` | `C00–C17` | 契约自洽：阶段状态、产物索引、交付路线、命名表、演出许可三档 |
 | `scripts/validate-rolecard.py` | 1–12 | 角色卡骨架、占位符、事实分级（稳定 / 临时）、越界标记 |
 | `scripts/validate-st-package.py` | `C` `R` `W` `X` | 三件套结构：卡字段、正则数组、世界书条目、跨文件绑定 |
 | `scripts/validate_st_semantics.py` | `S-01–S-29` | **只抓静默失效**：两套正则方言、`$<name>`、书位置枚举、卡内 scoped 正则未授权、书名绑定 |
@@ -179,19 +179,18 @@ SillyTavern 有一类错误不抛异常、不写日志、界面上也不报错�
 
 ```text
 <工作区>/<世界名>/
-  创作痕迹/                 # 过程产物，不进终稿
-    contract.yaml          # 命名权威 + 索引 + 阶段状态 + decisions
-    项目档案.yaml           # 元信息与类型基调
-    创作记录.md             # 访谈、决策、卡点
-    检索来源.md             # 仅联网时
-    验收.yaml              # 六层证据账本，L5/L6 只能人签
-    试演记录.yaml           # 可选：≤5 轮试演
-    产物/                   # 四类设定 + MVU/EJS + 两个界面的 HTML
-  最终产物/                 # 交付目录，交付前必须空着
+  制作文件/                # 原稿、源码、账本和检查材料全在这
+    项目记录/              # contract.yaml（命名权威+索引+阶段状态+decisions）
+                           # 项目档案.yaml / 创作记录.md / 检索来源.md
+                           # 验收.yaml（六层证据，L5/L6 只能人签）/ 试演记录.yaml
+    产物/                  # 四类设定 + MVU/EJS + 两个界面的 HTML
+  导入包/                  # 交付成品，平铺，交付前必须空着
     白潮（纯净）.json
     正则.json
     白潮 世界书.json
 ```
+
+根下只有这两个文件夹，不散落 README、清单、脚本或隐藏账本——`validate-contract.py` 的 **C17** 会查旧布局（`创作痕迹/`、`最终产物/`）与根目录散落文件。改名或迁移过的旧项目要先按新布局搬完再跑，不保留两套。
 
 `examples/dry-run-盐湖守夜人/` 是九个阶段真跑一遍的完整产物，可以直接对比「规则写出来的东西长什么样」。
 
@@ -201,9 +200,9 @@ skill 最容易悄悄变胖：每加一句话，每个阶段都多读一遍。
 
 | 位置 | 实测 tok | 上限 |
 | --- | ---: | ---: |
-| 常驻（`SKILL.md` + `references/pipeline.md`） | 5,681 + 4,681 | 6,600 / 4,700 |
-| 最挤的阶段（`delivery`，四个文件叠加） | 25,890 | 26,000 |
-| 最轻的阶段（`ejs`） | 15,632 | 基线 15,637 |
+| 常驻（`SKILL.md` + `references/pipeline.md`） | 5,618 + 4,680 | 6,600 / 4,700 |
+| 最挤的阶段（`delivery`，四个文件叠加） | 25,834 | 26,000 |
+| 最轻的阶段（`ejs`） | 15,583 | 基线 15,637 |
 
 `scripts/measure_load.py` 把这件事变成断言：九阶段的 worst case 各自与基线比对，超过即判「变重」。加内容时的顺序是——先在**同一个文件**里找等量冗余回收（`delivery` 是四文件叠加，任何两句以上新增都要先做这一步），抵不平才动基线，并且要在 docstring 里留一条 Ruling 说明为什么。
 
@@ -226,11 +225,11 @@ skill 最容易悄悄变胖：每加一句话，每个阶段都多读一遍。
 | L5 | 真机酒馆 | 只能人 |
 | L6 | 人眼手感 | 只能人 |
 
-一条总则：**自动化不得自签 `driver-accepted`**。脚本跑绿了只能说明结构对，说明不了「在酒馆里能玩」。账本 `创作痕迹/验收.yaml` 里 L5/L6 写 `skipped` 是诚实的，写 `passed` 而没有人的操作记录是伪造。
+一条总则：**自动化不得自签 `driver-accepted`**。脚本跑绿了只能说明结构对，说明不了「在酒馆里能玩」。账本 `制作文件/项目记录/验收.yaml` 里 L5/L6 写 `skipped` 是诚实的，写 `passed` 而没有人的操作记录是伪造。
 
 ## 版本与变更
 
-当前 **1.0.01**，唯一真相是 `SKILL.md` 的 `metadata.version`；`CHANGELOG.md` 首条必须与之对应，`scripts/run_checks.sh` 一启动就打印版本号。
+当前 **1.1.00**，唯一真相是 `SKILL.md` 的 `metadata.version`；`CHANGELOG.md` 首条必须与之对应，`scripts/run_checks.sh` 一启动就打印版本号。
 
 `package.json` 里**故意不写版本号**：npm semver 不接受前导零（`1.0.01`），写进去会让 `npm install` 直接报 Invalid version。那份文件只声明 `puppeteer-core`。
 

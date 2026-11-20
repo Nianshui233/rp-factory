@@ -3,6 +3,25 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.1.00 — 2026-11-21
+
+**破坏性变更：作品目录改成两层。** 旧项目要搬一次，脚本会拦着不让你两套并存。
+
+| 旧 | 新 |
+|---|---|
+| `创作痕迹/` | `制作文件/`（原稿、源码、检查材料） |
+| `创作痕迹/{contract, 项目档案, 创作记录, 检索来源, 验收, 试演记录}` | `制作文件/项目记录/` 下同名文件 |
+| `创作痕迹/产物/` | `制作文件/产物/`（不变） |
+| `最终产物/` | `导入包/`（交付成品，平铺） |
+
+- 作品根下只许 `制作文件/` 与 `导入包/`（新门 **C17**）：发现 `创作痕迹/` 或 `最终产物/` 直接失败并给迁移提示，根目录散落文件记警告。
+- `validate-contract.py` 接受项目根、`制作文件/`、`制作文件/项目记录/`、契约文件四种入口。
+- `scripts/run_checks.sh`、`check-stage.py`、`check_acceptance.py`、`validate-st-package.py`、
+  `validate_st_semantics.py`、`check_prose.py`、`st-import.py`、`st-probe.js` 全部改指新路径。
+- 示例包重排：`examples/dry-run-盐湖守夜人/{制作文件/项目记录, 制作文件/产物, 导入包}`，原 `README.md` 移入 `制作文件/试跑记录.md`。
+- 新增 `tests/test_layout.py`（旧布局阻断、根目录清洁、账本归位、导入包平铺）。
+- 加载量在改名后涨了 190 tok；靠 `SKILL.md` 与 `references/pipeline.md` 就地回收冗余抵平（**基线未动**）。
+
 ## 1.0.01 — 2026-11-21
 
 首个带版本号的版本。此前四轮工作合并入 `main`。

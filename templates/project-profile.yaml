@@ -1,5 +1,5 @@
-# 【项目档案 / Project Profile】骨架 —— 创作痕迹/项目档案.yaml
-# 定位：项目级的元信息与基调，供作者与 AI 自查用，**不进最终产物**。
+# 【项目档案 / Project Profile】骨架 —— 制作文件/项目记录/项目档案.yaml
+# 定位：项目级的元信息与基调，供作者与 AI 自查用，**不进导入包**。
 #      四份产物（world-bible / rolecard / scene-sheet / axis-system）都不含这两块。
 # 联动：基调红线 与 本文档对AI的核心指令 必须同时写一份进 contract.hard_settings（source: 用户确认），
 #      否则下游阶段读不到、约束失去强制力。

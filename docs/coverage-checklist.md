@@ -118,7 +118,7 @@
 - [ ] 控制器只读 `stat_data`，不自己算数值；`getvar` 的路径带 `stat_data.` 前缀
 - [ ] 控制器用 `typeof` 防重声明 + `var`；被控条目全部 `disable: true`
 - [ ] 分支边界单调、不留空档；末档是 `else` 时豁免两端覆盖检查
-- [ ] 改写了前序条目时，`创作痕迹/产物/改写前/` 有原件、`改写清单.yaml` 记了改哪条改什么
+- [ ] 改写了前序条目时，`制作文件/产物/改写前/` 有原件、`改写清单.yaml` 记了改哪条改什么
 - [ ] `python scripts/validate-mvu.py` 与 `validate-ejs.py` 退出码都是 0
 
 ## 表现层（阶段 `opening` / `statusbar`）
@@ -196,6 +196,7 @@
 | G06 | 流程 | 每阶段收尾跑 `validate-contract.py`（契约门） | SKILL.md · references/pipeline.md · scripts/validate-contract.py | [x] |
 | G07 | 契约 | `done` 的阶段必须有对应产物；`partial` 必须挂 `pending[]` | references/contract-schema.md · scripts/validate-contract.py | [x] |
 | G08 | 契约 | `artifact.type` 九类白名单，不许自造（`role-cards` / `secret-layer`） | references/contract-schema.md | [x] |
+| G11 | 布局 | 作品根下只有 `制作文件/` 与 `导入包/`；旧布局（`创作痕迹/`、`最终产物/`）阻断，根目录散落文件记警告 | SKILL.md · references/pipeline.md · scripts/validate-contract.py（C17） | [x] |
 | G09 | 世界观 | 沙盒/喜剧题材用「多源日常」+ `世界怎么运转`，不硬造总引擎 | templates/world-bible.yaml · references/stage-1-world-bible.md | [x] |
 | G10 | 数值 | 多目标轴落到 `targets` 模板字段 | templates/axis-system.yaml · references/stage-4-axis-system.md | [x] |
 | U22 | 表现层 | 内联脚本里不写 HTML 实体（写 `&amp;`），否则整段 JS 语法错误、界面 2px | references/frontend-conventions.md · scripts/validate-frontend.py | [x] |
@@ -217,6 +218,6 @@
 - [ ] `description` ≤8000 字，含每个轴名与住户/地点索引
 - [ ] `first_mes` 的标签能被 `正则.json` 里某条 `findRegex` 接住
 - [ ] 正则数组里每条 `findRegex` 可编译；用 `$1` 的必须有捕获组
-- [ ] `最终产物/` 在交付前为空，交付后按路线只有该路线的文件
+- [ ] `导入包/` 在交付前为空，交付后按路线只有该路线的文件
 - [ ] 装配四步写进 `creator_notes`：书 → 卡 → 正则 → 渲染开关（做了 `mvu` 时补第五步"启用脚本"）
 - [ ] 做了 `mvu` 时：卡内有 `tavern_helper.scripts`、正则里有两隐藏更新块、`X06` 通过

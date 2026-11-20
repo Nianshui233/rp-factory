@@ -1,11 +1,11 @@
-# 验收账本：创作痕迹/验收.yaml
+# 验收账本：制作文件/项目记录/验收.yaml
 # 六层证据见 references/acceptance.md。L5/L6 只能 by: human，脚本自签会被 check_acceptance.py 判失败。
 # L4 必须写 dimension（11 维：import / fresh_chat / console / dom / dependencies / style /
 #   interaction / data / lifecycle / responsive / security），前四维可由 st-probe.js --json 产出。
 entries:
   # - layer: L2
   #   item: 契约校验
-  #   evidence: "python scripts/validate-contract.py 创作痕迹/contract.yaml → exit 0"
+  #   evidence: "python scripts/validate-contract.py 制作文件/项目记录/contract.yaml → exit 0"
   #   verdict: pass
   #   by: script
   # - layer: L1

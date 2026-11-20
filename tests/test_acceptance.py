@@ -29,7 +29,7 @@ def _entry(**over):
 
 
 def _write(root: Path, entries, raw=None):
-    d = root / "创作痕迹"
+    d = root / "制作文件" / "项目记录"
     d.mkdir(parents=True, exist_ok=True)
     if raw is not None:
         (d / "验收.yaml").write_text(raw, encoding="utf-8")

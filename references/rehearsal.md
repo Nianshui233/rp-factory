@@ -112,7 +112,7 @@
 
 ## 日志
 
-每轮一条，落在 `创作痕迹/试演日志.yaml`（模板：`templates/rehearsal-log.yaml`）：
+每轮一条，落在 `制作文件/试演日志.yaml`（模板：`templates/rehearsal-log.yaml`）：
 
 ```yaml
 rounds:
@@ -121,13 +121,13 @@ rounds:
     evidence: 实际输出        # 既有设定 / 实际输出 / 作者观察 / 诊断假设 四选一
     symptom: 第 2 轮替玩家点头
     root_cause: post_history_instructions 里没有禁止代演的约束
-    change: {file: 最终产物/测试世界（纯净）.json, field: data.post_history_instructions}
+    change: {file: 导入包/测试世界（纯净）.json, field: data.post_history_instructions}
     re_observed: 第 3 轮仍是 1 处，但只发生在收尾句
   - round: 2
     judged: R1
     symptom: 收尾句仍然代演
     root_cause: 例对话里有两轮是「玩家不说话」的格式
-    change: {file: 最终产物/测试世界（纯净）.json, field: data.mes_example}
+    change: {file: 导入包/测试世界（纯净）.json, field: data.mes_example}
     re_observed: 通过
 ```
 
