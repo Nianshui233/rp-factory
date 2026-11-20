@@ -1,5 +1,9 @@
 # 吸收 TavernWeave 经验（不照抄）实现计划
 
+> **执行记录（已完成，2026-11-21）**：9 个任务全部落地，方式 = Native（本会话自己实现），逐任务 commit `094d515 → 12664b5`。
+> 三条 Ruling：① 门统一 **14 道**、编号 0–13，`references/pipeline.md` 为唯一权威、`SKILL.md` 只留索引表；② 加载预算改为「不高于本次实测基线 + 绝对上限 26,000」，另设 `SKILL.md` ≤6,600、`pipeline.md` ≤4,700；③ `delivery` 基线 +414 tok（用户要求的世界书双入口，非漂移），绝对上限不变。
+> 验证：`bash scripts/run_checks.sh` 全绿（85 tests + 加载预算）；`python scripts/check_st_facts.py` 26 个锚点全命中（ST 1.19.0 `06bde939f`）。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 把 TavernWeave 的几个**方法**（证据分级、决定四态、文风门、语义事实表、结构测试）改写成 rp-factory 自己的形状，使交付的 RP 包既「好玩」又「SillyTavern 语义正确」，同时**不增加常驻加载量**。
