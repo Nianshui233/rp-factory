@@ -47,6 +47,16 @@ ST 读的是 `findRegex` / `replaceString` / `placement` / `markdownOnly` / `pro
 **[S-27] `findRegex` 为空串 = 这条静默跳过**
 `if (!regexScript || !!(regexScript.disabled) || !regexScript?.findRegex || !rawString) return rawString;`（`engine.js:393`）。空串与缺失都命中这个短路——**不警告、不报错、什么都不做**。脚手架里留着空模板忘了填，就是这样丢一条正则的。
 
+**[S-28] 卡内正则默认不生效，而且「取消一次」就永久静默**
+卡里 `extensions.regex_scripts` 的脚本是 **scoped scripts**：只有 `extension_settings.character_allowed_regex` 里含该头像才参与匹配（`public/scripts/extensions/regex/engine.js:166` `isScopedScriptsAllowed`）。
+授权只有一个入口：打开聊天时 `checkCharEmbeddedRegexScripts()` 跑一次（`public/scripts/extensions/regex/index.js:1606`），没授权就弹确认框——而 `accountStorage.setItem('AlertRegex_<头像>', 'true')` 写在**弹窗之前**（`:1617`），所以用户点一次「取消」，此后 `:1614-1616` 的双重条件永远不成立，**再也不提示**，界面永久不出现且没有任何报错。
+真机实测（1.19.0，2026-11-21，`最终产物/st/爱情公寓.json`）：未授权时消息正文就是 6 个字符的字面量 `<建卡向导>`，`#chat iframe = 0`，控制台干净；点「允许」后同一条消息变成 `TH-render` + 一个 674×664 的 iframe（`srcdoc` 19,504 字符），向导立刻能点。允许之后还要 `reloadCurrentChat()`（`:1623`）才重渲染，切走再切回等价。
+**所以卡里带正则 = 把「界面出不出来」押在用户点没点对那个按钮上。**本流水线因此把正则放 `正则.json`（全局脚本，不受这条约束），卡里 `extensions.regex_scripts` 必须是 `[]`。
+
+**[S-29] 内嵌书落盘时用 `character_book.name`，且必须与 `extensions.world` 相等**
+真机实测（1.19.0，2026-11-21）：导入 `character_book.name = "爱情公寓 世界书"`、`extensions.world = "爱情公寓 世界书"` 的卡，ST 自动生成 `worlds/爱情公寓 世界书.json`（33 条 / 559,165 B），不必手工再导一次书。缺省名字才是 `<角色名>'s Lorebook`（`world-info.js:5744`）。
+反过来：`character_book.name ≠ extensions.world` 时，书会落成另一个名字，而绑定只认 `extensions.world`（`:1128`），结果是**两本都对不上、一条都不激活**。`scripts/validate_st_semantics.py` 按 S-29 拦这一条。
+
 ---
 
 ## 二、世界书（`世界书.json` 里的一条 = ST 的一个 world info entry）

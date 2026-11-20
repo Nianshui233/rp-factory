@@ -17,6 +17,8 @@
     S-25 卡端正则写了助手端 snake_case 键                → 该键不被读取，等于没配
     S-26 缺 replaceString 或为空值                       → 运行时抛 TypeError（空串是合法的）
     S-27 findRegex 为空串                                → 这条什么都不做（警告）
+    S-28 卡里内嵌 extensions.regex_scripts               → scoped 脚本默认不跑，要用户点授权（警告）
+    S-29 character_book.name ≠ extensions.world          → 书落成另一个名字，一条都不激活
 
 用法：
     python scripts/validate_st_semantics.py <最终产物目录>
@@ -336,6 +338,44 @@ def check_tavern_helper(text: str, file: str, rep: Report, where: str,
 
 # ------------------------------------------------------------------ 项目遍历
 
+def check_card_scoped_regex(data: dict, file: str, rep: Report) -> None:
+    """S-28：卡内 extensions.regex_scripts 是 scoped 脚本，默认不生效。"""
+    extensions = data.get("extensions")
+    if not isinstance(extensions, dict):
+        return
+    scripts = extensions.get("regex_scripts")
+    if not scripts:
+        return
+    count = len(scripts) if isinstance(scripts, list) else 1
+    rep.warn("S-28", file,
+             f"卡里内嵌了 {count} 条正则：它们是 scoped 脚本，用户不点「允许角色专属正则」就一条都不跑，"
+             "而 AlertRegex_<头像> 只在第一次弹（点过取消就永久不弹、也不报错）。"
+             "界面出不来时先查这里；正统做法是把正则放 正则.json，卡里写 []。")
+
+
+def check_book_binding(data: dict, file: str, rep: Report) -> None:
+    """S-29：内嵌书落盘用 character_book.name，必须与 extensions.world 相等。"""
+    book = data.get("character_book")
+    if not isinstance(book, dict):
+        return
+    extensions = data.get("extensions") if isinstance(data.get("extensions"), dict) else {}
+    world = extensions.get("world")
+    book_name = book.get("name")
+    if not world:
+        rep.warn("S-29", file,
+                 "卡里有 character_book 但 extensions.world 为空：书导进来了也不会挂到卡上。")
+        return
+    if not isinstance(book_name, str) or not book_name.strip():
+        rep.warn("S-29", file,
+                 f"character_book 没写 name：ST 会落成「<角色名>'s Lorebook」，"
+                 f"与 extensions.world = {world!r} 对不上，一条都不激活。")
+        return
+    if book_name.strip() != str(world).strip():
+        rep.fail("S-29", file,
+                 f"character_book.name = {book_name!r} ≠ extensions.world = {world!r}："
+                 "书会落成另一个名字，而绑定只认 extensions.world，结果一条都不激活。")
+
+
 def _read_json(path: Path) -> object | None:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -400,6 +440,8 @@ def check_project(root: Path, contract: Path | None = None) -> list[dict]:
                 if isinstance(alt, str):
                     check_macros(alt, name, rep, "alternate_greetings")
                     check_tavern_helper(alt, name, rep, "alternate_greetings", helper)
+            check_card_scoped_regex(data, name, rep)
+            check_book_binding(data, name, rep)
 
     if "regex" in files:
         payload = _read_json(files["regex"])

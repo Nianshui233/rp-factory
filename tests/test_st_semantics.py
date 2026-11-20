@@ -156,6 +156,31 @@ class TestStSemantics(unittest.TestCase):
         findings, _ = self._run(regex=[_script(findRegex="")])
         self.assertIn("S-27", self._codes(findings, "warning"))
 
+    # ---- S-28 卡内 scoped 正则 ----------------------------------------
+    def test_card_embedded_regex_is_warning(self):
+        """卡里带正则 = 要用户点「允许角色专属正则」，而那个弹窗只弹一次。"""
+        card = _card()
+        card["data"]["extensions"]["regex_scripts"] = [_script()]
+        findings, _ = self._run(card=card)
+        self.assertIn("S-28", self._codes(findings, "warning"))
+
+    def test_clean_card_has_no_scoped_regex_warning(self):
+        findings, _ = self._run()
+        self.assertNotIn("S-28", self._codes(findings, "warning"))
+
+    # ---- S-29 内嵌书名与绑定名 ---------------------------------------
+    def test_book_name_mismatch_is_error(self):
+        card = _card()
+        card["data"]["character_book"] = {"name": "别的书", "entries": []}
+        findings, _ = self._run(card=card)
+        self.assertIn("S-29", self._codes(findings))
+
+    def test_book_name_matches_world_is_fine(self):
+        card = _card()
+        card["data"]["character_book"] = {"name": "测试世界 世界书", "entries": []}
+        findings, _ = self._run(card=card)
+        self.assertNotIn("S-29", self._codes(findings) + self._codes(findings, "warning"))
+
     # ---- S-02 开关组合 ------------------------------------------------
     def test_markdown_only_and_prompt_only_both_true_is_error(self):
         findings, _ = self._run(regex=[_script(markdownOnly=True, promptOnly=True)])

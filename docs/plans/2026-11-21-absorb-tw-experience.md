@@ -708,3 +708,36 @@ git commit -m "test: 结构断言 + replay fixture + 一键全检"
 **顺手修的两个真 bug**：`validate-contract.py` 传目录时 `next((a, b), None)` 直接 TypeError（`next()` 要迭代器，元组不是），且把 `创作痕迹` 当项目根传进去会让 `<workspace>/<name>` 全错——已改为 `next((c for c in candidates if c.exists()), candidates[0])` 与 `root = arg.parent if arg.name == '创作痕迹' else arg`，并新增 `tests/test_contract_dir_arg.py`（3 测试，含把崩溃本身锁成回归）。
 
 八个 commit 在分支 `feat/absorb-tw-experience` 上；`bash scripts/run_checks.sh` 全绿（117 tests）。分支**未合入 main**，也**未在真实项目上跑过**。
+
+---
+
+# 第三轮：真机实证（2026-11-21）
+
+第一次把产物导进**真的** SillyTavern（1.19.0，`data/default-user`），用 `H:/RP创作/未命名项目` 的 `最终产物/st/爱情公寓.json` 做被测包。这一轮不靠源码推理，只记实测到的东西。
+
+## 实测结论
+
+| 问题 | 结论 |
+|---|---|
+| 卡内 `character_book` 会不会自动落成世界书 | **会**，而且用 `character_book.name`。33 条、559,165 B，与 `extensions.world` 同名 → 自动挂上。原以为会变成 `<卡名>'s Lorebook`，只在没写 `name` 时才发生 |
+| 卡内 `extensions.regex_scripts` 会不会跑 | **默认不跑**。要 `extension_settings.character_allowed_regex` 含头像；授权弹窗只弹一次，`AlertRegex_<头像>` 在弹窗**之前**写入，点一次取消 = 永久静默 |
+| 首条消息只有 `<建卡向导>` 六个字，算失败吗 | **不一定**。存储层永远是这六个字，替换发生在显示层：允许正则后变成 `TH-render` + iframe（674×664、`srcdoc` 19,504 字符），界面可点、控制台干净 |
+| 导入 API 形状 | `POST /api/characters/import`，form 字段是 `avatar` + `file_type=json`；用 `file` 会 500 |
+
+## 落地的改动
+
+- `references/st-correctness.md`：新增 **S-28**（scoped 正则默认不生效 + 取消一次永久静默）、**S-29**（内嵌书落盘用 `character_book.name`，须与 `extensions.world` 相等）。
+- `scripts/check_st_facts.py`：+5 个锚点（`engine.js:166`、`regex/index.js:1606/1617/1618`、`world-info.js:5744`），共 34 个，`均命中`。
+- `scripts/validate_st_semantics.py`：新增 `check_card_scoped_regex`（S-28，警告）与 `check_book_binding`（S-29，名字不一致为 error）。
+- `references/stage-7-delivery.md`：判断标准加「界面看 DOM，不看消息文本」；收尾肉眼项从三条变四条（补「进聊天后那条消息真的有界面」+ 允许角色专属正则）。
+- `tests/test_st_semantics.py`：+4 测试（S-28 警告/干净包不报、S-29 不一致报错/一致不报）。
+
+## 体积账
+
+delivery 一度 +297 破绝对上限。做法：在同一文件里回收内嵌书三条代价（并为两条）、正则导入长句、装配步骤与调优指针的重复表述，最终回到 25,966（= 原基线，**未动基线**）。记进 `scripts/measure_load.py` 的 Ruling ⑤。
+
+## 仍未验证的
+
+- 这个包按到底「下一步 → 总览 → 提交」之后会发生什么（是否真生成规范用户消息、是否真改写世界书/变量）。
+- 数值系统：这张卡 `tavern_helper.scripts` 为空，任何操作后数值都不会动；要做对照得导 `创作痕迹/产物/st/爱情公寓·MVU实验.json`。
+- 四个 `ERR_CONNECTION_REFUSED`（疑似某扩展在连本地服务，与本包无关，未定位）。

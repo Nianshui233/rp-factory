@@ -21,6 +21,7 @@ from pathlib import Path
 DEFAULT_ST_ROOT = os.environ.get("ST_ROOT", r"D:/AI/SillyTavern")
 
 ENGINE = "public/scripts/extensions/regex/engine.js"
+REGEX_INDEX = "public/scripts/extensions/regex/index.js"
 WORLD_INFO = "public/scripts/world-info.js"
 SCRIPT = "public/script.js"
 MACROS = "public/scripts/macros.js"
@@ -56,6 +57,11 @@ FACTS: list[tuple[str, str, int, str]] = [
     (ENGINE, "@typedef {{characterOverride?: string, isMarkdown?: boolean, isPrompt?: boolean, isEdit?: boolean, depth?: number }}", 332, "S-25"),
     (ENGINE, "const replaceString = regexScript.replaceString.replace(", 421, "S-26"),
     (ENGINE, "!(regexScript.disabled) || !regexScript?.findRegex", 393, "S-27"),
+    (ENGINE, "export function isScopedScriptsAllowed(character) {", 166, "S-28"),
+    (REGEX_INDEX, "async function checkCharEmbeddedRegexScripts() {", 1606, "S-28"),
+    (REGEX_INDEX, "accountStorage.setItem(checkKey, 'true');", 1617, "S-28"),
+    (REGEX_INDEX, "const template = await renderExtensionTemplateAsync('regex', 'embeddedScripts', {});", 1618, "S-28"),
+    (WORLD_INFO, "const bookName = characters[chid]?.data?.character_book?.name", 5744, "S-29"),
 ]
 
 
