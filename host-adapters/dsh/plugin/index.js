@@ -1,12 +1,14 @@
 /**
  * RP-Factory — DeepSeek Harness 宿主插件。
  *
- * 只做一件事：把包内的 `skills/rp-factory` 注册成一个 DSH skill provider。
+ * 这里做一件事：把包内的 `skills/rp-factory` 注册成一个 DSH skill provider。
  * 每条 skill 以自己所在目录为资源基，所以 SKILL.md 里写的
  * `references/…`、`scripts/…` 这类相对路径在 DSH 里能照常解析。
  *
- * 没有 front door、没有 agent preset、没有客户端面板：RP-Factory 只有一个 skill，
- * 靠 `/skill:rp-factory` 显式调用（SKILL.md 里锁了 disable-model-invocation）。
+ * 另一件事在同目录的 `cordis.patch.yml` 里（bundle 层）：插一个 `RP-Factory` agent preset，
+ * 把「一次只跑一个阶段」的人格与工具集钉成预设。预设读的是本包注册的 skill，两边靠 skill 名对上。
+ *
+ * 触发：DSH 里是斜杠命令 `/rp-factory`（SKILL.md 锁了 disable-model-invocation，不参与自然语言匹配）。
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";

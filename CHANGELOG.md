@@ -3,6 +3,25 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.13 — 2026-11-22
+
+**DSH 改成预设交付：装一个 `.tgz`，预设选择器里就多出一个 `RP-Factory`。**
+
+DSH 里 skill 只能靠斜杠命令进（`disable-model-invocation: true`），可「一次只跑一个阶段」这个节奏
+原先无处安放——模型可以自己连跑九段，也可以拿 subagent 把流程拆成并排的几个。宿主能钉这件事的地方
+是 agent preset，所以把适配层从「只注册 skill provider」扩成「skill provider + 预设」。
+
+- `host-adapters/dsh/plugin/cordis.patch.yml` 一次插两行：`rp-factory` 插件行（skill provider）
+  与 `@deepseek-ai/dsh-agent-preset` 预设行（id `rp-factory`、名 `RP-Factory`、order 6）。
+- 预设工具集按一阶段一停裁剪：带 `skill` / 文件读写搜索 / ask-user / todo / web / present，
+  不带 subagent、workflow、plan mode、goal、schedule、jobs、office。
+- 平台二选一（`!!js`）：Windows 上关 `tool-bash` 开 `tool-pwsh`，其余平台反过来。
+- 只要 skill 不要预设：`DSH_RP_FACTORY_NO_PRESET=1` 时跳过预设行。
+- 调用手势按宿主分开写：**DSH 是 `/rp-factory`**，Claude Code / Codex / Pi 才是 `/skill:rp-factory`
+  （写进 README、预设人格、插件头注释；`SKILL.md` 里只说「斜杠命令」，不给模型塞宿主方言，
+  `description` 与「一、路由」那两句顺手压短，加载预算一格没涨）。
+- 测试 +3：补丁能解析且行 id 唯一、预设 id 与 skill 名对得上、预设里不许出现会自己跑完流程的工具。
+
 ## 1.4.12 — 2026-11-22
 
 - `tavern-helper.md` 第九节补一条真机教训：`TavernHelper.createOrReplaceCharacter` 的

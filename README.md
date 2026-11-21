@@ -49,6 +49,13 @@ dsh plugin --profile <profile> add dist/rp-factory-dsh-v<版本>.tgz
 桌面版：侧栏 **插件 → 添加第三方插件 → 安装第三方插件**，填这个 `.tgz`。
 （`dsh plugin` 只是把参数转给该 profile 下的 pnpm，所以 tarball、git 地址、包名都能填。）
 
+装完 profile 上多两样东西：
+
+- **`RP-Factory` 预设**（预设选择器里排在 standard / ptc / minimal 之后）：人格写着「一次只跑一个阶段、跑完停下来汇报」，工具集按这个节奏裁过——带 `skill`、文件读写搜索、ask-user、todo、web、present，不带 subagent / workflow / plan mode / goal / schedule，免得它自己一口气跑完九个阶段；bash 与 pwsh 按平台自动二选一；压缩清理的阈值也调过（`thresholdChars: 8192`）。
+- **`rp-factory` skill**：注册成 host 级 provider，所以**任何**预设的会话里都能用斜杠命令调起（见下）。
+
+只要 skill、不要预设：装之前设 `DSH_RP_FACTORY_NO_PRESET=1`，compose 时会跳过预设那一行。
+
 ### Pi
 
 ```bash
@@ -70,14 +77,14 @@ python scripts/build-skill.py --check    # 改完仓库后：看 skill 有没有
 构建是**白名单**的：只拷 `SKILL.md`、`references/`、`templates/`、`scripts/`、`examples/*.yaml`。
 `docs/`（计划、复盘、规格，只存本地，不进仓库也不进 skill）、`tests/`、`node_modules/`、`.git/` 一律不进 skill。
 
-装完在会话里敲 `/skill:rp-factory`，不敲斜杠不会触发（`disable-model-invocation: true`）。
+装完在会话里敲斜杠命令：**DSH 下是 `/rp-factory`，Claude Code / Codex / Pi 下是 `/skill:rp-factory`**——不敲斜杠不会触发（`disable-model-invocation: true`）。
 
 <details>
 <summary><strong>为什么默认不自动触发</strong></summary>
 
 这是一个**会写文件、会建目录、会花十几轮对话**的流程型 skill。自然语言里提到「角色卡」「世界观」的场合太多，自动匹配会把普通聊天拐进建卡流程。所以它只在显式调用时启动，`SKILL.md` 第一行就锁死了这条。
 
-`/skill:rp-factory` 之后，用表格里的阶段关键字（见[开始用](#开始用)）决定跳到哪一步，不问「你想做什么」。
+敲下那条斜杠命令之后，用表格里的阶段关键字（见[开始用](#开始用)）决定跳到哪一步，不问「你想做什么」。
 </details>
 
 <details>
@@ -89,7 +96,7 @@ rp-factory/
 ├── .claude-plugin/             # Claude Code 市场与插件清单（skills: ["."] 指向插件根）
 ├── .codex-plugin/              # Codex 插件清单（skills: ./skills/rp-factory/）
 ├── .agents/plugins/            # Codex 仓库级市场清单
-├── host-adapters/dsh/plugin/   # DSH 插件入口：注册 skill provider
+├── host-adapters/dsh/plugin/   # DSH 插件入口：注册 skill provider + RP-Factory 预设
 ├── scripts/                    # 构建与发版：build-skill / sync-manifests / build-dsh-plugin / check-all
 ├── tests/                      # 218 个单测（只在仓库里）
 ├── package.json                # npm 元数据 + Pi 的 pi.skills
@@ -140,7 +147,7 @@ MIT 精神的自用工具，无担保。**它不能替你保证「好玩」**—
 
 | 你在做什么 | 从这里开始 |
 | --- | --- |
-| 只有个模糊概念 | `/skill:rp-factory`，进入阶段 0 判定 |
+| 只有个模糊概念 | 敲斜杠命令（DSH：`/rp-factory`；其他宿主：`/skill:rp-factory`），进入阶段 0 判定 |
 | 想要一个世界观 | 说「世界观设定」→ 阶段 `world` |
 | 设计角色 / 人设 | 说「做个角色」「写个人物」→ 阶段 `cast` |
 | 想要地点、地图、场景 | 说「写个场景」→ 阶段 `scenes` |
@@ -156,7 +163,7 @@ MIT 精神的自用工具，无担保。**它不能替你保证「好玩」**—
 <summary><strong>一次完整对话长什么样</strong></summary>
 
 ```text
-/skill:rp-factory "盐湖上的守夜人"
+/rp-factory "盐湖上的守夜人"        # DSH；Claude Code / Codex / Pi 换成 /skill:rp-factory
   ↓ 开局四问（工作区 / 阶段 / NSFW / 联网），一次问完
   ↓ 建 制作文件/ 与契约，静默探测本机酒馆
 world      → 世界观四要素、判定框架、三条硬设定

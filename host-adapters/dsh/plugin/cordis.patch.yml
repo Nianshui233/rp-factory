@@ -1,5 +1,85 @@
-# DSH 的 bundle 层：把我们这个包作为一个插件行插进 profile。
+# DSH 的 bundle 层：装这一个包，profile 上多两样东西。
+#
+# 1) `rp-factory` 插件行：注册 skill provider，让包内那份 `skills/rp-factory` 在任何会话里都能用
+#    斜杠命令调起（DSH 下就是 `/rp-factory`）。
+# 2) `RP-Factory` agent preset：把「一次只跑一个阶段」的人格与工具集钉成一个预设，新会话选它即可。
+#
 # 行里的 name 是 npm 包名，不是相对路径——安装后由 Node 解析到 node_modules 里那份。
+#
+# 只要 skill、不要预设：安装前设 DSH_RP_FACTORY_NO_PRESET=1（compose 时求值）。
 - insert:
     - id: rp-factory
       name: rp-factory-dsh
+    - id: preset-rp-factory
+      name: '@deepseek-ai/dsh-agent-preset'
+      disabled: !!js process.env.DSH_RP_FACTORY_NO_PRESET === '1'
+      config:
+        id: rp-factory
+        name: RP-Factory
+        order: 6
+        description: 把 RP 构想编译成世界观、角色、场景、数值四类设定产物；一次只跑一个阶段，发 /rp-factory 开始。
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: |
+                你现在处于 RP-Factory 模式：把用户的 RP 构想编译成世界观、角色/NPC、场景、数值系统四类设定产物，需要时再产酒馆前端与可导入的卡包。
+
+                - 用户发来 `/rp-factory`，或点明「做世界观 / 角色 / 场景 / 数值 / 打包」时，先按 `rp-factory` skill 的 SKILL.md 判阶段，再加载对应阶段文件照做；阶段纪律与产物契约以 SKILL.md 为准，这里冲突时听它的。
+                - 一次只跑一个阶段：把这个阶段该做完的做完，汇报产物与遗留问题，然后停下来等用户确认。不要一口气跑完全流程，也不要在阶段之间自己替用户拍板。
+                - 所有产物写在当前工作区下的目录里（`制作文件/` 由 SKILL.md 规定），不要改用户没让改的文件。
+                - 跑 `scripts/` 里的 Python 校验器时钉死 UTF-8；Windows 下先 `$env:PYTHONIOENCODING="utf-8"`。
+                - L5/L6 验收只能由人签字；脚本与助手都不得自签「人已验收」。
+                - 不在 RP 流程里时，按普通编码助手工作。
+          - id: agent-instructions
+            name: '@deepseek-ai/dsh-agent-instructions'
+            config:
+              maxBytes: 65536
+          - id: time-context
+            name: '@deepseek-ai/dsh-time-context'
+          - id: tool-pwsh
+            name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'
+          - id: tool-bash
+            name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - id: tool-fs
+            name: '@deepseek-ai/dsh-tool-fs'
+            config:
+              applyPatch: false
+          - id: tool-fs-search
+            name: '@deepseek-ai/dsh-tool-fs-search'
+            config:
+              sampleOverCapGlobResults: false
+          - id: tool-skill
+            name: '@deepseek-ai/dsh-tool-skill'
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true
+          - id: tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+              searchTimeoutMs: 60000
+          - id: present
+            name: '@deepseek-ai/dsh-tool-present'
+          - id: compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+              toolResultPruner: true
+            config:
+              - id: compaction-basic
+                name: '@deepseek-ai/dsh-compaction-basic'
+              - id: command-compact
+                name: '@deepseek-ai/dsh-command-compact'
+              - id: tool-result-pruner
+                name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+                config:
+                  thresholdChars: 8192
+                  headChars: 4096
+                  tailChars: 1024

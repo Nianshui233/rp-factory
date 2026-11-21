@@ -145,5 +145,65 @@ class TestDshPlugin(unittest.TestCase):
         self.assertFalse(data["model"])
 
 
+class TestDshBundlePatch(unittest.TestCase):
+    """bundle 补丁一次给两样东西：skill provider + 可选的 RP-Factory 预设。
+
+    预设 ID 必须与 skill 名一致（`rp-factory`），否则用户看到「RP-Factory」预设，敲命令却提领不到 skill；
+    工具集也必须真的裁过——留着 subagent/workflow 的话，「一次只跑一个阶段」只是句劝告。
+    """
+
+    ADAPTER = REPO / "host-adapters" / "dsh" / "plugin"
+
+    @classmethod
+    def setUpClass(cls):
+        import yaml
+
+        class Loader(yaml.SafeLoader):
+            pass
+
+        # 补丁里的 `!!js <expr>` 由 DSH 的 compose 求值；测试只关心行结构，当字符串读。
+        Loader.add_constructor("tag:yaml.org,2002:js", lambda loader, node: loader.construct_scalar(node))
+        text = (cls.ADAPTER / "cordis.patch.yml").read_text(encoding="utf-8")
+        documents = yaml.load(text, Loader=Loader)
+        cls.rows = documents[0]["insert"]
+
+    def row_named(self, name):
+        for row in self.rows:
+            if row.get("name") == name:
+                return row
+        self.fail(f"cordis.patch.yml 里没有 name 为 {name} 的行")
+
+    def test_rows_are_unique_and_complete(self):
+        self.assertTrue(self.rows)
+        ids = [row.get("id") for row in self.rows]
+        self.assertEqual(len(ids), len(set(ids)), f"行 id 重复：{ids}")
+        for row in self.rows:
+            self.assertTrue(row.get("id"), f"行缺 id：{row}")
+            self.assertTrue(row.get("name"), f"行缺 name：{row}")
+
+    def test_patch_ships_plugin_and_preset(self):
+        self.assertEqual(self.row_named("rp-factory-dsh")["id"], "rp-factory")
+        preset = self.row_named("@deepseek-ai/dsh-agent-preset")
+        self.assertEqual(preset["config"]["id"], "rp-factory")
+        self.assertEqual(preset["config"]["name"], "RP-Factory")
+
+    def test_preset_plugins_are_lean_but_keep_skill_tool(self):
+        preset = self.row_named("@deepseek-ai/dsh-agent-preset")
+        plugins = preset["config"]["plugins"]
+        ids = [plugin.get("id") for plugin in plugins]
+        self.assertEqual(len(ids), len(set(ids)), f"预设插件 id 重复：{ids}")
+        for plugin in plugins:
+            self.assertTrue(plugin.get("id") and plugin.get("name"), f"预设插件缺 id/name：{plugin}")
+
+        # 斜杠命令的入口：没有 tool-skill，预设里的会话根本看不到这个 skill
+        self.assertIn("tool-skill", ids)
+        # 「一次只跑一个阶段」：这些一旦在，模型可以自己把流程拆散跑完
+        banned = {"tool-subagent", "tool-subagent-fork", "tool-workflow", "plan-mode",
+                  "command-goal", "tool-goal", "tool-schedule", "tool-jobs", "tool-office"}
+        self.assertEqual(banned & set(ids), set(), "预设里不该有会自己跑完整个流程的工具")
+        persona = next(plugin for plugin in plugins if plugin["id"] == "persona")
+        self.assertIn("/rp-factory", persona["config"]["prefix"])
+
+
 if __name__ == "__main__":
     unittest.main()

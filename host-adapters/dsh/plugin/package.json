@@ -1,7 +1,7 @@
 {
   "name": "rp-factory-dsh",
   "private": true,
-  "description": "RP-Factory for DeepSeek Harness: registers the bundled rp-factory skill as a DSH skill provider.",
+  "description": "RP-Factory for DeepSeek Harness: ships the RP-Factory agent preset and registers the bundled rp-factory skill as a DSH skill provider.",
   "type": "module",
   "main": "./index.js",
   "exports": {
@@ -36,7 +36,7 @@
     "url": "git+https://github.com/Nianshui233/rp-factory.git",
     "directory": "host-adapters/dsh/plugin"
   },
-  "version": "1.4.12",
+  "version": "1.4.13",
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
