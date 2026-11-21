@@ -25,7 +25,7 @@ python scripts/build-skill.py --check    # 改完仓库后：看 skill 有没有
 ```
 
 构建是**白名单**的：只拷 `SKILL.md`、`references/`、`templates/`、`scripts/`、`examples/*.yaml`。
-`docs/`（计划、复盘、规格）、`tests/`、`node_modules/`、`.git/` 一律不进 skill。
+`docs/`（计划、复盘、规格，只存本地，不进仓库也不进 skill）、`tests/`、`node_modules/`、`.git/` 一律不进 skill。
 
 装完在会话里敲 `/skill:rp-factory`，不敲斜杠不会触发（`disable-model-invocation: true`）。
 
@@ -40,7 +40,7 @@ python scripts/build-skill.py --check    # 改完仓库后：看 skill 有没有
 <details>
 <summary><strong>为什么不直接 junction 指向仓库</strong></summary>
 
-junction 更省事（改完立刻生效），但仓库里有 `docs/plans/`、`docs/reviews/`、`tests/`、`node_modules/`、`.git/`——这些是开发物，不该出现在 skill 目录里。构建脚本把它们挡在外面，代价是每次改完仓库要重跑一次 `build-skill.py`（`--check` 能告诉你忘没忘）。
+junction 更省事（改完立刻生效），但仓库里有 `tests/`、`node_modules/`、`.git/`——这些是开发物，不该出现在 skill 目录里。构建脚本把它们挡在外面，代价是每次改完仓库要重跑一次 `build-skill.py`（`--check` 能告诉你忘没忘）。
 </details>
 
 # RP-Factory
@@ -283,8 +283,7 @@ RP-Factory 不往宿主机写任何隐藏状态：没有安装清单、没有全
 | `references/worldbook-writing.md` · `worldbook-tuning.md` | 条目正文契约 · 参数调优 |
 | `references/frontend-conventions.md` · `dual-mode.md` | 表现层机制 · 文本 / 工程两种模态 |
 | `references/stage-*.md` | 九个阶段各自的做法与退出条件 |
-| `docs/plans/` · `docs/reviews/` · `docs/specs/` | 设计与计划 · 实操复盘 · 规格 |
-| `docs/coverage-checklist.md` | 覆盖清单：哪些坑已经被断言守住 |
+| `docs/` | **不在仓库里**：设计计划、实操复盘、规格、覆盖清单只在作者本地，`.gitignore` 挡着 |
 
 <p align="center">
   <sub>Built for SillyTavern 1.19.0 · JS-Slash-Runner 4.12.1 · Agent Skill format</sub>

@@ -6,3 +6,6 @@ __pycache__/
 node_modules/
 package.json
 package-lock.json
+
+# 开发资料：计划 / 复盘 / 规格 / 覆盖清单只在本地，不进仓库也不进 skill
+docs/
