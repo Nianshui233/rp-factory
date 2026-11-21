@@ -1,0 +1,9 @@
+# 跑过校验器就会生成，不该进 npm 包（git 里也已忽略）
+**/__pycache__/
+**/*.pyc
+dist/
+.superpowers/
+docs/
+tests/
+examples/../examples
+node_modules/
