@@ -122,6 +122,7 @@
     </div>
   </div>
 
+  <p class="rp-cc-msg" id="rp-cc-read" hidden></p>
   <p class="rp-cc-msg" id="rp-cc-msg" hidden></p>
 </div>
 
@@ -155,6 +156,7 @@
   var $dialog = document.getElementById(NS + '-dialog');
   var $diff = document.getElementById(NS + '-diff');
   var $msg = document.getElementById(NS + '-msg');
+  var $read = document.getElementById(NS + '-read');
   var $scope = document.getElementById(NS + '-scope');
 
   var baseline = {};      // 打开界面（或写入成功）时的值，用来判断 dirty
@@ -180,7 +182,13 @@
   function readState() {
     if (RP_PREVIEW) {
       var mock = {};
-      FIELDS.forEach(function (f) { mock[f.name] = MOCK[f.name]; });
+      FIELDS.forEach(function (f) {
+        var raw = MOCK[f.name];
+        if (raw === undefined) { mock[f.name] = { state: 'missing' }; return; }
+        var num = Number(raw);
+        if (!isFinite(num)) { mock[f.name] = { state: 'invalid', raw: String(raw) }; return; }
+        mock[f.name] = { state: 'ok', value: Math.min(f.max, Math.max(f.min, num)), outOfRange: false };
+      });
       return { ok: true, values: mock, scope: 'preview' };
     }
     if (missing) return { ok: false, reason: '未接入：' + missing };
@@ -206,7 +214,7 @@
 
   function renderValue(f, cell, v) {
     if (!v || v.state === 'missing') { cell.textContent = '未知'; cell.className = NS + '-val'; return; }
-    if (v.state === 'invalid') { cell.textContent = '未知（非数字）'; cell.className = NS + '-val is-bad'; return; }
+    if (v.state === 'invalid' || typeof v.value !== 'number') { cell.textContent = '未知（非数字）'; cell.className = NS + '-val is-bad'; return; }
     var text = f.step < 1 ? v.value.toFixed(2) : String(Math.round(v.value));
     cell.textContent = text + (v.outOfRange ? ' ⚠' : '');
     cell.className = NS + '-val' + (v.outOfRange ? ' is-bad' : '');
@@ -214,13 +222,18 @@
 
   function render() {
     var state = readState();
-    if (!state.ok) {
-      $rows.innerHTML = '<p class="rp-cc-note">' + esc(state.reason) + '</p>';
-      $apply.disabled = true;
-      $scope.textContent = '只读';
-      return;
+    var readOk = state.ok;
+    if (!readOk) {
+      // 读不到也要把字段画出来（显示「未知」+ 禁操作），只显示一行错误会让界面看起来像坏了
+      $read.textContent = state.reason;
+      $read.hidden = false;
+      $read.className = 'rp-cc-msg is-error';
+      state = { ok: true, values: {}, scope: 'readonly' };
+    } else {
+      $read.hidden = true;
     }
-    $scope.textContent = state.scope === 'preview' ? '预览数据，不会写盘' : '改动会写回本楼存档';
+    $scope.textContent = state.scope === 'preview' ? '预览数据，不会写盘'
+      : (state.scope === 'readonly' ? '只读' : '改动会写回本楼存档');
     if (!Object.keys(baseline).length) {
       FIELDS.forEach(function (f) {
         var v = state.values[f.name];
@@ -235,7 +248,7 @@
         + '<label class="rp-cc-label" for="' + NS + '-in' + i + '">' + esc(f.name) + '</label>'
         + '<input id="' + NS + '-in' + i + '" type="range" data-name="' + esc(f.name) + '"'
         + ' min="' + f.min + '" max="' + f.max + '" step="' + f.step + '" value="' + cur + '"'
-        + (missing ? ' disabled' : '') + '>'
+        + (missing || !readOk ? ' disabled' : '') + '>'
         + '<span class="rp-cc-val" data-cell="' + esc(f.name) + '"></span>'
         + '</div>';
     });
@@ -362,7 +375,11 @@
     if (RP_PREVIEW) {
       document.body.classList.add('rp-preview');
       var m = /[?&]w=(\d+)/.exec(location.search);
-      if (m) document.documentElement.style.setProperty('--canvas-w', m[1] + 'px');
+      if (m) {
+        document.documentElement.style.setProperty('--canvas-w', m[1] + 'px');
+        var tag = document.querySelector('.rp-cc-canvas-tag');
+        if (tag) tag.textContent = '预览 ' + m[1] + 'px · 正式聊天里不显示这行';
+      }
     }
     $apply.addEventListener('click', openDialog);
     $reset.addEventListener('click', function () { draft = {}; closeDialog(); render(); note('', ''); });
