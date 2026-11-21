@@ -1,0 +1,5 @@
+# DSH 的 bundle 层：把我们这个包作为一个插件行插进 profile。
+# 行里的 name 是 npm 包名，不是相对路径——安装后由 Node 解析到 node_modules 里那份。
+- insert:
+    - id: rp-factory
+      name: rp-factory-dsh

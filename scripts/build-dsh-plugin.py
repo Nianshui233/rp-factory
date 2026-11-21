@@ -56,6 +56,7 @@ def check_smoke(build_root: Path) -> None:
 
 def stage(build_root: Path, version: str) -> None:
     shutil.copy2(ADAPTER / "index.js", build_root / "index.js")
+    shutil.copy2(ADAPTER / "cordis.patch.yml", build_root / "cordis.patch.yml")
     shutil.copy2(REPO / "LICENSE", build_root / "LICENSE")
     readme = ADAPTER / "README.md"
     if readme.is_file():
@@ -90,8 +91,9 @@ def main(argv=None) -> int:
             return 0
 
         DIST.mkdir(exist_ok=True)
+        npm = shutil.which("npm") or shutil.which("npm.cmd") or "npm"
         proc = subprocess.run(
-            ["npm", "pack", "--pack-destination", str(DIST)],
+            [npm, "pack", "--pack-destination", str(DIST)],
             cwd=build, capture_output=True, text=True)
         if proc.returncode != 0:
             print(proc.stdout + proc.stderr)

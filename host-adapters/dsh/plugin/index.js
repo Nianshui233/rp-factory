@@ -13,6 +13,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const name = "rp-factory";
+// 需要宿主提供 skills 服务（provider 注册点）；没有 webServer 之类别的依赖
+export const inject = ["skills"];
 
 const PLUGIN_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGED_SKILLS = path.join(PLUGIN_ROOT, "skills");
