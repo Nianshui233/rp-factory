@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "rp-factory",
-      "version": "1.4.6",
+      "version": "1.4.7",
       "description": "把 RP 构想编译成世界观、角色/NPC、场景、数值系统四类 YAML 设定产物，可选投影成酒馆变量系统与前端，最后打成能直接导入 SillyTavern 的包。",
       "source": {
         "source": "local",

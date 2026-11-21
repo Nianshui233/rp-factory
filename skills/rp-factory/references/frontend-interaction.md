@@ -104,3 +104,4 @@ F18 会扫描 `if (RP_PREVIEW) { … }` 的花括号块，块内出现写调用�
 | F19 | 失败 | 有写调用却没有 `WRITES` 声明，或声明为 `[]` 却在写 |
 | F20 | 警告 | `replaceMvuData` 之后没有 `getMvuData` 复读 |
 | F21 | 警告 | 有写调用但全文没有 `disabled` / `pending`（可连点重复写） |
+| F23 | 失败 | 读 Mvu 却没等它加载（`waitGlobalInitialized` / `parent.Mvu` 都没有）：界面永远显示「未接入」 |

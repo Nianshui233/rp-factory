@@ -98,6 +98,8 @@ TH_FACTS: list[tuple[str, str, int, str]] = [
     ("src/panel/script/Toolbar.vue", "async function handleImport(target: 'global' | 'character' | 'preset', files_list: FileList | null) {", 84, "TH-12"),
     ("src/store/settings/character.ts", "const settings = _.get(character, `data.extensions.${setting_field}`);", 34, "TH-12"),
     ("src/store/settings/character.ts", "await writeExtensionField(id, setting_field, settings, affect_memory);", 47, "TH-12"),
+    ("src/iframe/predefine.js", "if (_.has(window.parent, 'Mvu')) {", 37, "TH-13"),
+    ("src/iframe/predefine.js", "其实应该用 waitGlobalInitialized 来等待 Mvu 初始化完毕", 36, "TH-13"),
 ]
 
 

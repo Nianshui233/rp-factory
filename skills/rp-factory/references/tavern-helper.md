@@ -259,6 +259,29 @@ builtin.addOneMessage / copyText / renderMarkdown / duringGenerating / reloadCha
 
 ---
 
+## 十一之二、读变量前必须等 Mvu 到（TH-13）
+
+`Mvu` 是脚本 iframe 从 CDN 拉 bundle 后挂到**顶层窗口**上的。消息 iframe 里的 `window.Mvu`
+来自 `src/iframe/predefine.js:37` 的 `if (_.has(window.parent, 'Mvu')) {`——**它只在 iframe 创建那一刻判一次**。
+Mvu 后到，这个 getter 就永远不会被定义，`window.Mvu` 在该 iframe 里**永久是 undefined**，而顶层一直是 object。
+
+所以：
+
+```js
+// 对：等它到，或直接取父窗口那个
+await waitGlobalInitialized('Mvu');          // predefine 提供的全局函数
+var api = window.Mvu || window.parent.Mvu;   // 兜底
+// 错：`if (typeof Mvu === 'undefined') return '未接入'` —— 会把「还没到」显示成「未启用」，
+//     而且要等下一轮消息才恢复，玩家以为变量坏了
+```
+
+`validate-frontend.py` 的 **F23** 拦这一条：文件里出现 `Mvu.` / `getMvuData` / `replaceMvuData`，
+却没有 `waitGlobalInitialized` 也没有 `parent.Mvu` → 失败。
+
+真机现象（极寒末日，1.19.0 + 4.12.1）：状态栏起手写 `typeof Mvu === 'undefined'` 就 return 诊断态，
+画面显示「未接入：Mvu 未启用」，而同一时刻 `getAllVariables()` 已经能读到 `stat_data`——变量是好的，
+只是这一帧没等到。
+
 ## 十二、静默失效清单
 
 | 现象 | 原因 | 自查 |
@@ -282,7 +305,7 @@ builtin.addOneMessage / copyText / renderMarkdown / duringGenerating / reloadCha
 ## 十三、自查命令
 
 ```bash
-python scripts/validate-frontend.py 导入包/            # F01–F21
+python scripts/validate-frontend.py 导入包/            # F01–F23
 PYTHONIOENCODING=utf-8 python scripts/check_st_facts.py   # S-xx（ST 本体）+ TH-xx（插件）
 PYTHONIOENCODING=utf-8 python scripts/check_st_facts.py --th-root "D:/AI/RP创作/参考/JS-Slash-Runner"
 ```

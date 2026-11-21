@@ -350,6 +350,19 @@ def check(path: Path) -> tuple[list[str], list[str], list[str]]:
                 "生成要另发 `/trigger`（tavern-helper.md 第十节）"
             )
 
+    # F23 读 Mvu 却没等它到：消息 iframe 的 `window.Mvu` 要等脚本 iframe 把 bundle 拉下来
+    # 才存在（predefine 里的 waitGlobalInitialized），开局就判一次会把「还没到」误报成「未启用」
+    uses_mvu = ('Mvu.' in scripts) or ('getMvuData' in scripts) or ('replaceMvuData' in scripts)
+    waits = ('waitGlobalInitialized' in scripts) or ('parent.Mvu' in scripts) or ('parent && Mvu' in scripts)
+    if uses_mvu and not waits:
+        fail.append(
+            "F23 读了 Mvu 却不等它加载：消息 iframe 里 `Mvu` 由脚本 iframe 异步注入，"
+            "开场直接判 `typeof Mvu` 会命中 undefined，界面永远显示「未接入」。"
+            "用 `await waitGlobalInitialized('Mvu')` 或回退取 `window.parent.Mvu`（tavern-helper.md 第十一节）"
+        )
+    elif uses_mvu:
+        ok.append("F23 等过 Mvu 再读")
+
     return fail, warn, ok
 
 

@@ -3,6 +3,24 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.7 — 2026-11-22
+
+**状态栏显示「Mvu 未启用」，其实变量好好的。** 消息 iframe 里的 `window.Mvu` 是
+`src/iframe/predefine.js:37` 在 iframe 创建那一刻判一次 `_.has(window.parent, 'Mvu')` 才定义的；
+bundle 后到，这个 getter 永远不出现，该 iframe 里 `Mvu` 就是永久 undefined。起手写
+`if (typeof Mvu === 'undefined') return '未接入'` 会把「还没到」显示成「没启用」。
+
+- `templates/control-center.html`：加 `MvuApi()`（`window.Mvu || window.parent.Mvu`），
+  `detectMissing()` 与四处调用都走它；boot 时若仍缺就 `waitGlobalInitialized('Mvu')` 再渲染。
+- `tavern-helper.md` 新增「十一之二、读变量前必须等 Mvu 到（TH-13）」，写出机制与两种写法。
+- `check_st_facts.py` 加 TH-13 两处锚点（`predefine.js:36` / `:37`）。
+- `validate-frontend.py` 新增 **F23**：出现 `Mvu.` / `getMvuData` / `replaceMvuData`，
+  却没有 `waitGlobalInitialized` 也没有 `parent.Mvu` → 失败。
+- 测试 +5（直接判 typeof 被拦、两种正确写法放过、无关文件不报、两个模板必须过）。
+
+真机（极寒末日）：同一楼从「未接入：Mvu 未启用」变成真数字（韩秋 78 / 40、老鸦 78 / 40、
+白嬷嬷 78 / 40、寒蚀 平稳），iframes 里的 `Mvu` 也变成 object。
+
 ## 1.4.6 — 2026-11-22
 
 **正则也一样：默认该进「角色正则」，不是全局。** 全局正则会在所有角色、所有聊天里跑，

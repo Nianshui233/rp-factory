@@ -195,7 +195,7 @@
 
     try {
       var mid = getCurrentMessageId();
-      var data = Mvu.getMvuData({ type: 'message', message_id: mid });
+      var data = MvuApi().getMvuData({ type: 'message', message_id: mid });
       var stat = (data && data.stat_data) || null;
       if (!stat) return { ok: false, reason: '未接入：本楼还没有变量快照' };
       var out = {};
@@ -319,16 +319,16 @@
       .then(function () {
         if (RP_PREVIEW) return null;           // 预览分支：不写盘，只走确认流程
         if (missing) throw new Error('未接入：' + missing);
-        var data = Mvu.getMvuData({ type: 'message', message_id: mid });
+        var data = MvuApi().getMvuData({ type: 'message', message_id: mid });
         if (!data || !data.stat_data) throw new Error('本楼没有变量快照，先让 MVU 初始化');
         var next = JSON.parse(JSON.stringify(data));
         Object.keys(changes).forEach(function (k) { next.stat_data[k] = changes[k]; });
-        return Mvu.replaceMvuData(next, { type: 'message', message_id: mid });
+        return MvuApi().replaceMvuData(next, { type: 'message', message_id: mid });
       })
       .then(function () {
         if (RP_PREVIEW) return { verified: true, preview: true };
         // 复读核对：不拿"请求已发出"当成功
-        var after = Mvu.getMvuData({ type: 'message', message_id: mid });
+        var after = MvuApi().getMvuData({ type: 'message', message_id: mid });
         var stat = (after && after.stat_data) || {};
         var bad = Object.keys(changes).filter(function (k) { return Number(stat[k]) !== Number(changes[k]); });
         if (bad.length) throw new Error('未生效：' + bad.join('、') + '（复读值与提交值不一致）');
@@ -364,14 +364,26 @@
     } catch (e) { /* 事件订阅失败就只靠手动刷新，不阻塞渲染 */ }
   }
 
+  // 消息 iframe 里 `window.Mvu` 是异步注入的：只判 `typeof Mvu` 会把「还没到」误报成「未启用」，
+  // 并且要等下一轮消息才恢复。要么等 waitGlobalInitialized，要么回退取父窗口那个。
+  function MvuApi() {
+    try { if (typeof Mvu !== 'undefined' && Mvu) return Mvu; } catch (e) {}
+    try { if (window.parent && window.parent.Mvu) return window.parent.Mvu; } catch (e) {}
+    return null;
+  }
+
   function detectMissing() {
-    if (typeof Mvu === 'undefined') { missing = 'Mvu 未启用'; return; }
+    if (!MvuApi()) { missing = 'Mvu 未启用'; return; }
     if (typeof getCurrentMessageId !== 'function') { missing = 'getCurrentMessageId 不可用'; return; }
     missing = null;
   }
 
   function boot() {
     detectMissing();
+    if (!RP_PREVIEW && missing && typeof waitGlobalInitialized === 'function') {
+      try { waitGlobalInitialized('Mvu').then(function () { detectMissing(); render(); }).catch(function () {}); }
+      catch (e) { /* 退化：保持诊断态，等下一轮消息 */ }
+    }
     if (RP_PREVIEW) {
       document.body.classList.add('rp-preview');
       var m = /[?&]w=(\d+)/.exec(location.search);

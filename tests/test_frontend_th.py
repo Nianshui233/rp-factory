@@ -6,11 +6,16 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory" / "scripts" / "validate-frontend.py"
+ROOT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory"
+SCRIPT = ROOT / "scripts" / "validate-frontend.py"
+SKILL = ROOT
+VALIDATOR = SCRIPT
 
 
 def _load():
@@ -122,3 +127,37 @@ class TestRealTemplates(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestMvuWait(unittest.TestCase):
+    """F23：消息 iframe 里的 Mvu 是异步注入的，起手就判 typeof 会把「还没到」显示成「未启用」。"""
+
+    def _run(self, html: str):
+        with tempfile.TemporaryDirectory() as td:
+            f = Path(td) / "ui.html"
+            f.write_text(html, encoding="utf-8")
+            return subprocess.run([sys.executable, str(VALIDATOR), str(f)],
+                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+    def test_直接判typeof会拦(self):
+        run = self._run("<html><body><script>if (typeof Mvu === 'undefined') return;"
+                        "var d = Mvu.getMvuData({type:'message'});</script></body></html>")
+        self.assertIn("F23", run.stdout or "")
+
+    def test_waitGlobalInitialized放过(self):
+        run = self._run("<html><body><script>await waitGlobalInitialized('Mvu');"
+                        "var d = Mvu.getMvuData({type:'message'});</script></body></html>")
+        self.assertNotIn("[ FAIL ] F23", run.stdout or "")
+
+    def test_parent兜底也放过(self):
+        run = self._run("<html><body><script>var api = window.Mvu || window.parent.Mvu;"
+                        "api.getMvuData({type:'message'});</script></body></html>")
+        self.assertNotIn("[ FAIL ] F23", run.stdout or "")
+
+    def test_不用Mvu的文件不报(self):
+        run = self._run("<html><body><p>hi</p></body></html>")
+        self.assertNotIn("F23", run.stdout or "")
+
+    def test_模板与控制中心都过(self):
+        for name in ("control-center.html", "statusbar.html"):
+            run = self._run((SKILL / "templates" / name).read_text(encoding="utf-8"))
+            self.assertNotIn("[ FAIL ] F23", run.stdout or "", name)
