@@ -145,5 +145,5 @@ Schema
 - 变量门（本阶段的退出条件）：阶段收尾一检 `python scripts/check-stage.py mvu <项目根>` 退出码 0（内部跑 `validate-mvu.py` M01–M13）。
 - `node --check` 过（`mvu-schema.js` 是 ES module，先改名到临时 `.mjs`）。
 - 命名门：轴名与 `axis-system.yaml`、`naming.axes` 三处一致；角色键名与人物设定 `character.name` 逐字一致。
-- 交付说明里**必须有四句**：① 脚本是单独一份、卡里没有；② 导入后要去酒馆助手脚本库给这个角色**启用脚本**（导入时 `enabled` 被强制置 false，TH-11）；③ 世界书要单独导入（`importFromJson` 不会把 `character_book` 落成书）；④ 没启用脚本或 MVU 本体加载失败时，界面会显示「未接入」而不是报错。
+- 交付说明里**必须有四句**：① 脚本是单独一份、卡里没有；② **选中这张卡**后在脚本库的**「角色脚本」**栏导入（不是全局），再打开那栏总开关并逐条打开（TH-11）；③ 世界书要单独导入（`importFromJson` 不会把 `character_book` 落成书）；④ 没启用脚本或 MVU 本体加载失败时，界面会显示「未接入」而不是报错。
 - `project.web_research: true` 时确认本阶段 `检索来源.md` 有新增条目。

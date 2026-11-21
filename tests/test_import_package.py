@@ -7,6 +7,10 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import pathlib
+import shutil
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,7 +18,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory"
 CONTRACT_SCRIPT = ROOT / "scripts" / "validate-contract.py"
 PACKAGE_SCRIPT = ROOT / "scripts" / "validate-st-package.py"
+SKILL = ROOT
 EXAMPLE = ROOT / "examples/dry-run-盐湖守夜人"
+VALIDATOR = ROOT / "scripts" / "validate-contract.py"
 
 CONTRACT = """project:
   name: 示例
@@ -75,7 +81,7 @@ class TestSlots(unittest.TestCase):
         self._write("正则.json", REGEX)
         self._write("示例 酒馆助手脚本.json", SCRIPT)
         self._write("示例 开局前端.html", "<html><body><div></div></body></html>")
-        self._write("导入说明.txt", "按顺序导")
+        self._write("导入说明.txt", "按顺序导；脚本导进「角色脚本」那一栏，不要放全局")
 
     def _codes(self):
         return [c for c, _ in self.mod.fails]
@@ -192,3 +198,31 @@ class TestExamplePackage(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestScriptGoesToCharacterSlot(unittest.TestCase):
+    """脚本要导进「角色脚本」，不是全局：全局的存在插件设置里，换张卡照跑。"""
+
+    def test_示例包导入说明点名角色脚本(self):
+        text = (EXAMPLE / "导入包" / "导入说明.txt").read_text(encoding="utf-8")
+        self.assertIn("角色脚本", text)
+        self.assertIn("全局", text, "还要说明为什么不能放全局")
+
+    def test_模板骨架也点名(self):
+        text = (SKILL / "templates" / "import-guide.txt").read_text(encoding="utf-8")
+        self.assertIn("角色脚本", text)
+
+    def test_C17_缺角色脚本会拦(self):
+        with tempfile.TemporaryDirectory() as td:
+            proj = pathlib.Path(td) / "p"
+            (proj / "制作文件" / "项目记录").mkdir(parents=True)
+            (proj / "导入包").mkdir(parents=True)
+            src_contract = EXAMPLE / "制作文件" / "项目记录" / "contract.yaml"
+            (proj / "制作文件" / "项目记录" / "contract.yaml").write_text(
+                src_contract.read_text(encoding="utf-8"), encoding="utf-8")
+            for name in ("白潮（纯净）.json", "白潮 世界书.json", "正则.json",
+                         "白潮 酒馆助手脚本.json", "白潮 开局前端.html", "白潮 状态栏.html"):
+                shutil.copy(EXAMPLE / "导入包" / name, proj / "导入包" / name)
+            (proj / "导入包" / "导入说明.txt").write_text("照做就行", encoding="utf-8")
+            run = subprocess.run([sys.executable, str(VALIDATOR), str(proj)],
+                                 capture_output=True, text=True, encoding="utf-8", errors="replace")
+        self.assertIn("C17", run.stdout or "")

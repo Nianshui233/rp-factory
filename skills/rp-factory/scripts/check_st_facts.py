@@ -95,6 +95,9 @@ TH_FACTS: list[tuple[str, str, int, str]] = [
     ("@types/iframe/exported.mvu.d.ts", "VARIABLE_UPDATE_ENDED: 'mag_variable_update_ended';", 115, "TH-10"),
     ("src/panel/script/Toolbar.vue", "script_tree.enabled = false;", 94, "TH-11"),
     ("src/panel/script/Toolbar.vue", "script_tree.id = uuidv4();", 95, "TH-11"),
+    ("src/panel/script/Toolbar.vue", "async function handleImport(target: 'global' | 'character' | 'preset', files_list: FileList | null) {", 84, "TH-12"),
+    ("src/store/settings/character.ts", "const settings = _.get(character, `data.extensions.${setting_field}`);", 34, "TH-12"),
+    ("src/store/settings/character.ts", "await writeExtensionField(id, setting_field, settings, affect_memory);", 47, "TH-12"),
 ]
 
 

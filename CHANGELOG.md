@@ -3,6 +3,27 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.5 — 2026-11-22
+
+**脚本被当成全局脚本导入了。** 交付说明原来只写「脚本库 → 导入」，玩家自然点了第一栏
+「全局脚本」——于是换张卡也在跑同一套变量逻辑，两张卡一起开就互相污染。
+
+- `templates/import-guide.txt` 第 4 步改成分步写：先选中这张卡 → 点**「角色脚本」**那一栏的
+  导入 → 打开该栏总开关 → 逐条打开；并写清为什么不能放全局。
+- `stage-7-delivery.md` 第五节与装配第 4 步、`stage-mvu.md` 退出四句同步。
+- `tavern-helper.md` 第九节加「三个脚本库」表：全局存插件设置、**角色脚本存这张卡的
+  `data.extensions.tavern_helper`**（`writeExtensionField`）、预设存预设里；导入目标由你点哪一栏的
+  导入决定（`Toolbar.vue` 的 `handleImport(target, …)`）。
+- `validate-contract.py` 新增 **C17**：交付了酒馆助手脚本、而 `导入说明.txt` 没提「角色脚本」
+  → 直接判失败。
+- `check_st_facts.py` 加 TH-12 三处锚点（`Toolbar.vue:84`、`character.ts:34`/`:47`）。
+- 示例包与测试内夹具同步；`tests/test_import_package.py` 加 3 个（骨架与示例必须点名、
+  缺「角色脚本」时 C17 拦得住）。
+
+真机验证（极寒末日）：脚本从全局搬进角色脚本后，重载页面 → 卡内 `data.extensions.tavern_helper`
+里两条都在且 `enabled: true`、`script.enabled.characters` 含该头像；进聊天后两条脚本 iframe
+（`TH-script--MVU--…` / `TH-script--ZOD--…`）都在跑，顶层 `window.Mvu` 是 object。
+
 ## 1.4.4 — 2026-11-22
 
 **入口按钮点了没人回。** 玩家点开局面板的入口，消息确实进了聊天，模型却一句话不接，

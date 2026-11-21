@@ -191,13 +191,23 @@ getScriptName() / getScriptInfo() / replaceScriptInfo(text)
 getAllEnabledScriptButtons()  // {script_id: [{button_id, button_name}]}
 ```
 
-**装了不等于跑了**：脚本开关在 `extension_settings.tavern_helper.script.enabled.{global, presets[], characters[]}`（设置字段名 `tavern_helper`，**TH-07**）。卡包自带脚本时，`script.enabled.characters` 里没有这张卡就不会执行——这是「数值系统一动不动」的第一嫌疑。
+**三个脚本库，别选错**（导入目标 = 你点的是哪一栏的导入按钮，`src/panel/script/Toolbar.vue:85` 的 `handleImport(target, files)`）：
+
+| 栏 | 存在哪 | 谁在跑 | 什么时候用 |
+|---|---|---|---|
+| 全局脚本 | 插件设置 `settings.script.scripts` | **所有卡** | 通用工具（与某张卡无关） |
+| 角色脚本 | 这张卡的 `data.extensions.tavern_helper`（`src/store/settings/character.ts:34` / `:47` 的 `writeExtensionField`） | 只有这张卡 | **卡包交付的 MVU / 分档控制器一律放这里** |
+| 预设脚本 | 当前预设里 | 用这套预设的聊天 | 与预设绑定的玩法 |
+
+交付的脚本放进全局，换张卡也在跑同一套变量逻辑——两张卡一起开就是互相污染。
+
+**装了不等于跑了**：脚本开关在 `extension_settings.tavern_helper.script.enabled.{global, presets[], characters[]}`（设置字段名 `tavern_helper`，**TH-07**）。角色脚本这一栏的总开关就是 `enabled.characters` 里有没有这张卡的头像。
 
 **导入的脚本默认是关的**（TH-11）：`src/panel/script/Toolbar.vue:94` 在解析文件后直接 `script_tree.enabled = false;`，下一行还把 `id` 换成新的 uuid（`:95`）。所以「成功导入脚本」这个提示不等于它在跑：
 
 - 单脚本 → 导入后在脚本库里把那条打开；
 - 文件夹（`{type:'folder', scripts:[…]}`）→ **文件夹本身**是关的，`enabled` 过滤发生在文件夹这一层（`src/store/scripts.ts:86`：`.filter(item => item.enabled)`），里面的子脚本各自的 `enabled` 只在文件夹打开后才起作用；
-- 导入目标同样三选一：全局 / 角色 / 预设���选「角色」才跟这张卡绑定。
+- 导入目标同样三选一：全局 / 角色 / 预设；**卡包交付的脚本选「角色」**，选完还要打开「角色脚本」栏的总开关。
 
 `id` 被重生成意味着**不能靠 id 判断是不是同一份脚本**；同一份内容导入两次会得到两条独立脚本，两条都开就会跑两遍。
 

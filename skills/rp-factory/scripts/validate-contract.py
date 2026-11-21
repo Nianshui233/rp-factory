@@ -376,6 +376,14 @@ def check_output_dirs(c, root):
     if not slots.get('guide'):
         fail('C15', '酒馆路线缺 `导入说明.txt`（四个默认关着的开关全靠它写清）')
 
+    # C17 脚本要导进「角色脚本」那一栏，不是全局：全局的存在插件设置里，换张卡照跑
+    if slots.get('script'):
+        for name in slots.get('guide', [])[:1]:
+            text = (out / name).read_text(encoding='utf-8', errors='replace')
+            if '角色脚本' not in text:
+                fail('C17', f'`{name}` 没写「角色脚本」：脚本会被按全局导入，换张卡也在跑同一套变量逻辑'
+                            '（tavern-helper.md 第九节的三个库）')
+
     fronts = slots.get('frontend', [])
     for name in slots.get('regex', [])[:1]:
         try:
