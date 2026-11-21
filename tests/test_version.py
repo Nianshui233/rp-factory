@@ -15,7 +15,8 @@ SKILL = ROOT / "SKILL.md"
 CHANGELOG = REPO / "CHANGELOG.md"
 RUN_CHECKS = ROOT / "scripts" / "run_checks.sh"
 
-VERSION_RE = re.compile(r"^\d+\.\d+\.\d{2}$")
+# 三位 x.y.z，不带前导零：npm 会把 1.3.00 归一成 1.3.0，且 1.3.09 与 1.3.9 会撞成同一版
+VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
 
 def _frontmatter(text: str) -> str:
@@ -40,7 +41,7 @@ class TestVersion(unittest.TestCase):
     def test_skill_declares_version(self):
         self.assertTrue(skill_version(), "SKILL.md frontmatter 缺 metadata.version")
 
-    def test_version_format_is_x_y_zz(self):
+    def test_version_format_is_x_y_z(self):
         self.assertRegex(skill_version(), VERSION_RE)
 
     def test_changelog_matches_skill(self):

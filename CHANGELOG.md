@@ -3,7 +3,18 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
-## 1.3.00 — 2026-11-21
+## 1.3.1 — 2026-11-21
+
+发布到 npm 的收尾：
+
+- **版本号统一三位 `x.y.z`**。之前用 `1.3.00`，npm 会归一成 `1.3.0`（发布时告警
+  `"version" was cleaned`），而 `1.3.09` 和 `1.3.9` 会撞成同一个版本——从此不再带前导零。
+- `package.json` 加 `publishConfig.registry`，指向 `https://registry.npmjs.org/`：
+  本机全局 registry 是淘宝镜像（只读），不写死会在发布时报错。
+- 首次发布在 npm 上留下了 `0.0.0-stage` 占位版（分阶段发布机制的产物），
+  内容为空；真正的版本是 1.3.1。
+
+## 1.3.0 — 2026-11-21
 
 **仓库变成多宿主包：Claude Code / Codex / DSH / Pi 四家都能"一条命令装、宿主自己发现更新"。**
 
