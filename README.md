@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.4.1-blue?style=flat" alt="version" />
-  <img src="https://img.shields.io/badge/tests-255%20passing-brightgreen?style=flat" alt="tests" />
+  <img src="https://img.shields.io/badge/tests-260%20passing-brightgreen?style=flat" alt="tests" />
   <img src="https://img.shields.io/badge/gates-14-8A2BE2?style=flat" alt="gates" />
   <img src="https://img.shields.io/badge/stages-9-ff69b4?style=flat" alt="stages" />
   <img src="https://img.shields.io/badge/SillyTavern-1.19.0-4EAA25?style=flat" alt="SillyTavern" />
@@ -127,7 +127,7 @@ MIT 精神的自用工具，无担保。**它不能替你保证「好玩」**—
 | --- | ---: | --- |
 | 阶段 | 9 个 | `world` / `cast` / `scenes` / `axes` / `mvu` / `ejs` / `opening` / `statusbar` / `delivery` |
 | 硬门 | 14 道 | 从开工门到自创字段门，编号 0–13，判据只写在 `references/pipeline.md` |
-| 参考页 | 23 份 | 阶段做法、契约规范、ST 语义事实、世界书引擎、酒馆助手接口、验收、试演、去 AI 味 |
+| 参考页 | 26 份 | 阶段做法、契约规范、ST 语义事实、世界书引擎、酒馆助手接口、验收、试演、去 AI 味 |
 | 骨架 | 24 份 | 契约 + 四类设定 + MVU 五件 + 三个界面（含会写变量的控制中心）+ 交付四件 + 导入说明 + 世界书切割计划，填完即交付 |
 | 校验器 | 9 个 + 1 个总检 | 结构、语义、前端、变量、EJS、验收账本；`check-stage.py` 按阶段自动挑 |
 | 断言 | 责任分散但**可数** | `C01–C17` / `R00–R07` / `W00–W16` / `X01–X07` / `S-01–S-30+S-M1–M3` / `TH-01–TH-11` / `F01–F21` / `P01–P09` / `A00–A06` |

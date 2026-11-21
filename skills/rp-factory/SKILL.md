@@ -125,24 +125,24 @@ disable-model-invocation: true
 | `references/acceptance.md` | 六层证据、谁能签哪一层、账本格式 |
 | `references/decisions.md` | 四态（confirmed / proposed / pending / rejected）、缺口三级、未答≠委托 |
 | `references/worldbook-writing.md` | 世界书条目文本契约：句子功能、五档强度、知识度数、语义不变量 |
-| `references/dual-mode.md` | 两种模态的对照、切换、渲染与注释剥离 |
+| `references/dual-mode.md` · `takeover.md` | 两种模态的对照与切换；接手别人的卡（取证、拆分、五条不破坏） |
 | `references/st-correctness.md` | ST 语义事实（S 系列），每条带源码锚点 |
 | `references/tavern-helper.md` | 酒馆助手 4.12.1 接口：渲染链路、iframe 全局、变量/消息/事件 |
-| `references/frontend-conventions.md` · `frontend-interaction.md` | 表现层机制、HTML 骨架、正则 JSON、提示词条目、前端门；交互联动（四栅声明 / 三形态 / 写回五步） |
+| `references/frontend-conventions.md` · `frontend-interaction.md` | 表现层机制、HTML 骨架、正则、提示词条目、前端门；交互（四栅声明 / 三形态 / 写回五步） |
 | `references/frontend-design.md` | 界面设计：推色法、风格配方、版式原型、字体、动效、AI 味 |
 | `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 `world` / `cast` / `scenes` / `axes` |
 | `references/stage-mvu.md` | 阶段 `mvu`：轴 → zod / `[initvar]` / 三条更新条目 / 两条隐藏正则 / 卡内脚本 |
 | `references/stage-ejs.md` | 阶段 `ejs`：分档控制器 + 被控条目 |
 | `references/stage-5-opening-ui.md` | 阶段 `opening` 开局前端（登场面板 / 建卡向导两形态） |
 | `references/stage-6-statusbar-ui.md` | 阶段 `statusbar` 状态栏前端（有 MVU 走变量、没有走标签；只读，写数据归控制中心） |
-| `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 `delivery` 交付：两条路线、世界书切法、卡字段、导入四步；调优看 tuning · `worldbook-engine.md` |
+| `references/stage-7-delivery.md` + `worldbook-tuning.md` | 阶段 `delivery`：两条路线、世界书切法、卡字段、导入四步；调优见 tuning · `worldbook-engine.md` |
 | `templates/*.yaml` | 契约 + 四份产物 + 项目档案（归 `制作文件/`） |
 | `templates/*.html` / `regex-frontend.json` / `frontend-prompt.yaml` / `import-guide.txt` | 界面（含会写变量的 `control-center.html`）、正则（替换为待粘占位）、提示词条目、导入说明 |
 | `templates/mvu-schema.js` / `mvu-initvar.yaml` / `mvu-entries.yaml` / `regex-mvu.json` / `tavern-script.json` / `ejs-controller.ejs` | 变量系统的五份骨架 + 分档控制器 |
 | `scripts/check-stage.py` | 阶段收尾一检：按阶段调下面的校验器 |
 | `scripts/cut-worldbook.py` · `templates/worldbook-plan.yaml` | 世界书按原稿整节切（不摘要不润色），plan 只写选择 |
 | `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py`（F01–F21） · `validate-mvu.py` · `validate-ejs.py` · `validate_st_semantics.py` | 交付骨架（卡 / 正则 / 世界书 / 脚本）+ 七个校验器 |
-| `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（用户点头后跑） |
+| `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收 |
 | `scripts/check_prose.py` | P01–P09 去 AI 味（解释腔 / 情绪直说 / 陈词比喻 / 模板标签 / 绝对化失衡） |
 | `check_st_facts.py` · `measure_load.py` | 复核源码锚点、量加载预算（单测在仓库 `tests/`） |
 
