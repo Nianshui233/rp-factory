@@ -1,7 +1,7 @@
 ---
 name: rp-factory
 metadata:
-  version: 1.4.8
+  version: 1.4.9
 description: 把 RP 构想编译成世界观、角色/NPC、场景、数值系统四类 YAML 设定产物，跨产物命名与硬设定保持一致；可选把数值投影成酒馆变量系统（MVU 的 zod 结构 + 初始化 + 更新条目）与按数值切换的分档控制器（EJS），可选再产开局界面与状态栏两种酒馆前端（正则 + HTML），整条流程跑完可再打一个能直接导入 SillyTavern 的包（角色卡 JSON + 世界书 JSON + 正则）。支持粘贴用提示词条目与工程文件两种交付。仅在用户显式输入 /skill:rp-factory 时执行，不参与自然语言自动匹配。
 disable-model-invocation: true
 ---

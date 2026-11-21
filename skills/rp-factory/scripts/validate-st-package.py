@@ -259,6 +259,37 @@ def _matches(pattern: str, text: str) -> bool:
 
 # ---------------------------------------------------------------- 卡片（纯净）
 
+OPENING_HOOK = ("你刚", "你站在", "你走进", "你推", "你坐", "你把", "你抬", "你听", "你看着", "你正要")
+
+
+def check_card_field_split(card_data: dict, rep) -> None:
+    """X09–X11：卡里三个字段各管一段，混装会让玩家看到错的东西。"""
+    desc = str(card_data.get("description") or "")
+    first = str(card_data.get("first_mes") or "")
+    alts = card_data.get("alternate_greetings") or []
+
+    # X09 描述结尾像开场白：总设定不该以「你…」的场景动作收尾
+    tail = desc[-240:]
+    hits = [w for w in OPENING_HOOK if w in tail]
+    if hits:
+        rep.warn("X09", f"`description` 结尾像开场白（命中 {'、'.join(hits[:3])}）：总设定写世界与规则，"
+                        f"「你…」的场景动作属于 `alternate_greetings`")
+
+    # X10 做了面板却没有文字开场白：玩家只能靠入口按钮起头
+    if "<开局界面>" in first and not alts:
+        rep.warn("X10", "卡里做了开局面板，但 `alternate_greetings` 是空的：面板只有入口按钮，"
+                        "想要散文开场就补 2–3 条（每条末尾加 `<StatusPlaceHolderImpl/>` 带状态栏）")
+
+    # X11 面板数据块混进开场白
+    bad = [i for i, g in enumerate(alts) if "<开局界面>" in str(g)]
+    if bad:
+        rep.fail("X11", f"`alternate_greetings` 第 {bad} 条里有 `<开局界面>` 面板数据块：那是 `first_mes` 的位置，"
+                        f"开场白应是散文")
+
+    if not hits and not (("<开局界面>" in first) and not alts) and not bad:
+        rep.ok("X09", "description 是总设定、开场白在各自字段里")
+
+
 def validate_mvu_panel(script_list, rep):
     """核对最终发布的 AI 显示规则和替换后的内联脚本。"""
     marker = "<StatusPlaceHolderImpl/>"
@@ -862,6 +893,7 @@ def main(argv: list[str]) -> int:
 
     data = validate_card(card, card_path, book_path, rep)
     check_first_mes_ui(data, rep)
+    check_card_field_split(data, rep)
     stages = (contract or {}).get("stages") or ((contract or {}).get("project") or {}).get("stages") or {}
     mvu_done = str(stages.get("mvu", "")) == "done"
     entry_count = validate_worldbook(book, book_path, rep, mvu_done) if book else 0

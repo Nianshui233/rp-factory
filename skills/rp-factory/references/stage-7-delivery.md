@@ -66,15 +66,14 @@
 | 字段 | 写什么 |
 |---|---|
 | `name` / `data.name` | `st_name` |
-| `description` / `data.description` | 世界骨架：一句话世界 + 怎么玩 + `世界怎么运转` 的 AI 职责与自发动静 + 红线（`变更边界.硬设定`）+ **住户索引**（每人一行：名字·住处·身份·命门）+ **地点索引**（每地一行）+ **两轴读法**（轴名、范围、初始、每级一句话）+ 结尾一句"以上是设定，不是示例对话" |
-| `personality` / `scenario` / `mes_example` | 留空——内容在 `description` 与世界书里，重复写只是翻倍占 token |
-| `first_mes` / `data.first_mes` | 见上表三条规则 |
-| `creator_notes` | 装配步骤（见第六节）+ 全局设置推荐 + 版本 + `RP-Factory` |
-| `system_prompt` | 项目档案「本文档对AI的核心指令」原文（`hard_settings` 里那条） |
-| `post_history_instructions` | 留空 |
-| `alternate_greetings` | `[]`；用户要备用开场才写 |
-| `tags` / `data.tags` | 类型、基调、`rating` 各一个 |
-| `creator` / `character_version` | `"RP-Factory"` / `"1.0"`（改一次设定加 0.1） |
+| `description` / `data.description` | **总设定**（不是开场白）：一句话世界 + 怎么玩 + 世界怎么运转 + 硬设定 + **住户索引**（每人一行：名字·住处·身份·命门）+ **地点索引**（每地一行）+ **两轴读法**（轴名、范围、初始、每级一句话）+ 结尾一句"以上是设定，不是示例对话"。2–5k 字都该写；**不出现"你…"的场景动作**，那是开场白 |
+| `personality` / `scenario` / `mes_example` / `post_history_instructions` | 留空（内容在 `description` 与世界书里） |
+| `first_mes` / `data.first_mes` | 见上表三条规则。做面板时它**只放 `<开局界面>` 数据块**，不放散文；散文开场白去 `alternate_greetings` |
+| `creator_notes` | 装配步骤（第六节）+ 全局设置 + 版本 + `RP-Factory` |
+| `system_prompt` | 项目档案「本文档对AI的核心指令」（`hard_settings` 那条） |
+| `alternate_greetings` | **文字开场白**（2–3 条）：每条一整段可独立开局的散文，末尾加 `<StatusPlaceHolderImpl/>` 带上状态栏。不做面板时它就是唯一开场白；**面板数据块不在这儿**（那归 `first_mes`） |
+| `tags` / `data.tags` | 类型、基调、`rating` |
+| `creator` / `character_version` | `"RP-Factory"` / `"1.0"`（改设定加 0.1） |
 | `spec` / `spec_version` | `"chara_card_v2"` / `"2.0"` |
 | `data.extensions.world` | `<世界名> 世界书`——与书名逐字一致 |
 | `data.extensions.regex_scripts` | `[]`（正则单独一份） |

@@ -340,3 +340,46 @@ class TestFirstMesUi(unittest.TestCase):
             run = subprocess.run([sys.executable, str(PACKAGE_SCRIPT), str(EXAMPLE / "导入包")],
                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertNotIn("X08", run.stdout or "")
+
+class TestCardFieldSplit(unittest.TestCase):
+    """X09–X11：description 是总设定、first_mes 是面板、alternate_greetings 是散文开场白。"""
+
+    def _run(self, card_patch):
+        with tempfile.TemporaryDirectory() as td:
+            proj = pathlib.Path(td) / "p"
+            (proj / "制作文件" / "项目记录").mkdir(parents=True)
+            (proj / "导入包").mkdir(parents=True)
+            shutil.copy(EXAMPLE / "制作文件" / "项目记录" / "contract.yaml",
+                        proj / "制作文件" / "项目记录" / "contract.yaml")
+            for name in ("白潮 世界书.json", "正则.json", "白潮 酒馆助手脚本.json",
+                         "白潮 开局前端.html", "白潮 状态栏.html", "导入说明.txt"):
+                shutil.copy(EXAMPLE / "导入包" / name, proj / "导入包" / name)
+            card = json.loads((EXAMPLE / "导入包" / "白潮（纯净）.json").read_text(encoding="utf-8"))
+            card["data"].update(card_patch)
+            (proj / "导入包" / "白潮（纯净）.json").write_text(
+                json.dumps(card, ensure_ascii=False), encoding="utf-8")
+            return subprocess.run([sys.executable, str(PACKAGE_SCRIPT), str(proj / "导入包")],
+                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+    def test_描述结尾是场景动作会警告(self):
+        run = self._run({"description": NL.join(["世界设定若干。" * 20, "你把编号牌推进窗口，排在最后一批。"])})
+        self.assertIn("X09", run.stdout or "")
+
+    def test_有面板却没开场白会警告(self):
+        run = self._run({"first_mes": NL.join(["<开局界面>", "<标题>x</标题>", "</开局界面>"]),
+                         "alternate_greetings": []})
+        self.assertIn("X10", run.stdout or "")
+
+    def test_面板塞进开场白会失败(self):
+        run = self._run({"alternate_greetings": ["散文开场。", NL.join(["<开局界面>", "<标题>x</标题>", "</开局界面>"])]})
+        self.assertIn("] X11", run.stdout or "")
+
+    def test_分好字段就不报(self):
+        run = self._run({
+            "description": NL.join(["世界设定若干。" * 20, "以上是设定，不是示例对话。"]),
+            "first_mes": NL.join(["<开局界面>", "<标题>x</标题>", "</开局界面>"]),
+            "alternate_greetings": ["配给窗口前的队伍排到门外。<StatusPlaceHolderImpl/>"],
+        })
+        for code in ("X09", "X10", "X11"):
+            self.assertNotIn("[ FAIL ] " + code, run.stdout or "")
+            self.assertNotIn("[ warn] " + code, run.stdout or "")
