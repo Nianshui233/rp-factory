@@ -4,8 +4,10 @@
 __pycache__/
 *.pyc
 node_modules/
-package.json
 package-lock.json
+
+# 打的宿主包产物（用 scripts/build-dsh-plugin.py 生成）
+dist/
 
 # 开发资料：计划 / 复盘 / 规格 / 覆盖清单只在本地，不进仓库也不进 skill
 docs/

@@ -13,8 +13,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "build-skill.py"
+REPO = Path(__file__).resolve().parents[1]
+SKILL = REPO / "skills" / "rp-factory"
+ROOT = SKILL
+SCRIPT = REPO / "scripts" / "build-skill.py"
 
 
 def _load():
@@ -38,13 +40,16 @@ def _doc_texts():
 
 class TestWhitelist(unittest.TestCase):
     def test_excludes_dev_material(self):
-        files = BUILD.collect(ROOT)
+        files = BUILD.collect(SKILL)
         bad = [rel for rel in files
                if rel.split("/")[0] in {"docs", "tests", "node_modules", ".git", ".superpowers"}]
         self.assertEqual(bad, [])
+        # 开发物在仓库根，不在 skill 根本身——skill 根只有这五样
+        self.assertEqual(sorted(p.name for p in SKILL.iterdir()),
+                         ["SKILL.md", "examples", "references", "scripts", "templates"])
 
     def test_includes_runtime_material(self):
-        files = BUILD.collect(ROOT)
+        files = BUILD.collect(SKILL)
         self.assertIn("SKILL.md", files)
         self.assertIn("references/pipeline.md", files)
         self.assertIn("templates/contract.yaml", files)
@@ -52,18 +57,18 @@ class TestWhitelist(unittest.TestCase):
         self.assertIn("examples/rolecard-minimal.yaml", files)
 
     def test_no_pycache(self):
-        files = BUILD.collect(ROOT)
+        files = BUILD.collect(SKILL)
         self.assertEqual([r for r in files if "__pycache__" in r or r.endswith(".pyc")], [])
 
     def test_dry_run_examples_not_shipped(self):
         """示例包是给人看的验收示范，1.6 MB，不进 skill。"""
-        files = BUILD.collect(ROOT)
+        files = BUILD.collect(SKILL)
         self.assertEqual([r for r in files if r.startswith("examples/") and r.endswith(".md")], [])
 
 
 class TestReferencedFilesExist(unittest.TestCase):
     def test_every_path_mentioned_in_docs_is_shipped(self):
-        files = BUILD.collect(ROOT)
+        files = BUILD.collect(SKILL)
         missing = []
         for doc in _doc_texts():
             for ref in PATH_RE.findall(doc.read_text(encoding="utf-8")):

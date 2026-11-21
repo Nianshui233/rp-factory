@@ -1,0 +1,39 @@
+{
+  "name": "rp-factory-dsh",
+  "private": true,
+  "description": "RP-Factory for DeepSeek Harness: registers the bundled rp-factory skill as a DSH skill provider.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "skills/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "dsh": ">=0.2.1-rc.2 <0.3.0"
+  },
+  "keywords": [
+    "rp-factory",
+    "sillytavern",
+    "rolecard",
+    "deepseek-harness",
+    "dsh-plugin",
+    "agent-skills"
+  ],
+  "author": {
+    "name": "Nianshui233"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Nianshui233/rp-factory",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nianshui233/rp-factory.git",
+    "directory": "host-adapters/dsh/plugin"
+  },
+  "version": "1.3.00"
+}

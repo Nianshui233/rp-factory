@@ -5,7 +5,7 @@ import importlib.util
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "validate-contract.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory" / "scripts" / "validate-contract.py"
 
 
 def _load():

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# 一键全检：包自身的不变量 + 加载预算（+ 给了创作目录时的产物校验）。
+# 一键全检：加载预算（+ 给了创作目录时的产物校验）。
+# 单元测试不在这一份里：它们属于仓库（tests/），跑仓库用 scripts/check-all.sh。
 #
 #   bash scripts/run_checks.sh                 # 只查包自身
 #   bash scripts/run_checks.sh 某创作目录       # 再查该目录里的契约/三件/语义/验收
@@ -27,7 +28,6 @@ run() {
   fi
 }
 
-run "包结构不变量 + 单元测试" "$PY" -X utf8 -m unittest discover -s tests -t . -q
 run "加载预算" "$PY" -X utf8 scripts/measure_load.py
 
 if [ "$#" -ge 1 ]; then

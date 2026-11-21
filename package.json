@@ -1,0 +1,48 @@
+{
+  "name": "rp-factory",
+  "version": "1.3.00",
+  "description": "把 RP 构想编译成世界观、角色/NPC、场景、数值系统四类 YAML 设定产物，可选投影成酒馆变量系统与前端，最后打成能直接导入 SillyTavern 的包。",
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "Nianshui233"
+  },
+  "homepage": "https://github.com/Nianshui233/rp-factory#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nianshui233/rp-factory.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nianshui233/rp-factory/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "agent-skill",
+    "agent-skills",
+    "claude-code-plugin",
+    "codex-plugin",
+    "dsh-plugin",
+    "sillytavern",
+    "rolecard",
+    "worldbook",
+    "mvu"
+  ],
+  "files": [
+    "skills/rp-factory/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "skills": [
+      "./skills/rp-factory"
+    ]
+  },
+  "scripts": {
+    "check": "bash scripts/check-all.sh",
+    "build:skill": "python scripts/build-skill.py"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.18.1"
+  }
+}

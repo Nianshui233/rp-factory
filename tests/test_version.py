@@ -8,9 +8,11 @@ import re
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+SKILL_DIR = Path(__file__).resolve().parents[1] / "skills" / "rp-factory"
+REPO = Path(__file__).resolve().parents[1]
+ROOT = SKILL_DIR
 SKILL = ROOT / "SKILL.md"
-CHANGELOG = ROOT / "CHANGELOG.md"
+CHANGELOG = REPO / "CHANGELOG.md"
 RUN_CHECKS = ROOT / "scripts" / "run_checks.sh"
 
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d{2}$")

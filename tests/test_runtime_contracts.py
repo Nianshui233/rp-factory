@@ -10,7 +10,7 @@ import unittest
 import yaml
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory"
 EXAMPLE = ROOT / "examples/dry-run-盐湖守夜人"
 TRACE = EXAMPLE / "制作文件"
 ASSETS = TRACE / "产物"

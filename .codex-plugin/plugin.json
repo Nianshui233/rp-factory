@@ -1,0 +1,33 @@
+{
+  "name": "rp-factory",
+  "version": "1.3.00",
+  "description": "把 RP 构想编译成世界观、角色/NPC、场景、数值系统四类 YAML 设定产物，可选投影成酒馆变量系统与前端，最后打成能直接导入 SillyTavern 的包。",
+  "author": {
+    "name": "Nianshui233"
+  },
+  "license": "MIT",
+  "keywords": [
+    "agent-skills",
+    "sillytavern",
+    "rolecard",
+    "worldbook",
+    "rp"
+  ],
+  "skills": "./skills/rp-factory/",
+  "interface": {
+    "displayName": "RP-Factory",
+    "shortDescription": "把 RP 构想编译成能导入 SillyTavern 的包",
+    "longDescription": "把 RP 构想编译成世界观、角色/NPC、场景、数值系统四类 YAML 设定产物，可选投影成酒馆变量系统与前端，最后打成能直接导入 SillyTavern 的包。每个阶段有判据、有校验器、有源码锚点；产物是四类 YAML 加一个能导入的包。",
+    "developerName": "Nianshui233",
+    "category": "Content Creation",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "我想做一个 RP 设定，先帮我定契约再逐阶段产。",
+      "写一个世界观，要求条目能挂进酒馆世界书。",
+      "把我这个爱情公寓同人做成能导入 SillyTavern 的包。"
+    ]
+  }
+}

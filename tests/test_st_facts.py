@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "check_st_facts.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory" / "scripts" / "check_st_facts.py"
 
 
 def _load():

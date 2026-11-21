@@ -10,7 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "validate-frontend.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory" / "scripts" / "validate-frontend.py"
 
 
 def _load():
@@ -109,7 +109,7 @@ class TestRealTemplates(unittest.TestCase):
     """仓库自带模板不许被新规则打脸（否则规则就是噪音）。"""
 
     def test_模板无新增警告(self):
-        root = Path(__file__).resolve().parents[1] / "templates"
+        root = Path(__file__).resolve().parents[1] / "skills" / "rp-factory" / "templates"
         files = sorted(root.glob("*.html"))
         self.assertTrue(files, "templates/ 下应有前端模板")
         for f in files:

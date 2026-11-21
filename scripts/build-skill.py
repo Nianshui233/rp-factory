@@ -22,7 +22,8 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[1]
+SKILL = REPO / "skills" / "rp-factory"
 
 # 进 skill 的东西，白名单制——新增产物目录时必须来这一行登记，
 # 否则模型看不到它（`tests/test_build_skill.py` 会检查引用完整性）。
@@ -143,7 +144,7 @@ def main(argv=None) -> int:
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)
 
-    files = collect(ROOT)
+    files = collect(SKILL)
     if "SKILL.md" not in files:
         print("找不到 SKILL.md，仓库结构不对")
         return 2

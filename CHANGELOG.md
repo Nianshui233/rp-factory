@@ -3,6 +3,36 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.3.00 — 2026-11-21
+
+**仓库变成多宿主包：Claude Code / Codex / DSH / Pi 四家都能"一条命令装、宿主自己发现更新"。**
+
+skill 本体挪进 `skills/rp-factory/`，仓库根只放清单与工具。这是破坏性改动（脚本路径全变），
+换来的是四家宿主原生的目录约定——它们默认都去 `skills/<name>/SKILL.md` 找 skill，
+只有搬进子目录才不用给每家用一套私有指法。
+
+- **目录**：`SKILL.md` / `references/` / `templates/` / `scripts/` / `examples/` → `skills/rp-factory/`；
+  仓库根新增 `scripts/`（构建与发版工具）、`host-adapters/dsh/`、四份宿主清单、`LICENSE`（MIT）。
+- **Claude Code**：`.claude-plugin/{plugin,marketplace}.json`。`plugin.json` 的 `skills: ["."]`
+  表示"插件根就是 skill 目录"；市场清单用**相对路径** `"./"`，于是市场仓库就是插件仓库，
+  安装不必再 clone 一次。实测 `claude plugin install rp-factory@rp-factory` → `plugin details`
+  显示 `Skills (1) rp-factory`。
+- **Codex**：`.codex-plugin/plugin.json`（`skills: "./skills/rp-factory/"`）+ 仓库级市场
+  `.agents/plugins/marketplace.json`（`source: {source:"local", path:"./"}`）。实测
+  `codex plugin marketplace add` + `codex plugin add rp-factory@rp-factory` → `installed, enabled 1.3.00`。
+- **DSH**：`host-adapters/dsh/plugin/index.js` 注册一个 skill provider（`rank: 600`，目录当资源基），
+  `scripts/build-dsh-plugin.py` 打 `.tgz`（内含一份 skill 副本 + 冒烟测试）。实测插件模块：
+  `loadSkillCatalog` 读出 1 条 skill、`modelInvocable: false`（照 SKILL.md 的 `disable-model-invocation`）。
+- **Pi**：`package.json` 的 `pi.skills: ["./skills/rp-factory"]` + `pi-package` 关键字。
+  实测 `pi install ./` 写入用户包列表。
+- **npm**：`package.json` 补齐 name/version/license/author/repository/keywords/files，
+  `files` 只含 `skills/rp-factory/`（发布后 `npm install -g` 与 `pi install npm:rp-factory` 都可用）。
+- **版本一处真相**：`scripts/sync-manifests.py` 从 SKILL.md 的 `metadata.version` 写进五处清单，
+  `--check` 比对漂移；`tests/test_manifests.py`（13 个）把"版本不一致"变成红的。
+- **构建**：`scripts/build-skill.py` 从 `skills/rp-factory/` 取源；仓库级 `scripts/check-all.sh`
+  串起「单元测试 → 清单一致 → 构建同步 → 加载预算」。
+- `run_checks.sh` 不再跑单元测试（那是仓库的事，skill 里没有 `tests/`）。
+
 ## 1.2.04 — 2026-11-21
 
 **skill 目录不再等于仓库：新增 `scripts/build-skill.py`。**

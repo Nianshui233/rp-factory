@@ -10,7 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory"
 SCRIPT = ROOT / "scripts" / "validate-contract.py"
 EXAMPLE = ROOT / "examples/dry-run-盐湖守夜人"
 

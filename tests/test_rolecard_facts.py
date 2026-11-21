@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "validate-rolecard.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory" / "scripts" / "validate-rolecard.py"
 
 
 def _load():

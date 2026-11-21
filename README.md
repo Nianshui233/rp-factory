@@ -1,11 +1,12 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.1.00-blue?style=flat" alt="version" />
-  <img src="https://img.shields.io/badge/tests-161%20passing-brightgreen?style=flat" alt="tests" />
+  <img src="https://img.shields.io/badge/version-1.3.00-blue?style=flat" alt="version" />
+  <img src="https://img.shields.io/badge/tests-218%20passing-brightgreen?style=flat" alt="tests" />
   <img src="https://img.shields.io/badge/gates-14-8A2BE2?style=flat" alt="gates" />
   <img src="https://img.shields.io/badge/stages-9-ff69b4?style=flat" alt="stages" />
   <img src="https://img.shields.io/badge/SillyTavern-1.19.0-4EAA25?style=flat" alt="SillyTavern" />
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white" alt="python" />
-  <img src="https://img.shields.io/badge/format-Agent%20Skill-000000?style=flat" alt="skill" />
+  <img src="https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20DSH%20%C2%B7%20Pi-000000?style=flat" alt="hosts" />
+  <img src="https://img.shields.io/badge/license-MIT-yellow?style=flat" alt="license" />
 </p>
 
 <p align="center">
@@ -13,9 +14,51 @@
 </p>
 
 > [!WARNING]
-> **只从这一个仓库安装。** RP-Factory 是自用工具，没有 npm 包、没有市场条目、没有多语言镜像站。任何第三方转存、二次打包的副本都与本仓库无关，作者不审阅、不维护。安装方式只有一条：跑仓库里的 `scripts/build-skill.py`，它把运行时要用的 70 个文件拷进 skill 目录。
+> **只从这一个仓库安装。** 官方渠道只有四个：本仓库的插件市场（Claude Code / Codex）、本仓库打出的 DSH 插件包、npm 上的 `rp-factory`、以及仓库里的 `scripts/build-skill.py`。任何第三方转存、二次打包、镜像站的副本都与本仓库无关，作者不审阅、不维护。
 
-## 装到 Pi
+## 安装
+
+四个宿主都是一条命令，装完都由宿主管更新（它们比清单里的 `version`，不一致才换文件）。
+
+### Claude Code
+
+```bash
+claude plugin marketplace add Nianshui233/rp-factory
+claude plugin install rp-factory@rp-factory
+```
+
+会话里 `claude plugin details rp-factory` 能看到 `Skills (1) rp-factory`。更新：`claude plugin update rp-factory`，
+或在 `/plugin` 里给这个市场打开 auto-update（默认关）。
+
+### Codex
+
+```bash
+codex plugin marketplace add Nianshui233/rp-factory
+codex plugin add rp-factory@rp-factory
+```
+
+`codex plugin list` 里应显示 `installed, enabled`。更新：`codex plugin marketplace upgrade` 后 `codex plugin add` 一次。
+
+### DeepSeek Harness
+
+```bash
+python scripts/build-dsh-plugin.py     # 出 dist/rp-factory-dsh-v<版本>.tgz
+dsh plugin --profile <profile> add dist/rp-factory-dsh-v<版本>.tgz
+```
+
+桌面版：侧栏 **插件 → 添加第三方插件 → 安装第三方插件**，填这个 `.tgz`。
+（`dsh plugin` 只是把参数转给该 profile 下的 pnpm，所以 tarball、git 地址、包名都能填。）
+
+### Pi
+
+```bash
+npm install -g rp-factory      # 或者 pi install git:github.com/Nianshui233/rp-factory
+pi install npm:rp-factory
+```
+
+更新：`pi update --extensions`。
+
+### 不用插件：直接构建一份
 
 ```bash
 git clone https://github.com/Nianshui233/rp-factory
@@ -38,9 +81,32 @@ python scripts/build-skill.py --check    # 改完仓库后：看 skill 有没有
 </details>
 
 <details>
-<summary><strong>为什么不直接 junction 指向仓库</strong></summary>
+<summary><strong>仓库长什么样（为什么 skill 在子目录里）</strong></summary>
 
-junction 更省事（改完立刻生效），但仓库里有 `tests/`、`node_modules/`、`.git/`——这些是开发物，不该出现在 skill 目录里。构建脚本把它们挡在外面，代价是每次改完仓库要重跑一次 `build-skill.py`（`--check` 能告诉你忘没忘）。
+```text
+rp-factory/
+├── skills/rp-factory/          # skill 本体：SKILL.md + references/ + templates/ + scripts/ + examples/
+├── .claude-plugin/             # Claude Code 市场与插件清单（skills: ["."] 指向插件根）
+├── .codex-plugin/              # Codex 插件清单（skills: ./skills/rp-factory/）
+├── .agents/plugins/            # Codex 仓库级市场清单
+├── host-adapters/dsh/plugin/   # DSH 插件入口：注册 skill provider
+├── scripts/                    # 构建与发版：build-skill / sync-manifests / build-dsh-plugin / check-all
+├── tests/                      # 218 个单测（只在仓库里）
+├── package.json                # npm 元数据 + Pi 的 pi.skills
+└── LICENSE / README.md / CHANGELOG.md
+```
+
+四家宿主默认都去 `skills/<名字>/SKILL.md` 找 skill，所以本体必须住在子目录里；
+仓库根只放清单、构建工具和测试。改完仓库 → `bash scripts/check-all.sh` → 同步版本 → 提交发版。
+</details>
+
+<details>
+<summary><strong>版本号怎么走</strong></summary>
+
+真相只有一处：`skills/rp-factory/SKILL.md` 的 `metadata.version`。
+`python scripts/sync-manifests.py` 把它写进 `package.json`、`.claude-plugin/plugin.json`、
+`.codex-plugin/plugin.json`、`.agents/plugins/marketplace.json`、`host-adapters/dsh/plugin/package.json`；
+`tests/test_manifests.py` 会拦住任何一处不一致。宿主判断「有没有更新」只看这些副本，写错一处就永远收不到更新。
 </details>
 
 # RP-Factory
@@ -147,6 +213,7 @@ delivery   → 白潮（纯净）.json / 正则.json / 白潮 世界书.json
 ## 校验器
 
 九个校验器加一个阶段总检，全部只用 Python 标准库（`st-probe.js` 例外，要 `puppeteer-core`）。
+下面表格里的路径都相对 `skills/rp-factory/`。
 
 | 脚本 | 规则号 | 只查什么 |
 | --- | --- | --- |
@@ -270,6 +337,8 @@ RP-Factory 不往宿主机写任何隐藏状态：没有安装清单、没有全
 - **方法论借鉴了 TavernWeave**（证据分级、四态决策、写作契约、状态切分），但不搬它的内容、不做跨宿主打包、不做拆卡与组件库。
 
 ## 文档索引
+
+路径相对 `skills/rp-factory/`。
 
 | 文件 | 管什么 |
 | --- | --- |
