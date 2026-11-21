@@ -13,6 +13,11 @@ SKILL="$REPO/skills/rp-factory"
 PY="${PYTHON:-python}"
 cd "$REPO" || exit 1
 
+# Windows 控制台是 GBK：不指定 UTF-8 时，脚本里打印 `✗`/`—` 会 UnicodeEncodeError，
+# 于是两条本来该过的测试红掉。这里统一钉死，别依赖当前终端。
+export PYTHONIOENCODING=utf-8
+export PYTHONUTF8=1
+
 fails=0
 run() {
   local name="$1"; shift

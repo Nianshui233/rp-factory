@@ -295,6 +295,10 @@ def sniff_json(path):
             return 'regex'
         if data and all(isinstance(x, dict) and ('keys' in x or 'key' in x) for x in data):
             return 'book'
+        # 角色脚本可以直接导入一个平铺数组（插件会拆成多条），也是合法交付形状
+        if data and all(isinstance(x, dict) and x.get('type') in ('script', 'folder')
+                        and 'content' in x for x in data):
+            return 'script'
         return 'unknown'
     if isinstance(data, dict):
         spec = str(data.get('spec') or '')
@@ -383,6 +387,19 @@ def check_output_dirs(c, root):
             if '角色脚本' not in text:
                 fail('C17', f'`{name}` 没写「角色脚本」：脚本会被按全局导入，换张卡也在跑同一套变量逻辑'
                             '（tavern-helper.md 第九节的三个库）')
+
+    # C18 正则要导进「角色正则」：全局正则会在所有卡上跑，别人的 `<StatusPlaceHolderImpl/>`
+    # 也会被我们的替换串接住；代价是首次进聊天要点一次「允许」，这必须写进导入说明
+    if slots.get('regex'):
+        for name in slots.get('guide', [])[:1]:
+            text = (out / name).read_text(encoding='utf-8', errors='replace')
+            if '角色正则' not in text:
+                fail('C18', f'`{name}` 没写「角色正则」：正则会被按全局导入，在所有卡和所有聊天里生效'
+                            '（st-correctness.md 的 S-30 三目标表）')
+            elif '允许' not in text:
+                warn('C18', f'`{name}` 写了「角色正则」却没写首次要「允许角色专属正则」——'
+                            '漏点一次，正则永久静默（S-28）')
+
 
     fronts = slots.get('frontend', [])
     for name in slots.get('regex', [])[:1]:
@@ -577,6 +594,7 @@ def main():
         'C15': '导入包/ 交付前空；交付后五槽齐（卡/世界书/正则/脚本/说明）、平铺、内容与文件名对得上',
         'C16': 'player_agency 三档自洽（放宽须用户确认，delegated 须有时长）',
         'C17': '作品根下只许 制作文件/ 与 导入包/（旧布局要迁移）',
+        'C18': '导入说明点名「角色正则」与首次「允许」（S-30 / S-28）',
     }
     bad = {r for r, _ in fails}
     for r, name in rules.items():

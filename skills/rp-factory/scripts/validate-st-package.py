@@ -472,7 +472,7 @@ def check_cut_fidelity(entries: dict, draft_root: Path, rep: Report) -> None:
         rep.ok("W18", "原稿的每一节都能在书里找到")
 
 
-def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
+def validate_worldbook(book: dict, book_path: Path, rep: Report, mvu_done: bool = False) -> int:
     entries = book.get("entries")
     if not isinstance(entries, dict):
         rep.fail("W01", '顶层必须是 {"entries": {…}}——这是 native 形状；entries 数组是卡内 v2 形状，'
@@ -632,6 +632,17 @@ def validate_worldbook(book: dict, book_path: Path, rep: Report) -> int:
     if orphans:
         rep.warn("W23", f"disable 的[data]/[阶段]条目没有任何控制器取用：{orphans}——它们永远不会进上下文。"
                           "要么写进控制器的 getwi()，要么删掉")
+
+    # W25：开了 MVU 却把三件套留在 制作文件/ 里，书里一条都没有——脚本读不到初值、模型收不到更新规则
+    if mvu_done:
+        comments = [str(e.get("comment", "")).lower() for e in entries.values() if isinstance(e, dict)]
+        missing = [n for n in ("[initvar]", "[mvu_update]") if not any(n in c for c in comments)]
+        if missing:
+            rep.fail("W25", f"契约里 mvu 是 done，但世界书里找不到 {missing} 条目——"
+                            "变量初始值与更新规则必须作为条目随书交付，放在 制作文件/ 里等于没交。"
+                            "打包时加 --merge-mvu 制作文件/产物/mvu")
+        else:
+            rep.ok("W25", "MVU 条目已在书里（[initvar] + [mvu_update]）")
 
     dupes = sorted({k for k in all_keys if all_keys.count(k) > 1})
     if dupes:
@@ -842,7 +853,9 @@ def main(argv: list[str]) -> int:
             scripts = None
 
     data = validate_card(card, card_path, book_path, rep)
-    entry_count = validate_worldbook(book, book_path, rep) if book else 0
+    stages = (contract or {}).get("stages") or ((contract or {}).get("project") or {}).get("stages") or {}
+    mvu_done = str(stages.get("mvu", "")) == "done"
+    entry_count = validate_worldbook(book, book_path, rep, mvu_done) if book else 0
     if book and isinstance(book.get("entries"), dict):
         draft_root = None
         if contract_path is not None and contract_path.name == "contract.yaml":

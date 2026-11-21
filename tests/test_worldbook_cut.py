@@ -20,6 +20,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory"
 CUTTER = ROOT / "scripts" / "cut-worldbook.py"
+SAMPLE = ROOT / "examples/dry-run-盐湖守夜人"
+NL = chr(10)
 PACKAGE_SCRIPT = ROOT / "scripts" / "validate-st-package.py"
 EXAMPLE = ROOT / "examples/dry-run-盐湖守夜人"
 
@@ -186,3 +188,67 @@ class TestFidelity(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestMergeMvu(unittest.TestCase):
+    """三件套要随书交付：留在 制作文件/ 里等于没交（W25 也会拦）。"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        (self.root / "draft").mkdir()
+        (self.root / "draft" / "world.yaml").write_text(
+            NL.join(["世界规则:", "  冷。", ""]), encoding="utf-8")
+        (self.root / "mvu").mkdir()
+        (self.root / "mvu" / "变量规则.yaml").write_text(NL.join([
+            "entries:",
+            "  - comment: \"[mvu_update]变量更新规则\"",
+            "    constant: true",
+            "    content: 只在有热源时改体温",
+            "",
+        ]), encoding="utf-8")
+        (self.root / "mvu" / "[initvar]变量初始化.yaml").write_text(
+            NL.join(["体温: 78", ""]), encoding="utf-8")
+        (self.root / "plan.yaml").write_text(NL.join([
+            "book_name: 测试",
+            "entries:",
+            "  - whole: world.yaml",
+            "    comment: 世界规则",
+            "    keys: [世界]",
+            "",
+        ]), encoding="utf-8")
+
+    def _cut(self, *extra):
+        out = self.root / "book.json"
+        run = subprocess.run([sys.executable, str(CUTTER), "--plan", str(self.root / "plan.yaml"),
+                              "--draft-root", str(self.root / "draft"), "--out", str(out), *extra],
+                             capture_output=True, text=True, encoding="utf-8", errors="replace")
+        book = json.loads(out.read_text(encoding="utf-8")) if out.exists() else {"entries": {}}
+        return run, book
+
+    def test_不带参数时书里没有MVU条目(self):
+        _run, book = self._cut()
+        comments = [str(e.get("comment", "")) for e in book["entries"].values()]
+        self.assertFalse(any("[initvar]" in c for c in comments))
+
+    def test_merge_mvu_把三件套装进书(self):
+        run, book = self._cut("--merge-mvu", str(self.root / "mvu"))
+        comments = [str(e.get("comment", "")) for e in book["entries"].values()]
+        self.assertIn("[mvu_update]变量更新规则", comments)
+        self.assertIn("[initvar]变量初始化", comments)
+        self.assertIn("带上 2 条 MVU 条目", run.stdout or "")
+        init = [e for e in book["entries"].values() if "[initvar]" in str(e.get("comment"))][0]
+        self.assertTrue(init["disable"], "[initvar] 必须禁用：只在开聊时读一次")
+        self.assertTrue(init["ignoreBudget"], "[initvar] 不进上下文，别占预算")
+
+    def test_缺规则文件时提醒(self):
+        (self.root / "mvu" / "变量规则.yaml").unlink()
+        run, book = self._cut("--merge-mvu", str(self.root / "mvu"))
+        self.assertIn("变量更新规则", run.stderr or "")
+        comments = [str(e.get("comment", "")) for e in book["entries"].values()]
+        self.assertIn("[initvar]变量初始化", comments)
+
+    def test_示例包的三件套已在书里(self):
+        book = json.loads((SAMPLE / "导入包" / "白潮 世界书.json").read_text(encoding="utf-8"))
+        comments = [str(e.get("comment", "")) for e in book["entries"].values()]
+        self.assertTrue(any("[initvar]" in c for c in comments))
+        self.assertEqual(sum(1 for c in comments if "[mvu_update]" in c), 2, "更新规则 + 输出格式两条")

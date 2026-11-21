@@ -144,6 +144,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--merge-protocol", metavar="BOOK",
                     help="从已有的世界书里带上协议条目（comment 以 [ 开头的：变量初始化 / 更新块 / 阶段控制器），"
                          "追加在切割条目之后。协议条目来自阶段 6 的模板，不是设定原稿，所以不走切割")
+    ap.add_argument("--merge-mvu", metavar="DIR",
+                    help="把 MVU 三件套一起装进书：<DIR>/变量规则.yaml 的条目 + <DIR>/[initvar]变量初始化.yaml 包成一条禁用条目")
     ap.add_argument("--dry-run", action="store_true", help="只打印每条的名称与字数，不写文件")
     args = ap.parse_args(argv)
 
@@ -264,6 +266,27 @@ def main(argv: list[str]) -> int:
             item = dict(e)
             item.setdefault("exclude_recursion", True)
             entries[str(len(entries))] = build_entry(len(entries), item, str(e.get("content", "")), defaults)
+
+    if args.merge_mvu:
+        mvu_dir = Path(args.merge_mvu)
+        rules = mvu_dir / "变量规则.yaml"
+        initvar = mvu_dir / "[initvar]变量初始化.yaml"
+        extra: list[tuple[dict, str]] = []
+        if rules.exists():
+            for item in (yaml.safe_load(read_text(rules)) or {}).get("entries") or []:
+                extra.append((dict(item), str(item.get("content") or "")))
+        else:
+            print(f"[WARN] {rules} 不存在：没有变量更新规则，模型不知道什么时候该输出变量块", file=sys.stderr)
+        if initvar.exists():
+            extra.append(({"comment": "[initvar]变量初始化", "constant": True, "disable": True,
+                           "ignore_budget": True, "order": 250, "depth": 0},
+                          read_text(initvar).rstrip()))
+        else:
+            print(f"[WARN] {initvar} 不存在：开聊时不会有初始变量", file=sys.stderr)
+        for item, content in extra:
+            entries[str(len(entries))] = build_entry(len(entries), item, content, defaults)
+        if extra:
+            print(f"带上 {len(extra)} 条 MVU 条目：" + "、".join(str(i["comment"]) for i, _ in extra))
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

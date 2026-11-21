@@ -81,7 +81,8 @@ class TestSlots(unittest.TestCase):
         self._write("正则.json", REGEX)
         self._write("示例 酒馆助手脚本.json", SCRIPT)
         self._write("示例 开局前端.html", "<html><body><div></div></body></html>")
-        self._write("导入说明.txt", "按顺序导；脚本导进「角色脚本」那一栏，不要放全局")
+        self._write("导入说明.txt", "按顺序导；脚本导进「角色脚本」那一栏，不要放全局。"
+                            "正则导入时选「角色正则」，进聊天点「允许角色专属正则」。")
 
     def _codes(self):
         return [c for c, _ in self.mod.fails]
@@ -226,3 +227,81 @@ class TestScriptGoesToCharacterSlot(unittest.TestCase):
             run = subprocess.run([sys.executable, str(VALIDATOR), str(proj)],
                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertIn("C17", run.stdout or "")
+
+class TestRegexGoesToCharacterSlot(unittest.TestCase):
+    """正则要导进「角色正则」：全局正则会跑到别人的卡上。代价是首次要「允许」，说明里必须写。"""
+
+    def test_示例包导入说明点名角色正则并写了允许(self):
+        text = (EXAMPLE / "导入包" / "导入说明.txt").read_text(encoding="utf-8")
+        self.assertIn("角色正则", text)
+        self.assertIn("允许", text, "S-28：漏点一次，正则永久静默")
+
+    def test_模板骨架也点名(self):
+        text = (SKILL / "templates" / "import-guide.txt").read_text(encoding="utf-8")
+        self.assertIn("角色正则", text)
+
+    def _proj(self, td, guide_text):
+        proj = pathlib.Path(td) / "p"
+        (proj / "制作文件" / "项目记录").mkdir(parents=True)
+        (proj / "导入包").mkdir(parents=True)
+        shutil.copy(EXAMPLE / "制作文件" / "项目记录" / "contract.yaml",
+                    proj / "制作文件" / "项目记录" / "contract.yaml")
+        for name in ("白潮（纯净）.json", "白潮 世界书.json", "正则.json",
+                     "白潮 酒馆助手脚本.json", "白潮 开局前端.html", "白潮 状态栏.html"):
+            shutil.copy(EXAMPLE / "导入包" / name, proj / "导入包" / name)
+        (proj / "导入包" / "导入说明.txt").write_text(guide_text, encoding="utf-8")
+        return proj
+
+    def _run(self, proj):
+        return subprocess.run([sys.executable, str(VALIDATOR), str(proj)],
+                              capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+    def test_C18_写着全局就拦(self):
+        with tempfile.TemporaryDirectory() as td:
+            proj = self._proj(td, "脚本导进角色脚本。正则导入时选「全局」。")
+            run = self._run(proj)
+        self.assertIn("[ FAIL ] C18", run.stdout or "")
+        self.assertIn("全局", run.stdout or "")
+
+    def test_C18_写了角色正则但没写允许会警告(self):
+        with tempfile.TemporaryDirectory() as td:
+            proj = self._proj(td, "脚本导进角色脚本。正则导入时选「角色正则」。")
+            run = self._run(proj)
+        self.assertIn("[ warn ] C18", run.stdout or "")
+
+    def test_C18_两项都写了就过(self):
+        with tempfile.TemporaryDirectory() as td:
+            proj = self._proj(td, "脚本导进角色脚本。正则导入时选「角色正则」，进聊天点「允许角色专属正则」。")
+            run = self._run(proj)
+        self.assertNotIn("[ FAIL ] C18", run.stdout or "")
+        self.assertNotIn("[ warn ] C18", run.stdout or "")
+
+
+class TestMvuEntriesRideTheBook(unittest.TestCase):
+    """MVU 三件套留在 制作文件/ 里等于没交：脚本读不到初值、模型收不到更新规则（W25）。"""
+
+    def test_示例包书里有两条MVU条目(self):
+        book = json.loads((EXAMPLE / "导入包" / "白潮 世界书.json").read_text(encoding="utf-8"))
+        comments = [str(e.get("comment", "")).lower() for e in book["entries"].values()]
+        self.assertTrue(any("[initvar]" in c for c in comments), "缺 [initvar]")
+        self.assertTrue(any("[mvu_update]" in c for c in comments), "缺 [mvu_update]")
+
+    def test_W25_书里没有MVU条目就拦(self):
+        with tempfile.TemporaryDirectory() as td:
+            proj = pathlib.Path(td) / "p"
+            (proj / "制作文件" / "项目记录").mkdir(parents=True)
+            (proj / "导入包").mkdir(parents=True)
+            shutil.copy(EXAMPLE / "制作文件" / "项目记录" / "contract.yaml",
+                        proj / "制作文件" / "项目记录" / "contract.yaml")
+            for name in ("白潮（纯净）.json", "正则.json", "白潮 酒馆助手脚本.json",
+                         "白潮 开局前端.html", "白潮 状态栏.html", "导入说明.txt"):
+                shutil.copy(EXAMPLE / "导入包" / name, proj / "导入包" / name)
+            # 只有设定条目、没有 MVU 条目
+            (proj / "导入包" / "白潮 世界书.json").write_text(
+                json.dumps({"entries": {"0": {"uid": 0, "key": ["白潮"], "content": "设定",
+                                              "comment": "世界规则"}}}, ensure_ascii=False),
+                encoding="utf-8")
+            run = subprocess.run([sys.executable, str(PACKAGE_SCRIPT), str(proj / "导入包"),
+                                  "--contract", str(proj / "制作文件" / "项目记录" / "contract.yaml")],
+                                 capture_output=True, text=True, encoding="utf-8", errors="replace")
+        self.assertIn("W25", run.stdout or "")

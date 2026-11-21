@@ -3,6 +3,28 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.6 — 2026-11-22
+
+**正则也一样：默认该进「角色正则」，不是全局。** 全局正则会在所有角色、所有聊天里跑，
+别人卡里的 `<StatusPlaceHolderImpl/>` 也会被我们的替换串接住。
+
+- `templates/import-guide.txt` 第 3 步改成「目标选角色正则」+ 「首次进聊天点允许」，
+  并写清漏点的后果（S-28：取消一次永久静音）。
+- `stage-7-delivery.md` 装配段、`st-correctness.md` 的 S-30 结论同步。
+- `validate-contract.py` 新增 **C18**：导入说明没写「角色正则」→ 失败；写了但没写「允许」→ 警告。
+
+**MVU 三件套留在 制作文件/ 里等于没交。** 世界书里既没有 `[initvar]` 也没有
+`[mvu_update]`，脚本读不到初值、模型收不到更新规则，数值永远不动——而且全绿。
+
+- `cut-worldbook.py` 新增 `--merge-mvu <DIR>`：把 `变量规则.yaml` 的条目与
+  `[initvar]变量初始化.yaml`（包成禁用条目、`ignoreBudget`）一起装进书。
+- `validate-st-package.py` 新增 **W25**：契约里 `mvu: done`，而书里找不到 `[initvar]` /
+  `[mvu_update]` → 失败。
+- 示例包按 `--merge-mvu` 重切（21 → 25 条），`世界书切割.yaml` 顺带清掉单字与互为子串的关键词。
+- 测试 +10（C18 三态、W25 拦截、`--merge-mvu` 四种情况、示例书必须带 MVU 条目）。
+
+真机（极寒末日）：世界书重导后 19 条（15 设定 + 3 更新规则 + 1 初始化），正则改到角色正则。
+
 ## 1.4.5 — 2026-11-22
 
 **脚本被当成全局脚本导入了。** 交付说明原来只写「脚本库 → 导入」，玩家自然点了第一栏
