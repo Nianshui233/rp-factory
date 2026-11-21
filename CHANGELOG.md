@@ -3,6 +3,33 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.1 — 2026-11-22
+
+**界面从「能显示」到「能动」。** 上一版把界面做得好看了，但它仍然只是显示器：三个骨架里
+没有一个会写 MVU 变量，校验器里没有一条规则管写回，`WRITES` 这种声明干脆不存在。接口
+研究（`tavern-helper.md`）白摆着没用上。
+
+- 新增 `references/frontend-interaction.md`（九节，**不进任何阶段的加载清单**）：四栏声明
+  （`READS` / `WRITES` / `LISTENS` / `NEEDS`，只读必须显式写 `WRITES = []`）、三种联动形态
+  （只读显示器 / 写回控制器 / 开场注入）、写回五步（确认 → 快照 → 写 → 复读 → 失败保留输入）、
+  幂等与陈旧确认作废、事件订阅要覆盖「值被改的所有时刻」（只订 `VARIABLE_UPDATE_ENDED`
+  会永远停在初值）、值的六种状态、预览模式禁写、写码前四问。
+- 新增 `templates/control-center.html`：**第一份真会写变量的骨架**——读 `stat_data` →
+  滑条改草稿 → 确认框只列差异（旧值 → 新值）→ `replaceMvuData` → 立刻 `getMvuData`
+  复读逐字段比对 → 失败保留输入并显示「未写入：原因」→ 按钮 pending 禁用 + 一次性
+  `draftId`。顶部写死四栏声明，预览分支一行写调用都没有。
+- 三个旧骨架补四栏声明：`statusbar.html` 显式只读（`WRITES = []`），`opening-ui.html`
+  声明它发玩家消息，`wizard-ui.html` 声明本地草稿 + 提交消息。
+- `scripts/validate-frontend.py` 新增 **F18–F21**：F18 预览分支（`if (RP_PREVIEW)` 花括号块）
+  里有写调用 → 失败；F19 有写调用却没 `WRITES` 声明、或声明 `[]` 却在写 → 失败；
+  F20 `replaceMvuData` 之后没有 `getMvuData` 复读 → 警告；F21 有写调用但全文没有
+  `disabled`（可连点重复写）→ 警告。
+- `references/stage-6-statusbar-ui.md`「写回契约」补上真正缺的那句：**状态栏只读，写数据
+  属控制中心**，另挂一条正则、走五步。
+- `templates/frontend-prompt.yaml` 增加 `交互:` 一节（读 / 写 / 听 / 依赖），与界面顶部常量对账。
+- `tests/test_frontend_interaction.py`（21 个）：四栏声明四态、预览分支误写、写后复读、
+  pending 防护、控制中心模板自洽、示例产物零失败。
+
 ## 1.4.0 — 2026-11-21
 
 **界面从"能跑"到"像被人设计过"。** 之前三个 HTML 骨架是能用的默认值：五六个颜色、

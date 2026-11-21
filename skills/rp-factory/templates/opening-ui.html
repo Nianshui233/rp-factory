@@ -115,6 +115,12 @@
 (function () {
   'use strict';
 
+  /* ==== 四栏声明（frontend-interaction.md 第一节）==== */
+  var READS   = [{ source: 'self', path: '正则 $1 / 写死的文案', when: '渲染' }];
+  var WRITES  = [{ scope: 'chat', path: '玩家消息', when: '点入口按钮并确认' }];
+  var LISTENS = [];
+  var NEEDS   = ['triggerSlash'];
+
   var TAG = '开局界面';                // 与正则 findRegex、frontend-prompt.yaml 的 标签 逐字一致
   var ENTRY_COUNT = 3;                 // 入口条数上限，与数据块一致
   var SHOW_SEND_HINT = true;           // 按钮下方显示"将发送的前 12 字"

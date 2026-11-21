@@ -26,6 +26,11 @@
 一致性:
   标签: "[待定：正则 findRegex 的标签名 = HTML 的 TAG = 这里的 标签，三处逐字相同]"
   字段: ["[待定]", "[待定]"]          # HTML 的 FIELDS = 这里的 字段，两处逐字相同
+交互:                                  # 四栅声明，与 HTML 顶部常量逐项对得上（frontend-interaction.md）
+  读: ["mvux: stat_data.灯芯（每轮渲染）"]
+  写: []                               # 只读就留空数组；写变量写 "message: stat_data.灯芯（点写入）"
+  听: ["CHARACTER_MESSAGE_RENDERED", "MESSAGE_SWIPED"]
+  依赖: ["Mvu", "getCurrentMessageId"]  # 缺哪个就显示「未接入」
 入口:                                  # 仅开局界面需要，状态栏删掉本段
   格式: "显示文本|实际发送"
   条数: 3

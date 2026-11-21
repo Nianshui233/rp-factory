@@ -60,20 +60,18 @@
 ```
 
 - 字段名 = 轴名或场景属性名，**逐字一致**；每个轴一行。
-- 数值只写数字（`72`、`42`），不带单位和百分号；单位由界面按轴的 `range` 补。数值形态跟着轴的 `range` 走：`[0,100]` 写整数，`[0,1]` 才写小数——**不要凭轴名猜量级**。
+- 数值只写数字，不带单位；形态跟着轴的 `range` 走：`[0,100]` 写整数，`[0,1]` 才写小数——**不要凭轴名猜量级**。
 - 不可知的值写 `未知`，不要写 `-`、`?`、`0`（`0` 会被当真值渲染）。
-- 一屏内的补充信息最多 4 个非数值字段（时间、地点等）；再多就超出状态栏职责，砍掉。
+- 补充信息最多 4 个非数值字段（时间、地点等）；再多就超出状态栏职责。
 - 标签 `<状态栏>` 与正则、HTML 的 `TAG` 三处一致。
 
 ### 二、HTML（`templates/statusbar.html` 起手）
 
 - 字段表写在 JS 顶部 `FIELDS`，每项 `{name, min, max, kind: 'bar'|'text', dir: 'up'|'down'|'none', warn, danger}`；`min/max` 从轴 `range` 抄，`dir` 从轴 `direction` 抄（`descending` 的轴，值越低越危险）。
-- 条：`<div class="rp-sb-bar"><span class="rp-sb-fill" style="width:72%"></span></div>`，宽度 = `(值-min)/(max-min)`，钳到 0–100。
-- 危险：值进入 `danger` 区间加 `.is-danger`（换色 + 轻微呼吸动画，`prefers-reduced-motion` 时不动），进入 `warn` 加 `.is-warn`。
-- 变化箭头：取上一楼同字段值比较，`↑/↓ + 差值`；取不到上一楼就不显示箭头，**不要显示 ↑0**。
-- 本楼无标签 → `root.innerHTML=''` 留白，不显示"暂无数据"。
-- `未知` 值 → 该条隐去（默认）或显示灰条 + `未知` 文字（用户选后者时）。
-- 跟随最新楼模式下：`getChatMessages(-1)` + `eventOn(tavern_events.CHARACTER_MESSAGE_RENDERED, render)`，并在 `pagehide` 时 `eventClearAll()`（`references/frontend-conventions.md` 骨架里的 `render` 已含重渲染入口）。
+- 条：宽度 = `(值-min)/(max-min)`，钳到 0–100；进 `danger`/`warn` 区间加 `.is-danger`/`.is-warn`（呼吸动画在 `prefers-reduced-motion` 下不动）。
+- 变化箭头：取上一楼同字段比较，`↑/↓ + 差值`；取不到就不显示，**不要显示 ↑0**。
+- 本楼无标签 → `root.innerHTML=''` 留白，不显示"暂无数据"；`未知` 值默以隐去该条。
+- 跟随最新楼：`getChatMessages(-1)` + `eventOn(tavern_events.CHARACTER_MESSAGE_RENDERED, render)`，`pagehide` 时 `eventClearAll()`。
 
 ### 三、正则（`regex-statusbar.json`）
 
@@ -93,7 +91,8 @@
 ## 写回契约
 
 - `stages.6` → `done` / `partial`（只出数据块与提示词）/ `skipped`。
-- `artifacts` 追加：`statusbar-ui`（HTML）、`statusbar-ui-regex`（JSON）、`statusbar-ui-prompt`（YAML）。
+- **状态栏只读**：`WRITES = []`，四栅声明写死（`frontend-interaction.md`）。要改数据另做控制中心（`templates/control-center.html`），单挂一条正则，走「确认→快照→写→复读→失败保留输入」。
+- `artifacts` 追加：`statusbar-ui`（HTML）、`statusbar-ui-regex`（JSON）、`statusbar-ui-prompt`（YAML）；做控制中心时再加三项。
 - 变量路径用 `StatusPlaceHolderImpl`；文本路径沿用项目标签。
 - 仅文本路径要求模型输出标签；变量路径由 MVU 提供挂载点。
 - `pending`：轴未定的（`[待定：轴名]`）、用户还没决定跟随本楼还是最新楼的，登记在此。
@@ -104,5 +103,5 @@
 - 前端门十条逐条过（`references/frontend-conventions.md` 第六节）；**阶段收尾一检** `python scripts/check-stage.py statusbar <项目根>`（内部跑 `validate-frontend.py` 查 `statusbar-ui.html`）。
 - 三种误数据各试一次：**缺字段**（删掉一根轴）→ 该条隐去且不报错；**越界值**（把 72 写成 140）→ 条钳到满格、数字照原样显示（便于发现模型漂移，不帮它擦屁股）；**脏值**（`<b>x</b>`）→ 显示字面文本。
 - 数值一致性：把 `FIELDS` 的 `min/max` 与 `axis-system.yaml` 的 `range` 逐项对照，不一致就改界面，不改产物。
-- 交付时三句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里；另加一句"轴上没有的字段不要往状态栏塞"。
+- 交付时三句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里；另加一句"轴上没有的字段不要往状态栏塞"。做控制中心就多两句：能改哪些字段、写失败时界面怎么提示。
 - 用户只要粘贴版 → 三个代码块给全；文件模态下三份产物写进 `制作文件/产物/`。

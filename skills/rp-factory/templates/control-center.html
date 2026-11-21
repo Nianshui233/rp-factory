@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* ===== 一、语义层：换世界只改这一段 =====
+     三意象（铁栅 / 灯油 / 石灰墙）+ 一光源（门缝透进来的灯）→ 见 frontend-design.md 第一节 */
+  :root {
+    --c-ink: #1d1c1a;
+    --c-mid: #655f57;
+    --c-paper: #e9e4d8;
+    --c-line: #c9c2b2;
+    --c-accent: #9a6a1f;
+    --c-warn: #b5701a;
+    --c-danger: #9e2f26;
+    --f-title: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "SimSun", serif;
+    --f-body: "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+    --f-num: ui-monospace, "SF Mono", Consolas, "Roboto Mono", monospace;
+    --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px;
+    --canvas-w: 700px;
+  }
+
+  /* ===== 二、组件层：只吃语义变量 ===== */
+  .rp-cc {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    font-family: var(--f-body);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--c-ink);
+    background: var(--c-paper);
+    background-image: repeating-linear-gradient(0deg, rgba(29, 28, 26, .022) 0 1px, transparent 1px 3px);
+    border: 1px solid var(--c-line);
+    border-top: 3px double var(--c-ink);
+    border-radius: 2px;
+    padding: var(--s-3) var(--s-4) var(--s-4);
+  }
+  .rp-cc * { box-sizing: border-box; }
+
+  .rp-cc-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); border-bottom: 1px solid var(--c-line); padding-bottom: var(--s-2); }
+  .rp-cc-title { font-family: var(--f-title); font-size: 16px; letter-spacing: .04em; margin: 0; }
+  .rp-cc-sub { font-size: 12px; color: var(--c-mid); }
+
+  .rp-cc-row { display: grid; grid-template-columns: 5.5em 1fr 4.5em; gap: var(--s-2); align-items: center; padding: var(--s-3) 0; border-bottom: 1px dotted var(--c-line); }
+  .rp-cc-row:last-of-type { border-bottom: 0; }
+  .rp-cc-label { font-family: var(--f-title); font-size: 13px; letter-spacing: .06em; }
+  .rp-cc-val { font-family: var(--f-num); font-variant-numeric: tabular-nums; text-align: right; font-size: 14px; }
+  .rp-cc-val.is-dirty { color: var(--c-accent); }
+  .rp-cc-val.is-bad { color: var(--c-danger); }
+
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 18px; background: transparent; cursor: pointer; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: var(--c-line); border-radius: 1px; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; margin-top: -4px; background: var(--c-ink); border: 2px solid var(--c-paper); box-shadow: 1px 1px 0 var(--c-line); border-radius: 1px; }
+  input[type="range"]:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+
+  .rp-cc-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap; padding-top: var(--s-3); }
+
+  .rp-cc-btn {
+    font: inherit; font-size: 13px; letter-spacing: .04em; cursor: pointer;
+    padding: 5px 11px; border-radius: 2px;
+    color: var(--c-ink); background: var(--c-paper); border: 1px solid var(--c-ink);
+    box-shadow: 2px 2px 0 var(--c-line); transition: transform .12s, box-shadow .12s;
+  }
+  .rp-cc-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--c-line); }
+  .rp-cc-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--c-line); }
+  .rp-cc-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+  .rp-cc-btn[disabled] { color: var(--c-mid); border-color: var(--c-line); box-shadow: none; cursor: not-allowed; transform: none; }
+  .rp-cc-btn.is-primary { color: var(--c-paper); background: var(--c-ink); }
+
+  /* 确认框：只展示差异，不展示整块数据 */
+  .rp-cc-dialog { border: 1px solid var(--c-ink); border-top: 3px double var(--c-ink); background: var(--c-paper); padding: var(--s-3) var(--s-4); margin-top: var(--s-3); box-shadow: 2px 2px 0 var(--c-line); }
+  .rp-cc-dialog[hidden] { display: none; }
+  .rp-cc-diff { list-style: none; margin: var(--s-2) 0; padding: 0; font-family: var(--f-num); font-size: 13px; }
+  .rp-cc-diff li { padding: 2px 0; }
+  .rp-cc-diff .from { color: var(--c-mid); }
+  .rp-cc-diff .to { color: var(--c-accent); }
+
+  .rp-cc-note { font-size: 12px; color: var(--c-mid); margin: var(--s-2) 0 0; }
+  .rp-cc-msg { font-size: 12px; margin: var(--s-2) 0 0; padding: 4px var(--s-2); border-left: 2px solid var(--c-line); color: var(--c-mid); }
+  .rp-cc-msg[hidden] { display: none; }
+  .rp-cc-msg.is-error { border-left-color: var(--c-danger); color: var(--c-danger); }
+  .rp-cc-msg.is-ok { border-left-color: var(--c-accent); color: var(--c-accent); }
+
+  /* 预览画布：只在 window.top 里生效，正式聊天里不显示 */
+  body.rp-preview { background: #d9d4c7; padding: 24px; }
+  body.rp-preview .rp-cc { width: var(--canvas-w); margin: 0 auto; }
+  body.rp-preview .rp-cc-canvas-tag { display: block; }
+  .rp-cc-canvas-tag { display: none; font-family: var(--f-num); font-size: 11px; color: #6b6459; text-align: center; margin-bottom: 8px; }
+
+  @media (max-width: 420px) {
+    .rp-cc-row { grid-template-columns: 4.2em 1fr 3.6em; }
+    .rp-cc-sub { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rp-cc-btn, .rp-cc-btn:hover, .rp-cc-btn:active { transition: none; transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="rp-cc-canvas-tag">预览 700px · 正式聊天里不显示这行</div>
+<div class="rp-cc" id="rp-cc-root">
+  <div class="rp-cc-head">
+    <h3 class="rp-cc-title">值守台</h3>
+    <span class="rp-cc-sub" id="rp-cc-scope">改动会写回本楼存档</span>
+  </div>
+
+  <div id="rp-cc-rows"></div>
+
+  <div class="rp-cc-foot">
+    <button class="rp-cc-btn" type="button" id="rp-cc-reset">撤销改动</button>
+    <button class="rp-cc-btn is-primary" type="button" id="rp-cc-apply" disabled>确认修改</button>
+  </div>
+
+  <div class="rp-cc-dialog" id="rp-cc-dialog" hidden>
+    <p class="rp-cc-note">将写入以下字段，写入后会自动复读核对：</p>
+    <ul class="rp-cc-diff" id="rp-cc-diff"></ul>
+    <div class="rp-cc-foot">
+      <button class="rp-cc-btn" type="button" id="rp-cc-cancel">取消</button>
+      <button class="rp-cc-btn is-primary" type="button" id="rp-cc-confirm">写入</button>
+    </div>
+  </div>
+
+  <p class="rp-cc-msg" id="rp-cc-msg" hidden></p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ==== 四栏声明：改界面先改这四行，F19 会拿 WRITES 和实际调用对账 ==== */
+  var READS   = [{ source: 'mvux', path: 'stat_data.灯芯', when: '进入界面 / 事件触发' }];
+  var WRITES  = [{ scope: 'message', path: 'stat_data.灯芯', when: '点「写入」' }];
+  var LISTENS = ['CHARACTER_MESSAGE_RENDERED', 'MESSAGE_SWIPED', 'CHAT_CHANGED'];
+  var NEEDS   = ['Mvu', 'getCurrentMessageId', 'eventOn'];
+
+  var NS = 'rp-cc';
+  var TAG = '状态栏';                 // 与正则 findRegex、frontend-prompt.yaml 逐字一致
+  var FIELDS = [                       // 与 frontend-prompt.yaml 字段、轴的 range 逐字一致
+    { name: '灯芯', min: 0, max: 100, step: 1 },
+    { name: '潮压', min: 0, max: 1, step: 0.01 }
+  ];
+
+  var RP_PREVIEW = (function () { try { return window.self === window.top; } catch (e) { return false; } })();
+
+  /* 预览用假数据，只在 RP_PREVIEW 分支里取 */
+  var MOCK = {};
+  MOCK['灯芯'] = 72;
+  MOCK['潮压'] = 0.42;
+
+  var $rows = document.getElementById(NS + '-rows');
+  var $apply = document.getElementById(NS + '-apply');
+  var $reset = document.getElementById(NS + '-reset');
+  var $dialog = document.getElementById(NS + '-dialog');
+  var $diff = document.getElementById(NS + '-diff');
+  var $msg = document.getElementById(NS + '-msg');
+  var $scope = document.getElementById(NS + '-scope');
+
+  var baseline = {};      // 打开界面（或写入成功）时的值，用来判断 dirty
+  var draft = {};         // 用户当前拖动出的值，只活在 DOM
+  var draftId = '';       // 一次性提交标识，防连点重复写
+  var writing = false;    // F21：pending 期间按钮 disabled
+  var missing = null;     // NEEDS 里缺的接口
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '\x26amp;', '<': '\x26lt;', '>': '\x26gt;', '"': '\x26quot;', "'": '\x26#39;' }[c];
+    });
+  }
+
+  function note(text, kind) {
+    if (!text) { $msg.hidden = true; $msg.textContent = ''; return; }
+    $msg.hidden = false;
+    $msg.textContent = text;
+    $msg.className = 'rp-cc-msg' + (kind ? ' is-' + kind : '');
+  }
+
+  /* ---- 读：MVU 变量。缺失、非法、越界三种情况分开处理 ---- */
+  function readState() {
+    if (RP_PREVIEW) {
+      var mock = {};
+      FIELDS.forEach(function (f) { mock[f.name] = MOCK[f.name]; });
+      return { ok: true, values: mock, scope: 'preview' };
+    }
+    if (missing) return { ok: false, reason: '未接入：' + missing };
+
+    try {
+      var mid = getCurrentMessageId();
+      var data = Mvu.getMvuData({ type: 'message', message_id: mid });
+      var stat = (data && data.stat_data) || null;
+      if (!stat) return { ok: false, reason: '未接入：本楼还没有变量快照' };
+      var out = {};
+      FIELDS.forEach(function (f) {
+        var raw = stat[f.name];
+        if (raw === undefined) { out[f.name] = { state: 'missing' }; return; }
+        var num = Number(raw);
+        if (!isFinite(num)) { out[f.name] = { state: 'invalid', raw: String(raw) }; return; }
+        out[f.name] = { state: 'ok', value: Math.min(f.max, Math.max(f.min, num)), outOfRange: num !== Math.min(f.max, Math.max(f.min, num)) };
+      });
+      return { ok: true, values: out, scope: 'message' };
+    } catch (e) {
+      return { ok: false, reason: '读取失败：' + (e && e.message ? e.message : e) };
+    }
+  }
+
+  function renderValue(f, cell, v) {
+    if (!v || v.state === 'missing') { cell.textContent = '未知'; cell.className = NS + '-val'; return; }
+    if (v.state === 'invalid') { cell.textContent = '未知（非数字）'; cell.className = NS + '-val is-bad'; return; }
+    var text = f.step < 1 ? v.value.toFixed(2) : String(Math.round(v.value));
+    cell.textContent = text + (v.outOfRange ? ' ⚠' : '');
+    cell.className = NS + '-val' + (v.outOfRange ? ' is-bad' : '');
+  }
+
+  function render() {
+    var state = readState();
+    if (!state.ok) {
+      $rows.innerHTML = '<p class="rp-cc-note">' + esc(state.reason) + '</p>';
+      $apply.disabled = true;
+      $scope.textContent = '只读';
+      return;
+    }
+    $scope.textContent = state.scope === 'preview' ? '预览数据，不会写盘' : '改动会写回本楼存档';
+    if (!Object.keys(baseline).length) {
+      FIELDS.forEach(function (f) {
+        var v = state.values[f.name];
+        if (v && v.state === 'ok') baseline[f.name] = v.value;
+      });
+    }
+    var html = '';
+    FIELDS.forEach(function (f, i) {
+      var v = state.values[f.name];
+      var cur = (draft[f.name] !== undefined) ? draft[f.name] : (v && v.state === 'ok' ? v.value : f.min);
+      html += '<div class="rp-cc-row">'
+        + '<label class="rp-cc-label" for="' + NS + '-in' + i + '">' + esc(f.name) + '</label>'
+        + '<input id="' + NS + '-in' + i + '" type="range" data-name="' + esc(f.name) + '"'
+        + ' min="' + f.min + '" max="' + f.max + '" step="' + f.step + '" value="' + cur + '"'
+        + (missing ? ' disabled' : '') + '>'
+        + '<span class="rp-cc-val" data-cell="' + esc(f.name) + '"></span>'
+        + '</div>';
+    });
+    $rows.innerHTML = html;
+    FIELDS.forEach(function (f) {
+      var cell = $rows.querySelector('[data-cell="' + f.name + '"]');
+      renderValue(f, cell, state.values[f.name]);
+      var input = $rows.querySelector('input[data-name="' + f.name + '"]');
+      input.addEventListener('input', function () {
+        draft[f.name] = Number(input.value);
+        var base = baseline[f.name];
+        cell.textContent = f.step < 1 ? draft[f.name].toFixed(2) : String(draft[f.name]);
+        cell.className = NS + '-val' + (base !== undefined && draft[f.name] !== base ? ' is-dirty' : '');
+        $apply.disabled = !hasChanges();
+      });
+    });
+    $apply.disabled = !hasChanges() || writing;
+  }
+
+  function hasChanges() {
+    var changed = false;
+    Object.keys(draft).forEach(function (k) {
+      if (baseline[k] === undefined || draft[k] !== baseline[k]) changed = true;
+    });
+    return changed;
+  }
+
+  function openDialog() {
+    $diff.innerHTML = '';
+    Object.keys(draft).forEach(function (k) {
+      if (baseline[k] === draft[k]) return;
+      var li = document.createElement('li');
+      var from = document.createElement('span');
+      from.className = 'from';
+      from.textContent = (baseline[k] === undefined ? '未知' : baseline[k]) + ' → ';
+      var to = document.createElement('span');
+      to.className = 'to';
+      to.textContent = String(draft[k]);
+      li.appendChild(document.createTextNode(k + '：'));
+      li.appendChild(from);
+      li.appendChild(to);
+      $diff.appendChild(li);
+    });
+    $dialog.hidden = false;
+    document.getElementById(NS + '-confirm').focus();
+  }
+
+  function closeDialog() { $dialog.hidden = true; }
+
+  /* ---- 写：确认 → 快照 → 写入 → 复读 → 失败保留输入 ---- */
+  function apply() {
+    if (writing) return;                       // 幂等：pending 期间重复点击直接丢弃
+    var changes = {};
+    Object.keys(draft).forEach(function (k) { if (baseline[k] !== draft[k]) changes[k] = draft[k]; });
+    if (!Object.keys(changes).length) { note('没有改动', ''); return; }
+
+    writing = true;
+    draftId = String(Date.now()) + '-' + Math.random().toString(36).slice(2, 8);
+    $apply.disabled = true;
+    document.getElementById(NS + '-confirm').disabled = true;
+    note('写入中…', '');
+
+    var snapshot = JSON.stringify(changes);
+    var mid;
+    try { mid = getCurrentMessageId(); } catch (e) { mid = null; }
+
+    Promise.resolve()
+      .then(function () {
+        if (RP_PREVIEW) return null;           // 预览分支：不写盘，只走确认流程
+        if (missing) throw new Error('未接入：' + missing);
+        var data = Mvu.getMvuData({ type: 'message', message_id: mid });
+        if (!data || !data.stat_data) throw new Error('本楼没有变量快照，先让 MVU 初始化');
+        var next = JSON.parse(JSON.stringify(data));
+        Object.keys(changes).forEach(function (k) { next.stat_data[k] = changes[k]; });
+        return Mvu.replaceMvuData(next, { type: 'message', message_id: mid });
+      })
+      .then(function () {
+        if (RP_PREVIEW) return { verified: true, preview: true };
+        // 复读核对：不拿"请求已发出"当成功
+        var after = Mvu.getMvuData({ type: 'message', message_id: mid });
+        var stat = (after && after.stat_data) || {};
+        var bad = Object.keys(changes).filter(function (k) { return Number(stat[k]) !== Number(changes[k]); });
+        if (bad.length) throw new Error('未生效：' + bad.join('、') + '（复读值与提交值不一致）');
+        return { verified: true };
+      })
+      .then(function (res) {
+        Object.keys(changes).forEach(function (k) { baseline[k] = changes[k]; });
+        draft = {};
+        closeDialog();
+        note(res && res.preview ? '预览：已走完整流程，未写盘' : '已写入并复读核对（' + draftId.slice(-4) + '）', 'ok');
+      })
+      .catch(function (e) {
+        // 失败：保留用户输入与 draft，不清空、不静默回滚
+        note('未写入：' + (e && e.message ? e.message : e), 'error');
+        if (!RP_PREVIEW) render();
+      })
+      .then(function () {
+        writing = false;
+        document.getElementById(NS + '-confirm').disabled = false;
+        $apply.disabled = !hasChanges();
+      });
+  }
+
+  /* ---- 事件：值可能被改的所有时刻都要重读 ---- */
+  function bindEvents() {
+    if (RP_PREVIEW || typeof eventOn !== 'function' || typeof tavern_events === 'undefined') return;
+    try {
+      eventOn(tavern_events.CHARACTER_MESSAGE_RENDERED, render);
+      eventOn(tavern_events.USER_MESSAGE_RENDERED, render);
+      if (tavern_events.MESSAGE_SWIPED) eventOn(tavern_events.MESSAGE_SWIPED, render);
+      if (tavern_events.MESSAGE_EDITED) eventOn(tavern_events.MESSAGE_EDITED, render);
+      if (tavern_events.CHAT_CHANGED) eventOn(tavern_events.CHAT_CHANGED, function () { draft = {}; baseline = {}; render(); });
+    } catch (e) { /* 事件订阅失败就只靠手动刷新，不阻塞渲染 */ }
+  }
+
+  function detectMissing() {
+    if (typeof Mvu === 'undefined') { missing = 'Mvu 未启用'; return; }
+    if (typeof getCurrentMessageId !== 'function') { missing = 'getCurrentMessageId 不可用'; return; }
+    missing = null;
+  }
+
+  function boot() {
+    detectMissing();
+    if (RP_PREVIEW) {
+      document.body.classList.add('rp-preview');
+      var m = /[?&]w=(\d+)/.exec(location.search);
+      if (m) document.documentElement.style.setProperty('--canvas-w', m[1] + 'px');
+    }
+    $apply.addEventListener('click', openDialog);
+    $reset.addEventListener('click', function () { draft = {}; closeDialog(); render(); note('', ''); });
+    document.getElementById(NS + '-cancel').addEventListener('click', closeDialog);
+    document.getElementById(NS + '-confirm').addEventListener('click', apply);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDialog(); });
+    render();
+    bindEvents();
+    window.addEventListener('pagehide', function () { if (typeof eventClearAll === 'function') eventClearAll(); });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+</body>
+</html>

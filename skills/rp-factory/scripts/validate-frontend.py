@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""前端界面自检：查 HTML 骨架、外链、危险 API、内联脚本里的 HTML 实体、预览守卫。
+"""前端界面自检：查 HTML 骨架、外链、危险 API、内联脚本里的 HTML 实体、预览守卫、交互联动。
 
 用法:
     python scripts/validate-frontend.py 导入包/statusbar-ui.html
@@ -26,6 +26,54 @@ VOID = {
     "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
     "meta", "param", "source", "track", "wbr",
 }
+
+# 会产生真实副作用的调用（改存档 / 发消息 / 起生成）。localStorage 不算：那是浏览器本地草稿。
+WRITE_CALLS = (
+    "replaceMvuData(",
+    "setChatMessages(",
+    "createChatMessages(",
+    "deleteChatMessages(",
+    "triggerSlash(",
+    "SillyTavern.generate(",
+)
+
+
+def _brace_block(text: str, start: int) -> str | None:
+    """从 start 起找第一个 `{`，返回配对花括号里的内容（不处理字符串/注释里的括号，够用即可）。"""
+    i = text.find("{", start)
+    if i < 0:
+        return None
+    depth = 0
+    for j in range(i, len(text)):
+        ch = text[j]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[i + 1:j]
+    return None
+
+
+def _blocks_of(text: str, header: str) -> list[str]:
+    """取出所有 `header { … }` 的块内容。"""
+    out: list[str] = []
+    for m in re.finditer(header, text):
+        block = _brace_block(text, m.end())
+        if block is not None:
+            out.append(block)
+    return out
+
+
+def _declared_writes(text: str) -> list[str] | None:
+    """解析 WRITES 声明，返回非空的声明项；没有声明返回 None。"""
+    m = re.search(r"\bWRITES\s*=\s*\[([\s\S]*?)\]\s*;", text)
+    if not m:
+        return None
+    body = m.group(1).strip()
+    if not body:
+        return []
+    return [line for line in body.splitlines() if line.strip() and not line.strip().startswith("//")]
 
 
 def check(path: Path) -> tuple[list[str], list[str], list[str]]:
@@ -234,6 +282,61 @@ def check(path: Path) -> tuple[list[str], list[str], list[str]]:
         )
     else:
         ok.append("F17 有预览画布变量")
+
+    # ===== 交互联动：能不能写、写了怎么算成功、预览会不会误写 =====
+    scripts = "\n".join(m.group(1) for m in SCRIPT_RE.finditer(text))
+    calls = [c for c in WRITE_CALLS if c in scripts]
+
+    # F18 预览分支里的写调用：双击打开预览就会改存档 / 发消息
+    preview_blocks = _blocks_of(scripts, r"if\s*\(\s*RP_PREVIEW\s*\)\s*")
+    leaked = sorted({c for block in preview_blocks for c in WRITE_CALLS if c in block})
+    if leaked:
+        fail.append(
+            f"F18 预览分支（`if (RP_PREVIEW)`）里有写调用: {', '.join(leaked)}。"
+            "预览是双击打开的本地文件，此时写的是真实存档或真发消息"
+            "（frontend-interaction.md 第七节）"
+        )
+    else:
+        ok.append("F18 预览分支无副作用")
+
+    # F19 声明与实际对账：有写就得声明，声明空就不许写
+    declared = _declared_writes(scripts)
+    if calls and declared is None:
+        fail.append(
+            f"F19 有写调用（{', '.join(calls)}）却没有 `WRITES` 声明："
+            "界面顶部必须写 READS / WRITES / LISTENS / NEEDS 四栏，只读就写 `WRITES = []`"
+            "（frontend-interaction.md 第一节）"
+        )
+    elif calls and declared == []:
+        fail.append(
+            f"F19 `WRITES = []` 却调用了写接口（{', '.join(calls)}）：声明与实际不一致，"
+            "要么补声明，要么删写调用（frontend-interaction.md 第一节）"
+        )
+    elif calls:
+        ok.append(f"F19 写入已声明（{len(declared)} 项）")
+    else:
+        ok.append("F19 只读界面（无写调用）")
+
+    # F20 写完不复读：拿「请求已发出」当成功
+    if "replaceMvuData(" in scripts:
+        last_write = scripts.rfind("replaceMvuData(")
+        last_read = scripts.rfind("getMvuData(")
+        if last_read < last_write:
+            warn.append(
+                "F20 `replaceMvuData` 之后没有 `getMvuData` 复读：命令递交不等于写入生效。"
+                "写完立刻读回逐字段比对，不一致就报「未生效」（frontend-interaction.md 第三节）"
+            )
+        else:
+            ok.append("F20 写入后有复读")
+
+    # F21 可连点重复写：pending 期间要 disable
+    if calls and "disabled" not in scripts:
+        warn.append(
+            f"F21 有写调用（{', '.join(calls)}）但全文没有 `disabled`：连点会重复提交。"
+            "按钮进入 pending 后禁用，同一次提交带一次性 draftId（frontend-interaction.md 第三节）"
+        )
+    elif calls:
+        ok.append("F21 写入有 pending 防护")
 
     return fail, warn, ok
 

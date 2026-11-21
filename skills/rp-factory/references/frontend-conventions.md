@@ -44,23 +44,13 @@
 - 任何一条路径都不许从 `document` 里读别的消息 DOM：iframe 是隔离的，读不到。
 - D 读本楼已保存快照。MVU 的 VARIABLE_UPDATE_ENDED 早于写回；等本楼刷新再读，缺值显示未知。
 
-**预览副本**：`python scripts/make-preview.py 制作文件/产物/statusbar-ui.html` 复制到 `制作文件/产物/preview/`（不进 `导入包/`）。同一份文件靠守卫分流：`window.self === window.top` 为真（双击打开）才用 `MOCK` 并加 `body.rp-preview` 画布；为假（楼层 iframe）一律读真实数据。所以 MOCK 必须写在 `if (RP_PREVIEW)` 分支里（F15 拦）；预览里不准 `save()`、不准真发消息；画布宽取 `--canvas-w`（默认 700，`?w=360` 看窄屏）。
+**预览副本**：`python scripts/make-preview.py 制作文件/产物/statusbar-ui.html` 复制到 `制作文件/产物/preview/`（不进 `导入包/`）。同一份文件靠守卫分流：`window.self === window.top` 为真（双击打开）才用 `MOCK` 并加画布；为假（楼层 iframe）一律读真实数据。预览里不准写盘、不准真发消息；画布宽取 `--canvas-w`（`?w=360` 看窄屏）。
 
-**发送动作的三级降级**（点击按钮要发消息时才需要）：
+**发送动作**属写操作，三级降级（`triggerSlash` → `SillyTavern.triggerSlash` → 塞输入框再点）与"发送前展示将发出的原文"见 `references/frontend-interaction.md` 第二节。
 
-```js
-if (typeof triggerSlash === 'function') triggerSlash('/send ' + text);
-else if (typeof SillyTavern !== 'undefined' && SillyTavern.triggerSlash) SillyTavern.triggerSlash('/send ' + text);
-else {
-  var box = document.querySelector('#send_textarea');   // 最后手段：往输入框里塞并点发送
-  if (box) { box.value = text; box.dispatchEvent(new Event('input', { bubbles: true }));
-             document.querySelector('#send_but')?.click(); }
-}
-```
+**状态分四层，别混。** 数据状态（`stat_data`，只由 MVU 写）、草稿状态（输入框、未提交的选择）、UI 状态（当前 tab、折叠、滚动位置）、派生视图（进度条宽度、档位文字）。后两层**只能活在 DOM 里**：把 tab 写进变量，等于让界面状态污染世界状态；刷新时用 DOM 读回草稿，不要重新从变量生成覆盖用户输入。
 
-发送前弹一个确认框（展示将要发出的文本）——按钮点错就发出一句话，在 RP 里收不回来。
-
-**状态分四层，别混。** 数据状态（`stat_data`，只由 MVU 写）、草稿状态（输入框、未提交的选择）、UI 状态（当前 tab、折叠、滚动位置）、派生视图（进度条宽度、档位文字）。后两层**只能活在 DOM 里**：把 tab 或滚动位置写进变量，等于让界面状态污染世界状态；刷新时用 DOM 读回草稿，不要重新从变量生成覆盖用户输入。
+**界面能动什么，先声明再实现。** 脚本最前面写死 `READS` / `WRITES` / `LISTENS` / `NEEDS` 四栏，只读就 `WRITES = []`；三种联动形态（只读显示器 / 写回控制器 / 开场注入）、写回五步（确认→快照→写→复读→失败保留输入）与六态显示全在 `references/frontend-interaction.md`——**做能点的界面之前先读它**。状态栏永不带写按钮，写数据另做控制中心（`templates/control-center.html`）。
 「预览、校验、提交用同一个 builder」：界面上看到的就是将被提交的，别为预览另写一套拼字符串。
 
 **数据畸形时显示诊断态，不要静默隐藏。** 缺字段、类型不对、枚举未知、超长文本——先归一化（`Number.isFinite` / 白名单 / `String(x ?? '')` / 钳制），归一化失败就渲染成「未知」并带一句原因，而不是把整块藏起来或抛异常。界面空白且无提示，是最难查的一类故障：用户只会说「坏了」。
@@ -221,7 +211,7 @@ else {
 7. 走 D 时字段名必须能在 `mvu-schema.js` 的 `Schema` 里找到，`FIELDS` 的 min/max 逐项抄轴的 `range`（不一致就改界面，不改产物）。
 8. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本；越界值不溢出。
 9. 交用户四句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里、触发词该出现在哪条消息里。
-10. 阶段收尾一检 `python scripts/check-stage.py opening|statusbar <项目根>` 全过（内部跑 `validate-frontend.py`，F01–F17；F04 抓 `<script>` 里的 HTML 实体，F15 抓预览守卫，F16/F17 抓色板与画布）。
+10. 阶段收尾一检 `python scripts/check-stage.py opening|statusbar <项目根>` 全过（内部跑 `validate-frontend.py`，F01–F21）。F18 预览分支里有写调用、F19 `WRITES` 声明与实际不符、F20 写完不复读、F21 无 pending 防护。
 
 ## 九、正则只能界面导入
 

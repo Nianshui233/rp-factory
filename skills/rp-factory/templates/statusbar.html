@@ -120,6 +120,12 @@
 (function () {
   'use strict';
 
+  /* ==== 四栏声明（frontend-interaction.md 第一节）：只读就写 WRITES = [] ==== */
+  var READS   = [{ source: 'mvux', path: 'stat_data.<轴名>', when: '每轮渲染' }];
+  var WRITES  = [];                     // 状态栏只读；要改数据另做控制中心（templates/control-center.html）
+  var LISTENS = ['CHARACTER_MESSAGE_RENDERED', 'MESSAGE_SWIPED', 'MESSAGE_EDITED', 'CHAT_CHANGED'];
+  var NEEDS   = ['getChatMessages', 'getCurrentMessageId', 'eventOn'];
+
   /* ===== 配置：三处一致性靠这里 ===== */
   var TAG = '状态栏';                 // 与正则 findRegex、frontend-prompt.yaml 的 标签 逐字一致
   var FOLLOW_LATEST = false;          // false=读本楼（每楼快照）；true=永远读最新楼

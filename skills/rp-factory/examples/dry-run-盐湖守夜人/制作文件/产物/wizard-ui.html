@@ -116,6 +116,13 @@
 (function () {
   'use strict';
 
+  /* ==== 四栏声明（frontend-interaction.md 第一节）==== */
+  var READS   = [{ source: 'local', path: 'localStorage 草稿', when: '打开界面' }];
+  var WRITES  = [{ scope: 'local', path: 'localStorage 草稿', when: '每次填写' },
+                 { scope: 'chat', path: '玩家消息', when: '提交建卡表并确认' }];
+  var LISTENS = [];
+  var NEEDS   = ['triggerSlash'];
+
   /* ===== 配置：只改这几处 ===== */
   var PROJECT = '盐湖守夜人';
   var TITLE = '白潮';

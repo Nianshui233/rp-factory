@@ -82,6 +82,12 @@
 (function () {
   'use strict';
 
+  /* ==== 四栏声明（frontend-interaction.md 第一节）==== */
+  var READS   = [{ source: 'mvux', path: 'stat_data.灯芯', when: '每轮渲染' }];
+  var WRITES  = [];                     // 状态栏只读；写数据归控制中心
+  var LISTENS = ['CHARACTER_MESSAGE_RENDERED', 'MESSAGE_SWIPED', 'CHAT_CHANGED'];
+  var NEEDS   = ['getChatMessages', 'getCurrentMessageId', 'eventOn'];
+
   var HIDE_UNKNOWN = true;            // 值为 未知 时整条隐去；false 则显示灰条 + 未知
 
   /* kind: 'text' 进抬头信息条；'bar' 进数值行
