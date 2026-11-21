@@ -117,8 +117,11 @@ def build(dest: Path, files: dict[str, Path], dry_run: bool = False) -> None:
 
 def check(dest: Path, files: dict[str, Path]) -> int:
     if not dest.is_dir():
-        print(f"[缺] {dest} 不存在，先跑一次 python scripts/build-skill.py")
-        return 1
+        # skill 目录不存在有两种合法情况：没构建过，或已改用 npm/插件安装（不再往
+        # ~/.agents/skills 放同名目录，否则 Pi 会把同一个 skill 注册两次）。
+        # 这时没有可比对的东西，跳过而不是报错；构建过就仍然逐文件比对。
+        print(f"[跳过] {dest} 不存在（未构建，或已由 npm/插件安装），无可比对")
+        return 0
     have = {p.relative_to(dest).as_posix(): p for p in dest.rglob("*") if p.is_file()}
     missing = sorted(set(files) - set(have))
     extra = sorted(set(have) - set(files))

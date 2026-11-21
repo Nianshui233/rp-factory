@@ -36,12 +36,13 @@
 - **不抢正文**：面板高度不超过一屏的 1/3，高度可收缩；不做固定悬浮遮罩。
 - **数字与产物一致**：范围、方向、阈值分界全部来自 `axis-system.yaml`；界面里出现轴上没有的数字区间就是错的。
 - **降级不崩**：某根轴本楼没给值 → 该条显示 `未知` 占位或整条隐去（按用户选择，默认整条隐去，不留空槽）。
+- **先出三版再写码**：照 `frontend-design.md` 的推色法与版式 A–H，出三版线框 + 色板，用户选一版定稿写进 `frontend-prompt.yaml`。
 
 ## 生成
 
 ### 〇、先看有没有 `mvu`
 
-契约 `stages.mvu: done` → **走 `references/frontend-conventions.md` 第二节的 D 路径**：状态栏不再要求模型输出 `<状态栏>` 块，直接读 `stat_data`，`findRegex` 用 `<StatusPlaceHolderImpl/>`、`maxDepth: 2`。读样包 statusbar-ui.html。MVU 写回后刷新本楼；界面初始化时读取本楼快照。
+契约 `stages.mvu: done` → **走 `references/frontend-conventions.md` 第二节的 D 路径**：状态栏不再要求模型输出 `<状态栏>` 块，直接读 `stat_data`，`findRegex` 用 `<StatusPlaceHolderImpl/>`、`maxDepth: 2`。
 
 没有 `mvu` → 按下面的一、二节走标签方案。两条不要混用：混用的结果是"有一条正则接不到任何东西"，看起来只是不显示，很难查。
 

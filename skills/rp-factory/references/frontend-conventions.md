@@ -24,9 +24,9 @@
 2. **代码块里必须出现 `<body>`**（或 `<head>`/`html>`），否则酒馆助手不认它是前端界面。
 3. **纯 ST 没有 JS**。任何"解析数据再渲染"的思路都必须走酒馆助手 iframe，别设计成 $1 注入 + 内联脚本。
 
-顺序那一条是关键：替换在前、Markdown 在后，所以 ```html 围栏里的 `<script>` 被 Showdown 转义成文本、再被 sanitize 保留下来，才轮到酒馆助手读 `pre > code` 的 `textContent` 去当 HTML 跑。若顺序反了（先 sanitize 再进代码块），整份 JS 会被当成真标签删掉。**所以不要把 payload 写成不包围栏的裸 HTML。**
+顺序那一条是关键：替换在前、Markdown 在后，所以 ```html 围栏里的 `<script>` 被 Showdown 转义成文本、再被 sanitize 保留下来，才轮到酒馆助手读 `pre > code` 的 `textContent` 去当 HTML 跑。**所以不要把 payload 写成不包围栏的裸 HTML**——裸 HTML 的 `<script>` 会被 sanitize 直接拿掉。
 
-判定用的是 `['html>', '<head>', '<body'].some(...)`：`<!DOCTYPE html>` 已含 `html>`，所以正常文档开头的 doctype 就够，不必刻意改名。代价是**对页面上所有 `<pre>` 生效**：正文里贴一段含 `<body` 的裸代码块也会被判成前端界面去渲染，所以不要在 RP 正文里示范裸 HTML。
+判定用的是 `['html>', '<head>', '<body'].some(...)`，所以它对页面上所有 `<pre>` 生效：正文里贴一段含 `<body` 的裸代码块也会被当界面渲染，别在 RP 正文里示范裸 HTML。
 
 ## 二、数据怎么从 AI 流到界面
 
@@ -43,6 +43,8 @@
 - 选 C 就得写 `FOLLOW_LATEST`（跟随最新楼）与差值逻辑；选 B 就别写箭头，两个一起上只会互相抵销。
 - 任何一条路径都不许从 `document` 里读别的消息 DOM：iframe 是隔离的，读不到。
 - D 读本楼已保存快照。MVU 的 VARIABLE_UPDATE_ENDED 早于写回；等本楼刷新再读，缺值显示未知。
+
+**预览副本**：`python scripts/make-preview.py 制作文件/产物/statusbar-ui.html` 复制到 `制作文件/产物/preview/`（不进 `导入包/`）。同一份文件靠守卫分流：`window.self === window.top` 为真（双击打开）才用 `MOCK` 并加 `body.rp-preview` 画布；为假（楼层 iframe）一律读真实数据。所以 MOCK 必须写在 `if (RP_PREVIEW)` 分支里（F15 拦）；预览里不准 `save()`、不准真发消息；画布宽取 `--canvas-w`（默认 700，`?w=360` 看窄屏）。
 
 **发送动作的三级降级**（点击按钮要发消息时才需要）：
 
@@ -130,7 +132,7 @@ else {
 - 高度别写死：内容多时让它自然高；需要限高时用 `max-height` + `overflow:auto`，不要把 `vh` 换算写死（酒馆助手会替换 `min-height: XXvh`）。
 - 不做全屏遮罩、不夺焦点、不自动滚动外部聊天；界面在消息气泡内正常流淌。
 - 无障碍：正文用真文本，不把信息只塞进 title；对比度至少 4.5:1；点击元素用 `<button>`。
-- 中文界面默认 `lang="zh-CN"`；用户要英文界面时改 `lang` 与文案，字段名仍用中文（与产物一致）。
+- 中文界面默认 `lang="zh-CN"`；字段名始终用中文（与产物一致）。
 
 ## 三之一、实体陷阱：`&amp;` 会被多吃一层
 
@@ -219,8 +221,8 @@ else {
 7. 走 D 时字段名必须能在 `mvu-schema.js` 的 `Schema` 里找到，`FIELDS` 的 min/max 逐项抄轴的 `range`（不一致就改界面，不改产物）。
 8. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本；越界值不溢出。
 9. 交用户四句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里、触发词该出现在哪条消息里。
-10. 阶段收尾一检 `python scripts/check-stage.py opening|statusbar <项目根>` 全过（内部跑 `validate-frontend.py`，F01–F14；F04 专抓 `<script>` 里的 HTML 实体，那是唯一会让界面整份静默不显示的写法）。
+10. 阶段收尾一检 `python scripts/check-stage.py opening|statusbar <项目根>` 全过（内部跑 `validate-frontend.py`，F01–F17；F04 抓 `<script>` 里的 HTML 实体，F15 抓预览守卫，F16/F17 抓色板与画布）。
 
 ## 九、正则只能界面导入
 
-`extension_settings` 属于运行中的客户端：脚本 `POST /api/settings/save` 写进 `settings.json` 的正则，会在页面刷新或下一次自动保存时被内存里的旧数组覆盖。所以 `正则.json` 交出去就完了，别代用户装好——最多校验结构可编译。
+`extension_settings` 属于运行中的客户端：脚本 `POST /api/settings/save` 写的正则会被内存里的旧数组覆盖。所以 `正则.json` 交出去就完了，别代用户装好。

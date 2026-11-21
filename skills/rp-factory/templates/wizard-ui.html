@@ -4,83 +4,139 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+  /* ===== 一、语义层 =====
+     三意象（宣纸 / 墨条 / 朱印）+ 一光源（台灯）：纸底墨字，只有朱印与靛青两个亮点。
+     见 references/frontend-design.md 第一节。 */
+  :root {
+    --c-paper: #f2ece0;
+    --c-paper-2: #eae2d2;
+    --c-ink: #23201c;
+    --c-mid: #6d6558;
+    --c-line: #cfc4ae;
+    --c-accent: #2f5468;      /* 靛青：可点、当前步 */
+    --c-seal: #a4332a;        /* 朱印：必填、强调 */
+    --f-title: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "SimSun", serif;
+    --f-body: "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+    --f-mono: ui-monospace, "SF Mono", Consolas, "Roboto Mono", monospace;
+    --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px;
+  }
+
+  /* ===== 二、组件层 ===== */
   .rp-wz {
-    --rp-wz-bg: #12100e;
-    --rp-wz-card: #1a1714;
-    --rp-wz-fg: #e6e0d4;
-    --rp-wz-dim: #938b7d;
-    --rp-wz-line: #322c25;
-    --rp-wz-accent: #d8a13c;
-    --rp-wz-danger: #b5442f;
     box-sizing: border-box;
-    font-family: "Noto Sans SC", system-ui, sans-serif;
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--rp-wz-fg);
-    background: var(--rp-wz-bg);
-    border: 1px solid var(--rp-wz-line);
-    border-radius: 6px;
-    max-width: 100%;
-    overflow: hidden;
+    font-family: var(--f-body); font-size: 14px; line-height: 1.7;
+    color: var(--c-ink);
+    background: var(--c-paper);
+    background-image: repeating-linear-gradient(0deg, rgba(35, 32, 28, .02) 0 1px, transparent 1px 4px);
+    border: 1px solid var(--c-line);
+    border-top: 3px double var(--c-ink);
+    box-shadow: 2px 2px 0 var(--c-line);
+    max-width: 100%; border-radius: 2px;
   }
   .rp-wz * { box-sizing: border-box; }
-  .rp-wz-head { padding: 18px 18px 0; }
-  .rp-wz-title { margin: 0; font-size: 20px; letter-spacing: .08em; }
-  .rp-wz-sub { margin: 4px 0 0; font-size: 12px; color: var(--rp-wz-dim); letter-spacing: .18em; }
-  .rp-wz-steps { display: flex; gap: 4px; padding: 14px 18px 0; flex-wrap: wrap; }
-  .rp-wz-pill {
-    font: inherit; font-size: 11px; cursor: pointer;
-    padding: 3px 9px; border-radius: 999px;
-    color: var(--rp-wz-dim); background: transparent;
-    border: 1px solid var(--rp-wz-line);
+
+  .rp-wz-head { padding: var(--s-4) var(--s-4) 0; display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-3); }
+  .rp-wz-title { margin: 0; font-family: var(--f-title); font-size: 21px; letter-spacing: .1em; }
+  .rp-wz-sub { margin: var(--s-1) 0 0; font-size: 10px; letter-spacing: .26em; color: var(--c-mid); }
+  .rp-wz-stamp {
+    flex: none; padding: 2px 7px; font-family: var(--f-title); font-size: 11px; letter-spacing: .18em;
+    color: var(--c-seal); border: 1px solid var(--c-seal); border-radius: 1px;
   }
-  .rp-wz-pill[aria-current="true"] { color: var(--rp-wz-bg); background: var(--rp-wz-accent); border-color: var(--rp-wz-accent); }
-  .rp-wz-pill.is-done { color: var(--rp-wz-accent); border-color: var(--rp-wz-accent); }
-  .rp-wz-body { padding: 16px 18px; }
-  .rp-wz-lore { border-left: 2px solid var(--rp-wz-line); padding-left: 12px; margin: 0 0 14px; }
-  .rp-wz-lore h3 { margin: 0 0 4px; font-size: 15px; color: var(--rp-wz-accent); }
-  .rp-wz-lore p { margin: 0; font-size: 13px; color: var(--rp-wz-fg); opacity: .92; }
-  .rp-wz-field { margin: 0 0 14px; }
-  .rp-wz-label { display: block; margin: 0 0 4px; font-size: 12px; color: var(--rp-wz-dim); letter-spacing: .06em; }
-  .rp-wz-label .rp-wz-req { color: var(--rp-wz-danger); }
+
+  /* 步骤：编号 + 连线，不用胶囊（胶囊会把"进度"说成"标签"） */
+  .rp-wz-steps { display: flex; align-items: center; gap: 0; padding: var(--s-4) var(--s-4) 0; flex-wrap: wrap; }
+  .rp-wz-pill {
+    font: inherit; font-size: 11px; letter-spacing: .06em; cursor: pointer;
+    padding: 3px 2px; margin-right: var(--s-3);
+    color: var(--c-mid); background: none; border: 0; border-bottom: 1px solid transparent;
+  }
+  .rp-wz-pill::before { content: attr(data-n) ". "; font-family: var(--f-mono); opacity: .7; }
+  .rp-wz-pill[aria-current="true"] { color: var(--c-accent); border-bottom-color: var(--c-accent); }
+  .rp-wz-pill.is-done { color: var(--c-ink); }
+  .rp-wz-pill.is-done::after { content: " ✓"; color: var(--c-accent); }
+  .rp-wz-pill:hover { color: var(--c-accent); }
+
+  .rp-wz-body { padding: var(--s-4); border-top: 1px solid var(--c-line); margin-top: var(--s-3); }
+
+  /* 世界观卡片：一张一个主题，靠序号与细线分开，不靠彩色块 */
+  .rp-wz-lore { margin: 0 0 var(--s-3); padding: 0 0 var(--s-3) var(--s-3); border-left: 2px solid var(--c-line); }
+  .rp-wz-lore:last-child { margin-bottom: 0; padding-bottom: 0; }
+  .rp-wz-lore h3 { margin: 0 0 2px; font-family: var(--f-title); font-size: 14px; letter-spacing: .08em; color: var(--c-accent); }
+  .rp-wz-lore p { margin: 0; font-size: 13px; line-height: 1.85; }
+
+  .rp-wz-field { margin: 0 0 var(--s-3); }
+  .rp-wz-label { display: block; margin: 0 0 var(--s-1); font-size: 11px; letter-spacing: .1em; color: var(--c-mid); }
+  .rp-wz-label .rp-wz-req { color: var(--c-seal); }
   .rp-wz input[type="text"], .rp-wz select, .rp-wz textarea {
-    width: 100%; font: inherit; font-size: 13px;
-    color: var(--rp-wz-fg); background: var(--rp-wz-card);
-    border: 1px solid var(--rp-wz-line); border-radius: 3px;
+    width: 100%; font: inherit; font-size: 13px; line-height: 1.6;
+    color: var(--c-ink); background: var(--c-paper-2);
+    border: 1px solid var(--c-line); border-radius: 1px;
     padding: 7px 9px;
   }
-  .rp-wz textarea { min-height: 68px; resize: vertical; }
+  .rp-wz textarea { min-height: 72px; resize: vertical; }
   .rp-wz input:focus, .rp-wz select:focus, .rp-wz textarea:focus {
-    outline: none; border-color: var(--rp-wz-accent);
+    outline: none; border-color: var(--c-accent); background: #fff;
+    box-shadow: 0 0 0 2px rgba(47, 84, 104, .12);
   }
   .rp-wz-custom { margin-top: 6px; }
-  .rp-wz-nav { display: flex; gap: 8px; justify-content: space-between; padding: 0 18px 18px; }
+
+  .rp-wz-nav { display: flex; gap: var(--s-2); justify-content: space-between; padding: 0 var(--s-4) var(--s-4); }
   .rp-wz-btn {
-    font: inherit; font-size: 13px; cursor: pointer;
-    padding: 7px 16px; border-radius: 3px;
-    color: var(--rp-wz-fg); background: transparent;
-    border: 1px solid var(--rp-wz-line);
+    font: inherit; font-size: 13px; cursor: pointer; padding: 7px 16px;
+    color: var(--c-ink); background: transparent;
+    border: 1px solid var(--c-line); border-radius: 1px;
+    transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
   }
-  .rp-wz-btn:hover { border-color: var(--rp-wz-accent); }
-  .rp-wz-btn[disabled] { opacity: .4; cursor: default; }
-  .rp-wz-btn.is-primary { color: var(--rp-wz-bg); background: var(--rp-wz-accent); border-color: var(--rp-wz-accent); }
+  .rp-wz-btn:hover { border-color: var(--c-accent); }
+  .rp-wz-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+  .rp-wz-btn[disabled] { opacity: .35; cursor: default; }
+  .rp-wz-btn.is-primary { color: var(--c-paper); background: var(--c-accent); border-color: var(--c-accent); box-shadow: 2px 2px 0 var(--c-line); }
+  .rp-wz-btn.is-primary:active { transform: translate(2px, 2px); box-shadow: none; }
+
   .rp-wz-sum { font-size: 13px; }
-  .rp-wz-sum h3 { margin: 14px 0 6px; font-size: 12px; letter-spacing: .16em; color: var(--rp-wz-accent); }
-  .rp-wz-sum dl { margin: 0; display: grid; grid-template-columns: minmax(5em, auto) 1fr; gap: 3px 12px; }
-  .rp-wz-sum dt { color: var(--rp-wz-dim); }
+  .rp-wz-sum h3 {
+    margin: var(--s-3) 0 6px; padding-bottom: 3px; font-family: var(--f-title);
+    font-size: 12px; letter-spacing: .16em; color: var(--c-accent); border-bottom: 1px solid var(--c-line);
+  }
+  .rp-wz-sum h3:first-child { margin-top: 0; }
+  .rp-wz-sum dl { margin: 0; display: grid; grid-template-columns: minmax(5em, auto) 1fr; gap: 4px var(--s-3); }
+  .rp-wz-sum dt { color: var(--c-mid); }
   .rp-wz-sum dd { margin: 0; }
   .rp-wz-out {
-    margin: 12px 0 0; padding: 10px; max-height: 220px; overflow: auto;
-    font-family: ui-monospace, Consolas, monospace; font-size: 12px;
+    margin: var(--s-3) 0 0; padding: var(--s-3); max-height: 220px; overflow: auto;
+    font-family: var(--f-mono); font-size: 12px; line-height: 1.7;
     white-space: pre-wrap; word-break: break-word;
-    background: var(--rp-wz-card); border: 1px solid var(--rp-wz-line); border-radius: 3px;
+    background: var(--c-paper-2); border: 1px solid var(--c-line); border-radius: 1px;
   }
-  .rp-wz-tip { margin: 8px 0 0; font-size: 12px; color: var(--rp-wz-dim); }
-  .rp-wz-tip.is-ok { color: var(--rp-wz-accent); }
+  .rp-wz-tip { margin: var(--s-2) 0 0; font-size: 12px; color: var(--c-mid); }
+  .rp-wz-tip.is-warn { color: var(--c-seal); }
+  .rp-wz-tip.is-ok { color: var(--c-accent); }
+
+  /* ===== 三、预览画布 ===== */
+  body.rp-preview {
+    margin: 0; padding: 32px 16px 48px; background: #d9d4c8;
+    background-image: radial-gradient(120% 55% at 50% 0, rgba(255, 255, 255, .6), transparent 70%);
+    background-repeat: no-repeat; background-attachment: fixed;
+  }
+  .rp-preview-tag {
+    max-width: var(--canvas-w, 700px); margin: 0 auto 8px;
+    font: 11px/1 ui-monospace, Consolas, monospace; letter-spacing: .1em; color: #6b6459;
+  }
+  .rp-preview .rp-wz { max-width: var(--canvas-w, 700px); margin: 0 auto; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rp-wz-btn { transition: none; }
+    .rp-wz-btn.is-primary:active { transform: none; }
+  }
+  @media (max-width: 420px) {
+    .rp-wz-title { font-size: 18px; }
+    .rp-wz-steps { gap: 2px; }
+    .rp-wz-pill { margin-right: var(--s-2); }
+  }
 </style>
 </head>
 <body>
-<div class="rp-wz" id="rp-wz-root"></div>
+<div id="rp-wz-mount"></div>
 <!-- 路径 B（捕获组预填）才需要：本行换成带 hidden 的 textarea，内容写捕获组占位符；同时把 findRegex 改成带捕获组的写法。见 references/frontend-conventions.md 第二节。 -->
 <script>
 (function () {
@@ -90,10 +146,11 @@
   var PROJECT = '未命名项目';          // 与 contract.project.name 一致，localStorage 键前缀用它
   var TITLE = '角色创建';
   var SUBTITLE = 'CHARACTER CREATION';
-  var OUTRO = '填完点「复制」，把这段粘贴进聊天即可。';
+  var STAMP = '档案卷宗';              // 右上角小印；不要就整行删掉
+  var OUTRO = '填完点「复制档案」，把这段粘贴进聊天即可。';
 
   /* 每一步：kind = lore（世界观卡片）/ form（表单）/ summary（总览导出）
-     form 字段：k=键名（导出用）, label=显示名, type=text|textarea|select, options=[], custom=true 允许自定义输入, req=true 必填, ph=占位 */
+     form 字段：k=键名（导出用）, label=显示名, type=text|textarea|select, options=[], custom=true 允许自定义, req=true 必填, ph=占位 */
   var STEPS = [
     {
       key: '序章', title: '世界序章', kind: 'lore',
@@ -120,19 +177,27 @@
         { k: 'goal', label: '目标', type: 'text', ph: '你最想要什么' }
       ]
     },
-    {
-      key: '总览', title: '角色总览', kind: 'summary'
-    }
+    { key: '总览', title: '角色总览', kind: 'summary' }
   ];
 
-  var ROOT = document.getElementById('rp-wz-root');
+  /* 预览守卫：楼层 iframe 里 self !== top；直接打开预览副本时 self === top。
+     正式聊天里永远读真实填写与 localStorage，预览里才用 MOCK。 */
+  var RP_PREVIEW = (function () {
+    try { return window.self === window.top; } catch (e) { return false; }
+  })();
+  var MOCK = { name: '祁昭', age: '三十一', gender: '男', identity: '第七塔次席守夜人',
+               personality: '话少，先看灯再看人；对潮声有生理性的厌恶。',
+               creed: '灯亮着，就得有人守。', goal: '撑到下一次换班' };
+
   var STORE_DATA = 'rpwz:' + PROJECT + ':data';
   var STORE_STEP = 'rpwz:' + PROJECT + ':step';
-  var data = load(STORE_DATA) || {};
-  var step = Number(load(STORE_STEP)) || 0;
 
   function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  var data = RP_PREVIEW ? Object.assign({}, MOCK) : (load(STORE_DATA) || {});
+  var step = RP_PREVIEW ? 1 : (Number(load(STORE_STEP)) || 0);   // 预览从表单页开始，最能看出排版
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       // 实体一律用 & 拼：正文里的实体写法会被渲染管线多吃掉一层（见 frontend-conventions 三之一）
@@ -143,6 +208,7 @@
   /* 路径 B（捕获组预填）才需要：捕获内容塞进隐藏 textarea，这里读回来预填。
      默认路径 A 无捕获组，捕获组占位符不出现在 HTML 里——加了 textarea 就要同步改 findRegex 与前端门第 4 条。 */
   function prefillFromDollar1() {
+    if (RP_PREVIEW) return;
     var el = document.getElementById('rp-wz-raw');
     var raw = el ? String(el.value || '').trim() : '';
     if (!raw || raw.charAt(0) === '$') return;
@@ -155,7 +221,7 @@
   function renderSteps() {
     return STEPS.map(function (s, i) {
       var cls = 'rp-wz-pill' + (i < step ? ' is-done' : '');
-      return '<button type="button" class="' + cls + '" aria-current="' + (i === step) +
+      return '<button type="button" class="' + cls + '" data-n="' + (i + 1) + '" aria-current="' + (i === step) +
         '" data-step="' + i + '">' + esc(s.key) + '</button>';
     }).join('');
   }
@@ -181,10 +247,8 @@
       input = '<select id="' + id + '" data-k="' + esc(f.k) + '">' +
         '<option value="">— 未选 —</option>' +
         opts.map(function (o) {
-          var val = o === '__custom__' ? '__custom__' : o;
-          var text = o === '__custom__' ? '自定义…' : o;
           var sel = (isCustom ? (o === '__custom__') : (o === v)) ? ' selected' : '';
-          return '<option value="' + esc(val) + '"' + sel + '>' + esc(text) + '</option>';
+          return '<option value="' + esc(o) + '"' + sel + '>' + esc(o === '__custom__' ? '自定义…' : o) + '</option>';
         }).join('') + '</select>' +
         (f.custom ? '<input type="text" class="rp-wz-custom" id="' + id + '-custom" placeholder="自己写一个" value="' +
           esc(isCustom ? v : '') + '"' + (isCustom ? '' : ' hidden') + '>' : '');
@@ -228,7 +292,7 @@
       });
     });
     var warn = missing.length
-      ? '<p class="rp-wz-tip">还差必填项：' + esc(missing.join('、')) + '。留着也能导出，但下游会当作未定。</p>'
+      ? '<p class="rp-wz-tip is-warn">还差必填项：' + esc(missing.join('、')) + '。留着也能导出，但下游会当作未定。</p>'
       : '';
     return '<div class="rp-wz-sum">' + warn + blocks +
       '<div class="rp-wz-out" id="rp-wz-md">' + esc(markdown()) + '</div>' +
@@ -241,9 +305,11 @@
       : s.kind === 'form' ? (s.fields || []).map(renderField).join('')
         : renderSummary();
 
-    ROOT.innerHTML =
-      '<div class="rp-wz-head"><h1 class="rp-wz-title">' + esc(TITLE) + '</h1>' +
+    var mount = document.getElementById('rp-wz-root');
+    mount.innerHTML =
+      '<div class="rp-wz-head"><div><h1 class="rp-wz-title">' + esc(TITLE) + '</h1>' +
       '<p class="rp-wz-sub">' + esc(SUBTITLE) + '</p></div>' +
+      (STAMP ? '<span class="rp-wz-stamp">' + esc(STAMP) + '</span>' : '') + '</div>' +
       '<div class="rp-wz-steps">' + renderSteps() + '</div>' +
       '<div class="rp-wz-body">' + body + '</div>' +
       '<div class="rp-wz-nav">' +
@@ -257,13 +323,13 @@
   }
 
   function bind(s) {
-    Array.prototype.forEach.call(ROOT.querySelectorAll('[data-step]'), function (el) {
-      el.addEventListener('click', function () { collect(s); go(Number(el.dataset.step)); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-step]'), function (el) {
+      el.addEventListener('click', function () { collect(s); go(Number(el.getAttribute('data-step'))); });
     });
-    Array.prototype.forEach.call(ROOT.querySelectorAll('[data-nav]'), function (el) {
-      el.addEventListener('click', function () { collect(s); go(step + Number(el.dataset.nav)); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'), function (el) {
+      el.addEventListener('click', function () { collect(s); go(step + Number(el.getAttribute('data-nav'))); });
     });
-    Array.prototype.forEach.call(ROOT.querySelectorAll('[data-k]'), function (el) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-k]'), function (el) {
       el.addEventListener('input', function () { collect(s); });
       el.addEventListener('change', function () {
         if (el.tagName === 'SELECT' && el.value === '__custom__') {
@@ -273,7 +339,7 @@
         collect(s);
       });
     });
-    Array.prototype.forEach.call(ROOT.querySelectorAll('[data-copy]'), function (el) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'), function (el) {
       el.addEventListener('click', function () { collect(s); copy(markdown()); });
     });
   }
@@ -290,14 +356,14 @@
       }
       if (v) data[f.k] = v; else delete data[f.k];
     });
-    save(STORE_DATA, data);
+    if (!RP_PREVIEW) save(STORE_DATA, data);
   }
 
   function go(next) {
     if (next < 0) next = 0;
     if (next > STEPS.length - 1) next = STEPS.length - 1;
     step = next;
-    save(STORE_STEP, step);
+    if (!RP_PREVIEW) save(STORE_STEP, step);
     render();
   }
 
@@ -316,9 +382,28 @@
     } else { fallback(); }
   }
 
-  prefillFromDollar1();
-  if (step > STEPS.length - 1) step = 0;
-  render();
+  function mount() {
+    var host = document.getElementById('rp-wz-mount');
+    var w = '';
+    try { w = new URLSearchParams(location.search).get('w') || ''; } catch (e) {}
+    if (RP_PREVIEW) {
+      document.body.classList.add('rp-preview');
+      if (w && /^\d+$/.test(w)) document.body.style.setProperty('--canvas-w', w + 'px');
+      var tag = document.createElement('div');
+      tag.className = 'rp-preview-tag';
+      tag.textContent = '预览 ' + (w && /^\d+$/.test(w) ? w : 700) + 'px · 正式聊天里不显示这行';
+      document.body.insertBefore(tag, host);
+    }
+    var root = document.createElement('div');
+    root.className = 'rp-wz';
+    root.id = 'rp-wz-root';
+    host.appendChild(root);
+    prefillFromDollar1();
+    if (step > STEPS.length - 1) step = 0;
+    render();
+  }
+
+  mount();
 })();
 </script>
 </body>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""前端界面自检：查 HTML 骨架、外链、危险 API、内联脚本里的 HTML 实体。
+"""前端界面自检：查 HTML 骨架、外链、危险 API、内联脚本里的 HTML 实体、预览守卫。
 
 用法:
     python scripts/validate-frontend.py 导入包/statusbar-ui.html
@@ -101,10 +101,12 @@ def check(path: Path) -> tuple[list[str], list[str], list[str]]:
         if raw.rstrip().endswith("/>"):
             continue
         close = f"</{name}>"
-        # 自闭合的成对标签用简单计数法
-        if text.count(f"<{name}") > text.count(close) and name not in stack:
+        # 自闭合的成对标签用简单计数法（用 \b 防止 <header> 被算成 <head>）
+        opens = len(re.findall(rf"<{name}\b", text, re.I))
+        closes = len(re.findall(rf"</{name}\s*>", text, re.I))
+        if opens > closes and name not in stack:
             stack.append(name)
-        elif close in text and name in stack:
+        elif re.search(rf"</{name}\s*>", text, re.I) and name in stack:
             stack.remove(name)
     if stack:
         warn.append(f"F07 可能未闭合的标签: {', '.join(sorted(set(stack))[:5])}（无误可忽略）")
@@ -197,11 +199,47 @@ def check(path: Path) -> tuple[list[str], list[str], list[str]]:
     else:
         ok.append("F14 无裸定时器")
 
+    # F15 预览守卫：MOCK 数据必须只在 `if (RP_PREVIEW)` 分支里用，否则假数据会进正式聊天
+    has_mock = re.search(r"\bMOCK\b", text)
+    has_guard = re.search(r"window\.self\s*===\s*window\.top", text)
+    if has_mock and not has_guard:
+        fail.append(
+            "F15 有 MOCK 却没有 `window.self === window.top` 守卫：预览用的假数据会在正式聊天里渲染出来"
+            "（frontend-conventions.md 第二节之一）"
+        )
+    elif has_mock and not re.search(r"if\s*\(\s*RP_PREVIEW\s*\)|RP_PREVIEW\s*\?", text):
+        fail.append("F15 有 MOCK 但没有 `if (RP_PREVIEW)` 分支：MOCK 会被无条件使用，正式聊天里就是假数据")
+    else:
+        ok.append("F15 预览守卫齐（或无 MOCK）")
+
+    # F16 设计变量分层：语义层（--c-/--f-/--s-）与组件层（--rp-*）分开，组件层只吃语义层
+    if re.search(r"--rp-[a-z0-9-]+\s*:\s*#[0-9a-fA-F]{3,8}", text):
+        warn.append(
+            "F16 组件层变量里写了字面色值（`--rp-*: #...`）：换皮肤时要改十几处。把色值提到 `:root` 的"
+            "`--c-*` 语义层，组件层只写 `var(--c-*)`（frontend-design.md 第一节）"
+        )
+    elif text.count("var(--c-") < 3:
+        warn.append(
+            "F16 没有语义色板（`--c-*`）：颜色直接写死在规则里，换个世界就得逐条重调"
+            "（frontend-design.md 第一节的推色法）"
+        )
+    else:
+        ok.append("F16 颜色走语义层")
+
+    # F17 画布：预览要在 700 / 360 两档都看得出版式问题
+    if "--canvas-w" not in text:
+        warn.append(
+            "F17 没有 `--canvas-w` 画布变量：`make-preview.py` 打不开 360px 档，窄屏塌陷只能等用户发现"
+            "（frontend-conventions.md 第二节之一）"
+        )
+    else:
+        ok.append("F17 有预览画布变量")
+
     return fail, warn, ok
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="前端界面自检（骨架/外链/实体/危险 API）")
+    ap = argparse.ArgumentParser(description="前端界面自检（骨架/外链/实体/危险 API/预览守卫）")
     ap.add_argument("paths", nargs="+", help="HTML 文件或目录")
     ap.add_argument("--quiet", action="store_true", help="只打印失败与警告")
     args = ap.parse_args()

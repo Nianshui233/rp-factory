@@ -4,57 +4,140 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+  /* ===== 一、语义层 =====
+     三意象（海雾 / 铁闸 / 桅灯）+ 一光源（桅灯）：冷底 + 一点暖。见 references/frontend-design.md 第一节。 */
+  :root {
+    --c-ink: #0e1113;          /* 环境最暗：海雾里的夜 */
+    --c-surface: #171c1f;      /* 纸面：湿铁 */
+    --c-mid: #8d9095;          /* 意象本体：雾 */
+    --c-line: #2c343a;
+    --c-accent: #d8a13c;       /* 光源：桅灯 */
+    --c-paper: #e8e2d4;        /* 反白用 */
+    --f-title: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "SimSun", serif;
+    --f-body: "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+    --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px;
+  }
+
+  /* ===== 二、组件层 ===== */
   .rp-open {
-    --rp-open-bg: #14100e;
-    --rp-open-fg: #eae2d2;
-    --rp-open-dim: #9a8f7c;
-    --rp-open-line: #3a322a;
-    --rp-open-accent: #d8a13c;
     box-sizing: border-box;
-    font-family: "Noto Serif SC", Georgia, serif;
-    font-size: 15px;
-    line-height: 1.7;
-    color: var(--rp-open-fg);
-    background: var(--rp-open-bg);
-    border: 1px solid var(--rp-open-line);
-    border-radius: 4px;
-    padding: 26px 22px 22px;
+    font-family: var(--f-body);
+    font-size: 15px; line-height: 1.75;
+    color: var(--c-paper);
+    background: var(--c-surface);
+    background-image:
+      radial-gradient(120% 80% at 12% -10%, rgba(216, 161, 60, .10), transparent 55%),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, .015) 0 1px, transparent 1px 4px);
+    border: 1px solid var(--c-line);
+    border-bottom: 3px double var(--c-line);
+    box-shadow: 0 1px 0 var(--c-ink), 0 10px 24px -16px #000;
+    padding: var(--s-5) var(--s-4) var(--s-4);
     max-width: 100%;
+    border-radius: 2px;
   }
   .rp-open * { box-sizing: border-box; }
-  .rp-open-title { margin: 0; font-size: 26px; letter-spacing: .12em; font-weight: 600; }
-  .rp-open-sub { margin: 6px 0 0; font-size: 13px; letter-spacing: .28em; color: var(--rp-open-accent); }
-  .rp-open-line { margin: 16px 0; height: 1px; background: var(--rp-open-line); border: 0; }
-  .rp-open-say { margin: 0 0 18px; font-style: italic; color: var(--rp-open-dim); }
-  .rp-open-info { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0 0 20px; font-size: 13px; }
-  .rp-open-info dt { color: var(--rp-open-dim); font-family: system-ui, sans-serif; letter-spacing: .1em; }
-  .rp-open-info dd { margin: 0; }
-  .rp-open-entries { display: grid; gap: 8px; }
+
+  /* 报头：标题与副标题用两种字号、两种字距拉开层级 */
+  .rp-open-head { margin: 0 0 var(--s-3); }
+  .rp-open-title {
+    margin: 0; font-family: var(--f-title);
+    font-size: 30px; line-height: 1.25; font-weight: 600; letter-spacing: .1em;
+    color: var(--c-paper);
+  }
+  .rp-open-sub {
+    margin: var(--s-1) 0 0; font-size: 12px; letter-spacing: .3em;
+    color: var(--c-accent);
+  }
+  .rp-open-rule { margin: var(--s-4) 0; height: 0; border: 0; border-top: 1px solid var(--c-line); }
+  .rp-open-rule::after {
+    content: ""; display: block; margin-top: 2px; border-top: 1px solid var(--c-line); opacity: .5;
+  }
+
+  /* 一言：引文样式，左侧一道竖线代替引号 */
+  .rp-open-say {
+    margin: 0 0 var(--s-5); padding-left: var(--s-3);
+    border-left: 2px solid var(--c-accent);
+    font-family: var(--f-title); font-size: 14px; line-height: 1.9;
+    color: var(--c-mid);
+  }
+
+  /* 信息条：标签小字 + 值正常字重，两列对齐 */
+  .rp-open-info { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-3); margin: 0 0 var(--s-5); font-size: 13px; }
+  .rp-open-info dt { color: var(--c-mid); font-size: 11px; letter-spacing: .16em; line-height: 2.1; }
+  .rp-open-info dd { margin: 0; line-height: 2.1; }
+
+  /* 入口：硬投影 + 按下位移，只有这一处动效 */
+  .rp-open-entries { display: grid; gap: var(--s-2); }
   .rp-open-btn {
     display: block; width: 100%; text-align: left; cursor: pointer;
-    padding: 10px 14px; font: inherit; font-size: 14px;
-    color: var(--rp-open-fg); background: transparent;
-    border: 1px solid var(--rp-open-line); border-radius: 3px;
-    transition: border-color .2s ease, background .2s ease;
+    padding: 11px var(--s-3) 12px; font: inherit; font-size: 14px;
+    color: var(--c-paper); background: transparent;
+    border: 1px solid var(--c-line); border-radius: 0;
+    box-shadow: 2px 2px 0 rgba(216, 161, 60, 0);
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
   }
-  .rp-open-btn:hover { border-color: var(--rp-open-accent); background: rgba(216, 161, 60, .08); }
-  .rp-open-btn:focus-visible { outline: 2px solid var(--rp-open-accent); outline-offset: 2px; }
-  .rp-open-btn .rp-open-send { display: block; margin-top: 3px; font-size: 11px; color: var(--rp-open-dim); font-family: system-ui, sans-serif; }
-  .rp-open-btn.is-sent { opacity: .45; cursor: default; }
-  @media (prefers-reduced-motion: reduce) { .rp-open-btn { transition: none; } }
+  .rp-open-btn:hover, .rp-open-btn:focus-visible {
+    border-color: var(--c-accent);
+    background: rgba(216, 161, 60, .07);
+    box-shadow: 2px 2px 0 var(--c-accent);
+    outline: none;
+  }
+  .rp-open-btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--c-accent); }
+  .rp-open-btn[disabled] { opacity: .4; cursor: default; box-shadow: none; transform: none; }
+  .rp-open-send { display: block; margin-top: 3px; font-size: 11px; letter-spacing: .02em; color: var(--c-mid); }
+
+  /* ===== 三、预览画布 ===== */
+  body.rp-preview {
+    margin: 0; padding: 32px 16px 48px; background: #0b0d0e;
+    background-image: radial-gradient(120% 55% at 50% 0, rgba(216, 161, 60, .16), transparent 70%);
+    background-repeat: no-repeat; background-attachment: fixed;
+  }
+  .rp-preview-tag {
+    max-width: var(--canvas-w, 700px); margin: 0 auto 8px;
+    font: 11px/1 ui-monospace, Consolas, monospace; letter-spacing: .1em; color: #6f7276;
+  }
+  .rp-preview .rp-open { max-width: var(--canvas-w, 700px); margin: 0 auto; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rp-open-btn { transition: none; }
+    .rp-open-btn:active { transform: none; }
+  }
+  @media (max-width: 420px) {
+    .rp-open { padding: 20px 14px 16px; }
+    .rp-open-title { font-size: 24px; letter-spacing: .08em; }
+    .rp-open-say { margin-bottom: 18px; }
+  }
 </style>
 </head>
 <body>
-<div class="rp-open" id="rp-open-root"></div>
+<div id="rp-open-mount"></div>
 <script>
 (function () {
   'use strict';
 
-  var TAG = '开局界面';                          // 与正则 findRegex、frontend-prompt.yaml 的 标签 逐字一致
-  var ENTRY_COUNT = 3;                           // 入口条数，与数据块一致
-  var SHOW_SEND_HINT = true;                     // 按钮下方显示"将发送的前 12 字"
-  var ROOT = document.getElementById('rp-open-root');
-  var TEXT_FIELDS = ['标题', '副标题', '一言'];
+  var TAG = '开局界面';                // 与正则 findRegex、frontend-prompt.yaml 的 标签 逐字一致
+  var ENTRY_COUNT = 3;                 // 入口条数上限，与数据块一致
+  var SHOW_SEND_HINT = true;           // 按钮下方显示"将发送的前 12 字"
+
+  var TEXT_FIELDS = ['标题', '副标题', '一言', '角色', '场景', '时间'];
+
+  /* 预览守卫：楼层 iframe 里 self !== top；直接打开预览副本时 self === top */
+  var RP_PREVIEW = (function () {
+    try { return window.self === window.top; } catch (e) { return false; }
+  })();
+  var MOCK = [
+    '<' + TAG + '>',
+    '<标题>白潮</标题>',
+    '<副标题>盐湖守夜人</副标题>',
+    '<一言>潮水每年涨一寸，灯一年比一年暗。</一言>',
+    '<角色>祁昭 · 第七塔次席守夜人</角色>',
+    '<场景>盐镇 · 第七塔塔顶</场景>',
+    '<时间>潮历四十七年 · 第三次涨潮前夜</时间>',
+    '<入口1>推门进塔|我攥紧灯油，推开了第七塔的木门。</入口1>',
+    '<入口2>先绕去码头|我沿着盐渍的石阶往下走，潮声越来越近。</入口2>',
+    '<入口3>留在原地听|我停在门口，听塔里那盏灯芯烧得噼啪响。</入口3>',
+    '</' + TAG + '>'
+  ].join('\n');
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -62,15 +145,17 @@
       return { '&': '\x26amp;', '<': '\x26lt;', '>': '\x26gt;', '"': '\x26quot;', "'": '\x26#39;' }[c];
     });
   }
+
   function pick(block, name) {
     var m = block.match(new RegExp('<' + name + '>([\\s\\S]*?)<\\/' + name + '>'));
     return m ? m[1].trim() : '';
   }
+
   function parse(text) {
     var m = String(text || '').match(new RegExp('<' + TAG + '>([\\s\\S]*?)<\\/' + TAG + '>'));
     if (!m) return null;
     var body = m[1], out = { entries: [] };
-    TEXT_FIELDS.concat(['角色', '场景', '时间']).forEach(function (k) { out[k] = pick(body, k); });
+    TEXT_FIELDS.forEach(function (k) { out[k] = pick(body, k); });
     for (var i = 1; i <= ENTRY_COUNT; i++) {
       var raw = pick(body, '入口' + i);
       if (!raw) continue;
@@ -80,51 +165,91 @@
     }
     return out;
   }
-  function infoHtml(d) {
-    var rows = [['角色', d['角色']], ['场景', d['场景']], ['时间', d['时间']]]
-      .filter(function (p) { return p[1]; })
-      .map(function (p) { return '<dt>' + esc(p[0]) + '</dt><dd>' + esc(p[1]) + '</dd>'; });
-    return rows.length ? '<dl class="rp-open-info">' + rows.join('') + '</dl>' : '';
-  }
+
   function messageText() {
+    if (RP_PREVIEW) return MOCK;
     try {
       var list = getChatMessages(getCurrentMessageId());
       return list && list.length ? list[0].message : '';
-    } catch (e) { return ''; }   // 没装酒馆助手 / 不在正式聊天里 → 留白，不报错
+    } catch (e) { return ''; }
   }
+
+  function send(text) {
+    if (typeof triggerSlash === 'function') { triggerSlash('/send ' + text); return; }
+    if (typeof SillyTavern !== 'undefined' && SillyTavern.triggerSlash) { SillyTavern.triggerSlash('/send ' + text); return; }
+    var box = document.querySelector('#send_textarea');
+    if (box) {
+      box.value = text;
+      box.dispatchEvent(new Event('input', { bubbles: true }));
+      var btn = document.querySelector('#send_but');
+      if (btn) btn.click();
+    }
+  }
+
   function render() {
+    var mount = document.getElementById('rp-open-root');
     var d = parse(messageText());
-    if (!d || (!d['标题'] && !d.entries.length)) { ROOT.innerHTML = ''; return; }
+    if (!d || (!d['标题'] && !d.entries.length)) { mount.innerHTML = ''; return; }
 
     var html = '';
-    if (d['标题']) html += '<h1 class="rp-open-title">' + esc(d['标题']) + '</h1>';
-    if (d['副标题']) html += '<p class="rp-open-sub">' + esc(d['副标题']) + '</p>';
-    if (d['标题'] || d['副标题']) html += '<hr class="rp-open-line">';
-    if (d['一言']) html += '<p class="rp-open-say">' + esc(d['一言']) + '</p>';
-    html += infoHtml(d);
+    if (d['标题'] || d['副标题']) {
+      html += '<header class="rp-open-head">';
+      if (d['标题']) html += '<h1 class="rp-open-title">' + esc(d['标题']) + '</h1>';
+      if (d['副标题']) html += '<p class="rp-open-sub">' + esc(d['副标题']) + '</p>';
+      html += '</header><hr class="rp-open-rule">';
+    }
+    if (d['一言']) html += '<blockquote class="rp-open-say">' + esc(d['一言']) + '</blockquote>';
+
+    var info = [['角色', d['角色']], ['场景', d['场景']], ['时间', d['时间']]]
+      .filter(function (p) { return p[1]; })
+      .map(function (p) { return '<dt>' + esc(p[0]) + '</dt><dd>' + esc(p[1]) + '</dd>'; });
+    if (info.length) html += '<dl class="rp-open-info">' + info.join('') + '</dl>';
+
     if (d.entries.length) {
       html += '<div class="rp-open-entries">' + d.entries.map(function (e, i) {
         var hint = SHOW_SEND_HINT && e.send && e.send !== e.label
           ? '<span class="rp-open-send">' + esc(e.send.slice(0, 12)) + (e.send.length > 12 ? '…' : '') + '</span>'
           : '';
-        return '<button type="button" class="rp-open-btn" data-i="' + i + '">' + esc(e.label) + hint + '</button>';
+        return '<button type="button" class="rp-open-btn" data-i="' + i + '">' +
+          '<span>' + esc(e.label) + '</span>' + hint + '</button>';
       }).join('') + '</div>';
     }
-    ROOT.innerHTML = html;
+    mount.innerHTML = html;
 
-    Array.prototype.forEach.call(ROOT.querySelectorAll('.rp-open-btn'), function (btn) {
+    Array.prototype.forEach.call(mount.querySelectorAll('.rp-open-btn'), function (btn) {
       btn.addEventListener('click', function () {
         if (btn.disabled) return;
-        var e = d.entries[Number(btn.dataset.i)];
-        btn.disabled = true;
-        btn.classList.add('is-sent');
-        if (typeof triggerSlash === 'function') {
-          triggerSlash('/send ' + e.send);
-        }
+        var e = d.entries[Number(btn.getAttribute('data-i'))];
+        if (RP_PREVIEW) { btn.setAttribute('disabled', 'disabled'); return; }  // 预览里不真发消息
+        var ok = true;
+        try { ok = window.confirm('发送：' + e.send); } catch (err) { ok = true; }
+        if (!ok) return;
+        btn.setAttribute('disabled', 'disabled');
+        send(e.send);
       });
     });
   }
-  render();
+
+  function mount() {
+    var host = document.getElementById('rp-open-mount');
+    var w = '';
+    try { w = new URLSearchParams(location.search).get('w') || ''; } catch (e) {}
+    if (RP_PREVIEW) {
+      document.body.classList.add('rp-preview');
+      if (w && /^\d+$/.test(w)) document.body.style.setProperty('--canvas-w', w + 'px');
+      var tag = document.createElement('div');
+      tag.className = 'rp-preview-tag';
+      tag.textContent = '预览 ' + (w && /^\d+$/.test(w) ? w : 700) + 'px · 正式聊天里不显示这行';
+      document.body.insertBefore(tag, host);
+    }
+    var root = document.createElement('div');
+    root.className = 'rp-open';
+    root.id = 'rp-open-root';
+    host.appendChild(root);
+    render();
+  }
+
+  mount();
 })();
 </script>
 </body>
