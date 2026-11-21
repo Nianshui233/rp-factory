@@ -186,7 +186,7 @@ class TestExamplePackage(unittest.TestCase):
 
     def test_example_regex_is_pending(self):
         rules = json.loads((EXAMPLE / "导入包" / "正则.json").read_text(encoding="utf-8"))
-        pending = [r for r in rules if str(r.get("replaceString", "")).startswith("【尚未粘贴界面】")]
+        pending = [r for r in rules if "【尚未粘贴界面】" in str(r.get("replaceString", ""))]
         self.assertEqual(len(pending), 2, "开局与状态栏两条都该是待粘贴态")
 
 

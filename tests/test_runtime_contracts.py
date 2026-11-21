@@ -94,7 +94,7 @@ for (const rule of rules) {
   if (!rule.markdownOnly || rule.disabled || !rule.placement.includes(2)) continue;
   const match = rule.findRegex.match(/^\/(.*)\/(\w*)$/);
   const regex = match ? new RegExp(match[1], match[2]) : new RegExp(rule.findRegex);
-  const pending = String(rule.replaceString).startsWith('【尚未粘贴界面】');
+  const pending = String(rule.replaceString).includes('【尚未粘贴界面】');
   const repl = pending ? pasted : rule.replaceString;
   if (pending && regex.test(message)) usedPaste = true;
   message = message.replace(regex, repl);

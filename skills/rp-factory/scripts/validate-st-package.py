@@ -270,7 +270,7 @@ def validate_mvu_panel(script_list, rep):
         if not rule.get("markdownOnly") or not _matches(str(rule.get("findRegex", "")), marker):
             continue
         body = str(rule.get("replaceString") or "")
-        if body.startswith(PENDING_UI_MARK):
+        if PENDING_UI_MARK in body:
             pending.append(rule)
             continue
         if rule.get("promptOnly"):

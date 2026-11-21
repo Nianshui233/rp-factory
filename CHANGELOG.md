@@ -3,6 +3,29 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.3 — 2026-11-22
+
+**真机首测（`极寒末日`）抓到的四处「静态全绿、真机不亮」。** 前四条缺陷在离线校验里一条都
+没报，全部是导入酒馆之后才现形的。
+
+- **界面必须放围栏里**：`replaceString` 里塞裸 HTML 时，正则生效但 Showdown/sanitize 把
+  `<script>` 吃掉，消息里只剩一段代码块——界面永远不出现。`templates/regex-frontend.json`
+  的待粘占位改成围栏包着（`"```html
+【尚未粘贴界面】…
+```"`），`import-guide.txt`、
+  `stage-7-delivery.md` 写明「围栏不能删」；`validate-contract.py` 与 `validate-st-package.py`
+  的待粘判定从 `startswith` 改成 `in`，示例包的 `正则.json` 同步。
+- **MVU 本体地址已死**：`StageDog/tavern_module/dist/MVU/index.js` 返回 404，`Mvu` 因此从不
+  出现，界面只能显示「未接入」。换成 `MagicalAstrogy/MagVarUpdate/artifact/bundle.js`
+  （572 KB，实测 200），并写明交付前要 `curl -sI` 验一遍。
+- **脚本交付形状**：平铺的对象数组才跑得起来；包一层文件夹（`type: folder`）时 `Mvu` 一直
+  缺，`stage-mvu.md` / `stage-7-delivery.md` 改成「两条别包」。
+- **交付说明自相矛盾**：`stage-mvu.md` 的退出项还写着「卡里已经带了脚本」，与 C12（卡内
+  不内嵌脚本）冲突，改成「脚本单独一份 + 去脚本库手动启用」。
+
+新增 `tests/test_ui_paste.py`（5 个）：待粘占位必须在围栏里、围栏内不许再出现三反引号、
+`stage-mvu.md` 必须用可用的 bundle 地址、全仓不许再引用失效路径、导入说明必须提围栏。
+
 ## 1.4.2 — 2026-11-22
 
 **发布面的两个毛病。**

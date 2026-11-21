@@ -50,6 +50,8 @@ STAGE_ARTIFACT = {
     'delivery': {'st-card', 'st-regex', 'st-worldbook', 'st-script'},
 }
 
+PENDING_MARK = "【尚未粘贴界面】"
+
 ARTIFACT_TYPES = {
     'project-profile', 'world-bible', 'rolecard', 'scene-sheet', 'axis-system',
     'mvu-schema', 'mvu-initvar', 'mvu-entries', 'mvu-regex', 'ejs-controller',
@@ -385,7 +387,9 @@ def check_output_dirs(c, root):
         for rule in rules if isinstance(rules, list) else []:
             if not isinstance(rule, dict):
                 continue
-            if not str(rule.get('replaceString', '')).startswith('【尚未粘贴界面】'):
+            repl = str(rule.get('replaceString', ''))
+            # 待粘占位可能被 ```html 围栏包着（围栏是必须的，见 templates/regex-frontend.json）
+            if PENDING_MARK not in repl:
                 continue
             title = str(rule.get('scriptName', ''))
             want = '状态栏' if '状态栏' in title else '前端'

@@ -3,7 +3,7 @@
     "id": "rp-0001",
     "scriptName": "RP · 建卡向导",
     "findRegex": "/<建卡向导>/g",
-    "replaceString": "【尚未粘贴界面】打开「<世界名> 开局前端.html」，全选复制（从 <!DOCTYPE html> 到 </html>），粘到本条正则的「替换」里覆盖这段话。\n本条匹配 <建卡向导>；不粘贴的话消息里只剩这行字，界面不会出现。",
+    "replaceString": "```html\n【尚未粘贴界面】把这段说明整段换掉：打开「<世界名> 开局前端.html」，全选复制，粘在围栏里面（开头那行与结尾那行保留）。\n围栏不能删——裸 HTML 的 <script> 会被 sanitize 拿掉，界面不会出现。\n本条匹配 <建卡向导>；不粘贴的话消息里只剩这行字。\n```",
     "trimStrings": [],
     "placement": [
       2
@@ -20,7 +20,7 @@
     "id": "rp-0002",
     "scriptName": "RP · 状态栏",
     "findRegex": "/<状态栏>([\\s\\S]*?)<\\/状态栏>/g",
-    "replaceString": "【尚未粘贴界面】打开「<世界名> 状态栏.html」，全选复制（从 <!DOCTYPE html> 到 </html>），粘到本条正则的「替换」里覆盖这段话。\n本条匹配 <状态栏>…</状态栏>，捕获组 $1 是数据行；粘贴的 HTML 需要用 $1。",
+    "replaceString": "```html\n【尚未粘贴界面】把这段说明整段换掉：打开「<世界名> 状态栏.html」，全选复制，粘在围栏里面（开头那行与结尾那行保留）。\n围栏不能删——裸 HTML 的 <script> 会被 sanitize 拿掉，界面不会出现。\n本条匹配 <状态栏>…</状态栏>，捕获组 $1 是数据行；粘贴的 HTML 需要用 $1。\n```",
     "trimStrings": [],
     "placement": [
       2

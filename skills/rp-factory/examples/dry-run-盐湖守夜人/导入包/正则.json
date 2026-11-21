@@ -3,7 +3,7 @@
     "id": "rp-0001",
     "scriptName": "RP · 建卡向导",
     "findRegex": "<建卡向导>",
-    "replaceString": "【尚未粘贴界面】打开「白潮 开局前端.html」，全选复制（从 <!DOCTYPE html> 到 </html>），\n粘到本条正则的「替换」里覆盖这段文字。\n本条正则匹配 <建卡向导>；不粘贴的话消息里就只剩这行字，界面不会出现。",
+    "replaceString": "```html\n【尚未粘贴界面】打开「白潮 开局前端.html」，全选复制（从 <!DOCTYPE html> 到 </html>），\n粘到本条正则的「替换」里覆盖这段文字。\n本条正则匹配 <建卡向导>；不粘贴的话消息里就只剩这行字，界面不会出现。\n```",
     "trimStrings": [],
     "placement": [
       2
@@ -20,7 +20,7 @@
     "id": "rp-0002",
     "scriptName": "RP · 状态栏 · 白潮",
     "findRegex": "/<StatusPlaceHolderImpl\\/>/g",
-    "replaceString": "【尚未粘贴界面】打开「白潮 状态栏.html」，全选复制（从 <!DOCTYPE html> 到 </html>），\n粘到本条正则的「替换」里覆盖这段文字。\n本条正则匹配 <StatusPlaceHolderImpl/>；不粘贴的话消息里就只剩这行字，界面不会出现。",
+    "replaceString": "```html\n【尚未粘贴界面】打开「白潮 状态栏.html」，全选复制（从 <!DOCTYPE html> 到 </html>），\n粘到本条正则的「替换」里覆盖这段文字。\n本条正则匹配 <StatusPlaceHolderImpl/>；不粘贴的话消息里就只剩这行字，界面不会出现。\n```",
     "trimStrings": [],
     "placement": [
       2

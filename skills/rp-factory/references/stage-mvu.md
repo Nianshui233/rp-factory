@@ -4,10 +4,10 @@
 
 ## 进入条件
 
-- **必须先有 `axis-system.yaml`**。本阶段只做投影：把轴的定义翻译成可执行的字段与夹取，**不重新设计数值**（重新设计 = 同一份数两处真相）。
+- **必须先有 `axis-system.yaml`**。本阶段只做投影：把轴翻译成字段与夹取，**不重新设计数值**（重新设计 = 两处真相）。
 - `naming.axes` 已收口（无 `provisional: true`）。还在 `provisional` 就先回阶段 4。
 - 需要酒馆助手（JS-Slash-Runner）+ MVU 脚本。契约 `project.sillytavern.extension_tavern_helper: false` 或整段 `null` → 先说明"这条路要装酒馆助手，没装的话 MVU 不跑"，再问要不要退回纯提示词（本阶段 `skipped`，只交轴表）。
-- `project.web_research: true`：查过 MVU 的现行字段口径（例如有没有官方推荐的 `stat_data` 结构）再动笔，记 `制作文件/项目记录/检索来源.md`。
+- `project.web_research: true`：先查 MVU 的现行字段口径，记 `制作文件/项目记录/检索来源.md`。
 - 用户明说"数值要记住 / 每轮别忘 / 变量会自己更新 / 想要变量管理器"才进；只是"每个角色有好感度"属阶段 4，不是本阶段。
 
 ## 追问
@@ -93,7 +93,7 @@ Schema
 
 ### 两条正则 + 一条占位符
 
-`templates/regex-mvu.json` 里三条，随卡一起交：
+`templates/regex-mvu.json` 三条，随卡交：
 
 | 名字 | `findRegex` | 配置 | 缺了会怎样 |
 |---|---|---|---|
@@ -106,10 +106,10 @@ Schema
 ### 脚本单独一份，不内嵌进卡
 
 - 产出 `制作文件/产物/mvu/tavern-script-{变量结构,mvu}.json`，形状照 `templates/tavern-script.json`（`MVU` 那条只有一行 import，另一条是 `mvu-schema.js` 全文）。
-- 交付时合成 `<世界名> 酒馆助手脚本.json`：单条就是那个对象，多条用文件夹包一层 `{type:'folder', name, id, scripts:[…]}`。
-- **卡里 `data.extensions.tavern_helper` 不写**（C12 会拦）：内嵌要进白名单才跑，和单独导入的同时启用会跑两遍。
-- **导入后默认不跑也不报错**：插件导入时就把 `enabled` 置 false 并换 `id`（TH-11）。要在脚本库里手动打开；文件夹形态是打开文件夹而不是逐个开。导入说明必须点名。
-- 脚本跑在独立 iframe 里，`Mvu` 挂在 `window.parent`，脚本内直接用 `Mvu.xxx`。
+- 交付时合成 `<世界名> 酒馆助手脚本.json`：**平铺的对象数组**（`[{…MVU…}, {…ZOD…}]`）；两条别包文件夹，实测包了 `Mvu` 不出现。
+- **卡里不写 `extensions.tavern_helper`**（C12 拦）：内嵌要进白名单才跑，与单独导入同时启用会跑两遍。
+- **导入后默认不跑也不报错**：插件导入时把 `enabled` 置 false 并换 `id`（TH-11）。要去脚本库手动打开，导入说明必须点名。
+- 脚本跑在独立 iframe，`Mvu` 挂在 `window.parent`。
 
 ## 生成
 
@@ -129,7 +129,7 @@ Schema
 
 **Step 4 · 正则**：`cp templates/regex-mvu.json 制作文件/产物/mvu/regex-mvu.json`，把第三条按是否做状态栏决定去留。
 
-**Step 5 · 卡内脚本**：`templates/tavern-script.json` 包一层 `mvu-schema.js` 的全文；`MVU` 那条的 `content` 是一行 `import 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_module/dist/MVU/index.js';`。
+**Step 5 · 卡内脚本**：`templates/tavern-script.json` 包一层 `mvu-schema.js` 的全文；`MVU` 那条只有一行 `import 'https://cdn.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate/artifact/bundle.js';`。URL 会失效（旧的那条已 404），交付前 `curl -sI` 确认 200，否则界面只显示「未接入」。
 
 **Step 6 · 自检**：本阶段的脚本校验不在过程里跑，留到收尾：`python scripts/check-stage.py mvu <项目根>`（内部跑 `validate-mvu.py`）。单独跑时用 `python scripts/validate-mvu.py 制作文件/产物/mvu --contract 制作文件/项目记录/contract.yaml`，再 `node --check` 一遍脚本。
 
@@ -145,5 +145,5 @@ Schema
 - 变量门（本阶段的退出条件）：阶段收尾一检 `python scripts/check-stage.py mvu <项目根>` 退出码 0（内部跑 `validate-mvu.py` M01–M13）。
 - `node --check` 过（`mvu-schema.js` 是 ES module，先改名到临时 `.mjs`）。
 - 命名门：轴名与 `axis-system.yaml`、`naming.axes` 三处一致；角色键名与人物设定 `character.name` 逐字一致。
-- 交付说明里**必须有四句**：① 卡里已经带了脚本；② 导入后要去酒馆助手给这个角色**启用脚本**；③ 世界书要单独导入（`importFromJson` 不会把 `character_book` 落成书）；④ 没启用脚本时 MVU 静默不跑、不报错。
+- 交付说明里**必须有四句**：① 脚本是单独一份、卡里没有；② 导入后要去酒馆助手脚本库给这个角色**启用脚本**（导入时 `enabled` 被强制置 false，TH-11）；③ 世界书要单独导入（`importFromJson` 不会把 `character_book` 落成书）；④ 没启用脚本或 MVU 本体加载失败时，界面会显示「未接入」而不是报错。
 - `project.web_research: true` 时确认本阶段 `检索来源.md` 有新增条目。
