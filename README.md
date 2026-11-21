@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.3.1-blue?style=flat" alt="version" />
-  <img src="https://img.shields.io/badge/tests-218%20passing-brightgreen?style=flat" alt="tests" />
+  <img src="https://img.shields.io/badge/version-1.4.1-blue?style=flat" alt="version" />
+  <img src="https://img.shields.io/badge/tests-255%20passing-brightgreen?style=flat" alt="tests" />
   <img src="https://img.shields.io/badge/gates-14-8A2BE2?style=flat" alt="gates" />
   <img src="https://img.shields.io/badge/stages-9-ff69b4?style=flat" alt="stages" />
   <img src="https://img.shields.io/badge/SillyTavern-1.19.0-4EAA25?style=flat" alt="SillyTavern" />

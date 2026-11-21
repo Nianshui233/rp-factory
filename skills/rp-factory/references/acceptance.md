@@ -75,7 +75,7 @@ entries:
 
 L4 是最容易糊弄的一层：「浏览器里看着行」不说明行在**哪一维**。所以 L4 每条必须写 `dimension`，只记这次改动相关的那几维——十一维全填一遍，账本会变成没人读的清单。
 
-前四维脚本能抓，`st-probe.js --json` 直接产出这四个键；其余七维只能人看，看了写看到什么。
+前四维脚本直接产出；`interaction` 在给了 `--interact-*` 时也能脚本判（点完之后变量真的变了吗）。其余六维只能人看，看了写看到什么。
 
 | dimension | 写什么 | 谁抓 |
 |---|---|---|
@@ -85,7 +85,7 @@ L4 是最容易糊弄的一层：「浏览器里看着行」不说明行在**哪
 | `dom` | 挂载数量对、无重复挂载、没有裸代码块漏出 | 脚本 |
 | `dependencies` | 宿主扩展、嵌入脚本、远端加载器按台账到位 | 人 |
 | `style` | 计算尺寸、`display`、`overflow`、类名变换 | 人 |
-| `interaction` | 点击 / 键盘 / 表单 / 关闭 / 重复操作 | 人 |
+| `interaction` | 点击后变量/消息真的变了；连点不重复提交 | 脚本（`--interact-*`）或人 |
 | `data` | 改的是目标楼层与作用域，回读确认已持久化 | 人 |
 | `lifecycle` | 重载、滑铲、编辑、切聊天不丢行为、不重复挂载 | 人 |
 | `responsive` | 窄屏与宽屏、长中文不裁切 | 人 |
@@ -99,7 +99,15 @@ L4 是最容易糊弄的一层：「浏览器里看着行」不说明行在**哪
 node scripts/st-probe.js --char 白潮 --json --report 制作文件/probe.json
 ```
 
-报告里 `dimensions` 是四个键，直接对应上表的 `import` / `fresh_chat` / `console` / `dom`，每项带 `ok` 与 `detail`。写账本时抄 `detail`，不要重写成「正常」。
+报告里 `dimensions` 至少是 `import` / `fresh_chat` / `console` / `dom` 四个键，每项带 `ok` 与 `detail`。写账本时抄 `detail`，不要重写成「正常」。
+
+要看「联动到底生效没有」，再加交互探测——它读写入前后的 `stat_data` 并给出差异：
+
+```
+node scripts/st-probe.js --char 白潮   --interact-input "input[data-name=灯芯]=55"   --interact-click "#rp-cc-apply" --interact-click "#rp-cc-confirm"   --interact-expect "stat_data.灯芯=55"
+```
+
+`interaction` 维没给 `--interact-*` 时是 `ok: null`（未测），**未测不等于通过**；没装 MVU 时会直接报「Mvu 未启用」，这时只能记人看的结论。
 
 ---
 
