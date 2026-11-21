@@ -25,21 +25,18 @@ var NEEDS   = ['Mvu', 'getChatMessages', 'eventOn'];   // 缺哪个就显示「�
 |---|---|---|---|---|
 | **只读显示器** | 状态栏、HUD | 本楼快照 / 变量 | **无** | 缺值显示未知，不补默认值；不因为"顺手"就初始化变量 |
 | **写回控制器** | 控制中心、技能面板 | 变量 + 轴 | 变量（`replaceMvuData`） | 确认 → 快照 → 写 → 复读 → 失败保留输入；幂等防连点 |
-| **开场注入** | 建卡向导、开局面板 | 组件自身状态 | 玩家消息（`triggerSlash('/send …')`） | 草稿只活 DOM/localStorage；提交只发一次；确认框展示将发出的原文 |
+| **开场注入** | 建卡向导、开局面板 | 组件自身状态 | 玩家消息（`/send` 送话 + `/trigger` 生成） | 草稿只活 DOM/localStorage；提交只发一次；确认框展示将发出的原文 |
 
-发送的三级降级（按钮要发消息时才需要）：
+发送要**两步**，只写第一步的症状是「消息进了聊天、没人回，玩家得手动点重新生成」：
 
 ```js
-if (typeof triggerSlash === 'function') triggerSlash('/send ' + text);
-else if (typeof SillyTavern !== 'undefined' && SillyTavern.triggerSlash) SillyTavern.triggerSlash('/send ' + text);
-else {
-  var box = document.querySelector('#send_textarea');   // 最后手段：塞进输入框再点发送
-  if (box) { box.value = text; box.dispatchEvent(new Event('input', { bubbles: true }));
-             document.querySelector('#send_but')?.click(); }
-}
+await triggerSlash('/send ' + text);   // 只 append 一条用户消息，不生成
+await triggerSlash('/trigger');        // 输入框右边那只飞机背后真正调用的命令
+// 界面只活在酒馆助手的 iframe 里，triggerSlash 一定存在；拿不到就说明插件没接上，
+// 恢复按钮并提示玩家自己在输入框里发，别去动父窗口的 #send_textarea。
 ```
 
-发送前弹确认框展示将要发出的原文——点错就发出一句话，在 RP 里收不回来。
+发送前弹确认框展示将发出的原文——点错就发出一句话，在 RP 里收不回来。
 
 **状态栏永不带写按钮。** 要改数据就另做一个控制中心界面（`templates/control-center.html`），两者各挂一条正则，互不依赖。
 

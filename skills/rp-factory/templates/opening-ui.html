@@ -68,6 +68,7 @@
 
   /* 入口：硬投影 + 按下位移，只有这一处动效 */
   .rp-open-entries { display: grid; gap: var(--s-2); }
+  .rp-open-err { margin: var(--s-2) 0 0; font-size: 13px; color: var(--c-accent); }
   .rp-open-btn {
     display: block; width: 100%; text-align: left; cursor: pointer;
     padding: 11px var(--s-3) 12px; font: inherit; font-size: 14px;
@@ -180,16 +181,21 @@
     } catch (e) { return ''; }
   }
 
-  function send(text) {
-    if (typeof triggerSlash === 'function') { triggerSlash('/send ' + text); return; }
-    if (typeof SillyTavern !== 'undefined' && SillyTavern.triggerSlash) { SillyTavern.triggerSlash('/send ' + text); return; }
-    var box = document.querySelector('#send_textarea');
-    if (box) {
-      box.value = text;
-      box.dispatchEvent(new Event('input', { bubbles: true }));
-      var btn = document.querySelector('#send_but');
-      if (btn) btn.click();
+  /* 发送 = 塞消息 + 让模型开口。两步都得走：
+     `/send` 只 append 一条用户消息（slash-commands.js 的 sendUserMessageCallback），
+     不生成；`/trigger` 才是输入框右边那只飞机背后真正调用的生成命令
+     （triggerGenerationCallback）。只发 `/send` 的症状就是「消息进了聊天、没人回，
+     要玩家自己点重新生成」。本界面只存在于酒馆助手的 iframe 里，triggerSlash 一定在。 */
+  async function send(text) {
+    var slash = null;
+    if (typeof triggerSlash === 'function') slash = triggerSlash;
+    else if (typeof SillyTavern !== 'undefined' && typeof SillyTavern.triggerSlash === 'function') {
+      slash = SillyTavern.triggerSlash.bind(SillyTavern);
     }
+    if (!slash) return false;
+    try { await slash('/send ' + text); } catch (e) { return false; }
+    try { await slash('/trigger'); } catch (e) { return false; }
+    return true;
   }
 
   function render() {
@@ -218,7 +224,8 @@
           : '';
         return '<button type="button" class="rp-open-btn" data-i="' + i + '">' +
           '<span>' + esc(e.label) + '</span>' + hint + '</button>';
-      }).join('') + '</div>';
+      }).join('') + '</div>' +
+        '<p class="rp-open-err" id="rp-open-err" hidden>没发出去：酒馆助手没接上，直接在输入框里发这句。</p>';
     }
     mount.innerHTML = html;
 
@@ -231,7 +238,13 @@
         try { ok = window.confirm('发送：' + e.send); } catch (err) { ok = true; }
         if (!ok) return;
         btn.setAttribute('disabled', 'disabled');
-        send(e.send);
+        Promise.resolve(send(e.send)).then(function (done) {
+          if (done === false) {                 // 没发出去就别把人锁死
+            btn.removeAttribute('disabled');
+            var err = document.getElementById('rp-open-err');
+            if (err) { err.hidden = false; }
+          }
+        });
       });
     });
   }

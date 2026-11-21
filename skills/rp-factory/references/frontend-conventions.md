@@ -37,23 +37,23 @@
 | **A 静态替换** | `findRegex` 命中一个触发词，`replaceString` 是整份 HTML，无数据 | 建卡向导、纯展示面板 | 界面里的信息全靠 HTML 写死 |
 | **B `$1` 注入** | `findRegex` 带捕获组，HTML 里藏 `<textarea id="xx-raw" hidden>$1</textarea>`，JS 读 `.value` | 每轮状态栏、HUD、单楼面板 | 只能看本楼，**取不到上一层，所以做不了差值箭头** |
 | **C 聊天 API** | `getChatMessages(getCurrentMessageId())[0].message` 拆标签 | 需要跨楼历史（差值、趋势、跨楼统计） | 依赖酒馆助手注入的 API；纯预览环境下拿不到 |
-| **D 变量（MVU）** | `await waitGlobalInitialized('Mvu')` → `Mvu.getMvuData({type:'message',message_id:getCurrentMessageId()}).stat_data`；正则 `findRegex: '<StatusPlaceHolderImpl/>'`、`markdownOnly: true`、`maxDepth: 2` | 项目做了 `mvu` 阶段 | 依赖酒馆助手 + MVU 脚本；没启用脚本时 `Mvu` 不存在，界面要留白不要报错 |
+| **D 变量（MVU）** | `await waitGlobalInitialized('Mvu')` → `Mvu.getMvuData({type:'message',message_id:getCurrentMessageId()}).stat_data`；正则匹配 `<StatusPlaceHolderImpl/>` | 项目做了 `mvu` 阶段 | 依赖酒馆助手 + MVU；没启用脚本时 `Mvu` 不存在，界面留白不要报错 |
 
-- B 是最稳的一条：数据与 HTML 在同一个正则脚本里，不依赖楼层 API，`runOnEdit` 一开就连手改消息也跟着重算。模板默认“先试 B、B 空则回退 C”，两种环境都能跑。
-- 选 C 就得写 `FOLLOW_LATEST`（跟随最新楼）与差值逻辑；选 B 就别写箭头，两个一起上只会互相抵销。
+- B 最稳：数据与 HTML 在同一个正则里，不依赖楼层 API；`runOnEdit` 一开，手改消息也重算。
+- 选 C 才写 `FOLLOW_LATEST` 与差值；选 B 就别写箭头，两者会互相抵销。
 - 任何一条路径都不许从 `document` 里读别的消息 DOM：iframe 是隔离的，读不到。
 - D 读本楼已保存快照。MVU 的 VARIABLE_UPDATE_ENDED 早于写回；等本楼刷新再读，缺值显示未知。
 
-**预览副本**：`python scripts/make-preview.py 制作文件/产物/statusbar-ui.html` 复制到 `制作文件/产物/preview/`（不进 `导入包/`）。同一份文件靠守卫分流：`window.self === window.top` 为真（双击打开）才用 `MOCK` 并加画布；为假（楼层 iframe）一律读真实数据。预览里不准写盘、不准真发消息；画布宽取 `--canvas-w`（`?w=360` 看窄屏）。
+**预览副本**：`python scripts/make-preview.py 制作文件/产物/statusbar-ui.html` → `制作文件/产物/preview/`（不进 `导入包/`）。同一份文件靠守卫分流：`self === top` 为真才用 `MOCK` + 画布，为假一律读真实数据；预览里不写盘、不发消息，`--canvas-w` 由 `?w=360` 切窄屏。
 
-**发送动作**属写操作，三级降级（`triggerSlash` → `SillyTavern.triggerSlash` → 塞输入框再点）与"发送前展示将发出的原文"见 `references/frontend-interaction.md` 第二节。
+**发送动作**属写操作，要**两步**：`/send`（只 append 消息，不生成）→ `/trigger`（模型才开口）；两条都失败再回退「塞输入框 + 点 `#send_but`」。发送前展示将发出的原文，见 `references/frontend-interaction.md` 第二节；`validate-frontend.py` 的 F22 会拦「只发 `/send`」。
 
 **状态分四层，别混。** 数据状态（`stat_data`，只由 MVU 写）、草稿状态（输入框、未提交的选择）、UI 状态（当前 tab、折叠、滚动位置）、派生视图（进度条宽度、档位文字）。后两层**只能活在 DOM 里**：把 tab 写进变量，等于让界面状态污染世界状态；刷新时用 DOM 读回草稿，不要重新从变量生成覆盖用户输入。
 
 **界面能动什么，先声明再实现。** 脚本最前面写死 `READS` / `WRITES` / `LISTENS` / `NEEDS` 四栏，只读就 `WRITES = []`；三种联动形态（只读显示器 / 写回控制器 / 开场注入）、写回五步（确认→快照→写→复读→失败保留输入）与六态显示全在 `references/frontend-interaction.md`——**做能点的界面之前先读它**。状态栏永不带写按钮，写数据另做控制中心（`templates/control-center.html`）。
 「预览、校验、提交用同一个 builder」：界面上看到的就是将被提交的，别为预览另写一套拼字符串。
 
-**数据畸形时显示诊断态，不要静默隐藏。** 缺字段、类型不对、枚举未知、超长文本——先归一化（`Number.isFinite` / 白名单 / `String(x ?? '')` / 钳制），归一化失败就渲染成「未知」并带一句原因，而不是把整块藏起来或抛异常。界面空白且无提示，是最难查的一类故障：用户只会说「坏了」。
+**数据畸形时显示诊断态。** 缺字段、类型不对、枚举未知——先归一化（`Number.isFinite` / 白名单 / `String(x ?? '')` / 钳制），失败就渲染「未知」+ 原因，别静默隐藏：空白无提示是最难查的故障。
 
 ## 三、HTML 骨架（每个界面都照这个来）
 

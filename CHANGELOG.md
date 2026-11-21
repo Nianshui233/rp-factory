@@ -3,6 +3,28 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.4 — 2026-11-22
+
+**入口按钮点了没人回。** 玩家点开局面板的入口，消息确实进了聊天，模型却一句话不接，
+必须自己手动点「重新生成」——`/send` 只 append 一条用户消息。
+
+- `templates/opening-ui.html` 的发送改成两步：`/send` 送话 + `/trigger` 生成；
+  两步都依赖酒馆助手注入的 `triggerSlash`（界面本来就只活在它的 iframe 里）。
+  失败时放开按钮并显示一行提示，让玩家自己在输入框里发。
+- 删掉「直接操作父窗口 `#send_textarea` + 点 `#send_but`」的兜底：它要碰 `parent.document`，
+  F12 本来就不许，且在插件没接上时也不成立。
+- `validate-frontend.py` 新增 **F22**：出现 `/send` 却没有 `/trigger` 直接判失败。
+- 文档三处同步：`frontend-interaction.md` 第二节（两步发送 + 为什么不能只发 `/send`）、
+  `frontend-conventions.md` 第二节、`stage-5-opening-ui.md`；
+  `tavern-helper.md` 第十节补上源码位置（`slash-commands.js` 的 `sendUserMessageCallback` /
+  `triggerGenerationCallback`）。
+- `tests/test_frontend_design.py` +3：骨架里必须有 `/trigger`、只发 `/send` 被 F22 拦、
+  两步齐全放行。
+
+真机复测（ST 1.19.0 + 酒馆助手 4.12.1，极寒末日）：点头部入口 → 用户消息入聊天 →
+`/trigger` 发出生成请求 → 模型 API 返回 `Resource exhausted`（错误来自 API 配额，不是界面），
+说明生成链路已经接通。
+
 ## 1.4.3 — 2026-11-22
 
 **真机首测（`极寒末日`）抓到的四处「静态全绿、真机不亮」。** 前四条缺陷在离线校验里一条都

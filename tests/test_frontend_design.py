@@ -7,6 +7,9 @@
 from __future__ import annotations
 
 import importlib.util
+import pathlib
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,6 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "skills" / "rp-factory"
 VF_SCRIPT = SKILL / "scripts" / "validate-frontend.py"
 MP_SCRIPT = SKILL / "scripts" / "make-preview.py"
+TEMPLATES = SKILL / "templates"
+VALIDATOR = SKILL / "scripts" / "validate-frontend.py"
 
 
 def _load(name: str, path: Path):
@@ -169,3 +174,33 @@ class TestMakePreview(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestSendTriggersGeneration(unittest.TestCase):
+    """`/send` 只把消息塞进聊天；不跟 `/trigger` 就是「消息进了没人回」。"""
+
+    def test_骨架里有_trigger(self):
+        for name in ("opening-ui.html", "wizard-ui.html", "statusbar.html"):
+            text = (TEMPLATES / name).read_text(encoding="utf-8")
+            if "/send " not in text:
+                continue
+            with self.subTest(src=name):
+                self.assertIn("/trigger", text, "发送后必须触发一次生成")
+
+    def test_只发_send_会被拦(self):
+        bad = "<!DOCTYPE html><html><body><script>triggerSlash('/send 你好');</script></body></html>"
+        with tempfile.TemporaryDirectory() as td:
+            f = pathlib.Path(td) / "bad.html"
+            f.write_text(bad, encoding="utf-8")
+            run = subprocess.run([sys.executable, str(VALIDATOR), str(f)], capture_output=True, text=True,
+                                 encoding="utf-8", errors="replace")
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn("FAIL F22", (run.stdout or ""))
+
+    def test_send_加_trigger_放行(self):
+        good = "<!DOCTYPE html><html><body><script>await triggerSlash('/send 你好');await triggerSlash('/trigger');</script></body></html>"
+        with tempfile.TemporaryDirectory() as td:
+            f = pathlib.Path(td) / "good.html"
+            f.write_text(good, encoding="utf-8")
+            run = subprocess.run([sys.executable, str(VALIDATOR), str(f)], capture_output=True, text=True,
+                                 encoding="utf-8", errors="replace")
+        self.assertIn("ok   F22", (run.stdout or ""))

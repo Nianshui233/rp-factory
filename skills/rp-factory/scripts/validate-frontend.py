@@ -338,6 +338,18 @@ def check(path: Path) -> tuple[list[str], list[str], list[str]]:
     elif calls:
         ok.append("F21 写入有 pending 防护")
 
+    # F22 只发不收：`/send` 只把消息塞进聊天，不生成（tavern-helper.md 第十节）
+    send_hits = ("'/send" in scripts) or ('"/send' in scripts)
+    if send_hits:
+        if '/trigger' in scripts:
+            ok.append("F22 发送后触发了生成")
+        else:
+            fail.append(
+                "F22 只调了 `/send` 没跟 `/trigger`：消息会进聊天但模型不开口，玩家得自己点重新生成。"
+                "`/send` 只 append 一条用户消息（slash-commands.js 的 sendUserMessageCallback），"
+                "生成要另发 `/trigger`（tavern-helper.md 第十节）"
+            )
+
     return fail, warn, ok
 
 

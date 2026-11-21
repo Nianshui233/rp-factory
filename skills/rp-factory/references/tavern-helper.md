@@ -221,6 +221,9 @@ formatAsTavernRegexedString(text, 'ai_output'|'user_input'|'slash_command'|'worl
 getTavernRegexes(option) / replaceTavernRegexes(list, option) / updateTavernRegexesWith(fn, option)
 isCharacterTavernRegexesEnabled()
 triggerSlash('/trigger')   // 走斜杠命令，返回命令输出字符串
+// ★ /send 只把消息塞进聊天，不触发生成（`public/scripts/slash-commands.js:5023` 的
+//   sendUserMessageCallback → sendMessageAsUser，只 append + 存盘）。要模型开口得再发
+//   triggerSlash('/trigger')（同文件 `:1806`），否则玩家看到的是「消息进了但没人回」。
 builtin.addOneMessage / copyText / renderMarkdown / duringGenerating / reloadChatWithoutEvents /
         reloadAndRenderChatWithoutEvents / parseRegexFromString / renderPromptManager / saveSettings / uuidv4
 ```
