@@ -330,6 +330,47 @@ def check_description_dup(book: dict, card_data: dict, rep) -> None:
         rep.ok("X12", f"description 没有复述世界书（重叠 {overlap:.0%}）")
 
 
+EXTRA_FIELDS = ("personality", "scenario", "depth_prompt", "mes_example")
+
+
+def check_extra_fields(card_data: dict, book: dict, rep) -> None:
+    """X13：四个「高级定义」字段默认全空——书里有的内容写第二遍就是每轮重复付费。"""
+    filled = []
+    for name in EXTRA_FIELDS:
+        v = card_data.get(name)
+        if name == "depth_prompt" and isinstance(v, dict):
+            v = v.get("prompt")
+        text = str(v or "").strip()
+        if text:
+            filled.append((name, text))
+    if not filled:
+        rep.ok("X13", "personality / scenario / depth_prompt / mes_example 都是空的")
+        return
+    names = "、".join(n for n, _ in filled)
+    rep.warn("X13", f"`{names}` 有内容：这四项每轮都在付费，内容能进世界书条目就删掉。"
+                    f"只有「必须贴着最新消息、且书里没有」的功能指令才留")
+
+
+def check_statusbar_protocol(book: dict, script_list, rep) -> None:
+    """X14：状态栏靠模型每轮输出标签，得有人告诉它这件事。"""
+    has_bar = False
+    for rule in script_list or []:
+        if rule.get("disabled") or 2 not in (rule.get("placement") or []):
+            continue
+        if _matches(str(rule.get("findRegex", "")), "<StatusPlaceHolderImpl/>"):
+            has_bar = True
+            break
+    if not has_bar:
+        return
+    carriers = [str(e.get("comment") or "") for e in (book.get("entries") or {}).values()
+                if "<StatusPlaceHolderImpl/>" in str(e.get("content") or "")]
+    if carriers:
+        rep.ok("X14", f"状态栏标签要求写在世界书条目里：{carriers[0]}")
+    else:
+        rep.warn("X14", "有状态栏正则，但世界书里没有一条要求模型输出 `<StatusPlaceHolderImpl/>`："
+                        "第一楼之后就不会再有状态栏（`[statusbar]协议` 条目缺失）")
+
+
 def validate_mvu_panel(script_list, rep):
     """核对最终发布的 AI 显示规则和替换后的内联脚本。"""
     marker = "<StatusPlaceHolderImpl/>"
@@ -936,6 +977,7 @@ def main(argv: list[str]) -> int:
     check_card_field_split(data, rep)
     if book is not None:
         check_description_dup(book, data, rep)
+    check_extra_fields(data, book if book is not None else {}, rep)
     stages = (contract or {}).get("stages") or ((contract or {}).get("project") or {}).get("stages") or {}
     mvu_done = str(stages.get("mvu", "")) == "done"
     entry_count = validate_worldbook(book, book_path, rep, mvu_done) if book else 0
@@ -1047,6 +1089,7 @@ def main(argv: list[str]) -> int:
 
     if stage_mvu == "done" and stages.get("statusbar", stages.get(6, stages.get("6"))) == "done":
         validate_mvu_panel(script_list, rep)
+    check_statusbar_protocol(book if book else {}, script_list, rep)
 
     rep.dump(as_json)
     return 0 if not rep.failures else 1

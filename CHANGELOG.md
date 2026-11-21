@@ -3,6 +3,23 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.11 — 2026-11-22
+
+**卡上还有四个字段也在每轮付费，而且内容早就写在书里了。** `角色设定摘要`(personality)、
+`情景`(scenario)、`角色备注`(depth_prompt)、`对话示例`(mes_example) 默认必须留空——
+书里的角色条目已经写了同样的事，写第二遍只是重复付费。
+
+唯一例外是"必须贴着最新消息、书里又没有"的功能指令；状态栏标签要求正经的家是世界书条目。
+
+- `stage-7-delivery.md` 字段表补明 X13；协议条目改由 `--merge-entries` 进书。
+- `cut-worldbook.py` 新增 `--merge-entries`（可重复，文件里 `entries:` 列表或单条）。
+- `validate-st-package.py` 新增 **X13**（四个字段非空 → 警告）、**X14**（有状态栏但没有
+  任何条目要求输出 `<StatusPlaceHolderImpl/>` → 警告：第一楼之后就没有状态栏）。
+- 示例包加 `制作文件/产物/协议/状态栏协议.yaml` 并重切世界书（20 → 21 条）。
+- 测试 +5。
+
+真机（极寒末日）：personality / scenario / mes_example 清空，状态栏协议进书（position 4、depth 2、常驻）。
+
 ## 1.4.10 — 2026-11-22
 
 **`description` 每轮都在场，写什么都要按"每轮"付费。** 上一版把它当成设定仓库：住户索引、

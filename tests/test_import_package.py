@@ -422,3 +422,43 @@ class TestDescriptionNotRepeat(unittest.TestCase):
         run = subprocess.run([sys.executable, str(PACKAGE_SCRIPT), str(EXAMPLE / "导入包")],
                              capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertNotIn("[ warn] X12", run.stdout or "")
+
+class TestExtraFieldsAndProtocol(unittest.TestCase):
+    """X13 / X14：四个高级字段默认空；状态栏标签要求必须有条目承载。"""
+
+    def _run(self, mutate):
+        with tempfile.TemporaryDirectory() as td:
+            proj = pathlib.Path(td) / "p"
+            (proj / "制作文件" / "项目记录").mkdir(parents=True)
+            shutil.copytree(EXAMPLE / "导入包", proj / "导入包")
+            shutil.copy(EXAMPLE / "制作文件" / "项目记录" / "contract.yaml",
+                        proj / "制作文件" / "项目记录" / "contract.yaml")
+            card_path = proj / "导入包" / "白潮（纯净）.json"
+            card = json.loads(card_path.read_text(encoding="utf-8"))
+            book_path = proj / "导入包" / "白潮 世界书.json"
+            book = json.loads(book_path.read_text(encoding="utf-8"))
+            mutate(card["data"], book)
+            card_path.write_text(json.dumps(card, ensure_ascii=False), encoding="utf-8")
+            book_path.write_text(json.dumps(book, ensure_ascii=False), encoding="utf-8")
+            return subprocess.run([sys.executable, str(PACKAGE_SCRIPT), str(proj / "导入包")],
+                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+    def test_角色备注有内容会警告(self):
+        run = self._run(lambda d, b: d.__setitem__("depth_prompt", {"prompt": "每轮记得写标签", "depth": 4, "role": 0}))
+        self.assertIn("[ warn] X13", run.stdout or "")
+
+    def test_四个字段全空放过(self):
+        run = self._run(lambda d, b: None)
+        self.assertIn("[  ok ] X13", run.stdout or "")
+
+    def test_状态栏没有协议条目会警告(self):
+        def drop(data, book):
+            for uid, e in list(book["entries"].items()):
+                if "StatusPlaceHolderImpl" in str(e.get("content") or ""):
+                    book["entries"].pop(uid)
+        run = self._run(drop)
+        self.assertIn("[ warn] X14", run.stdout or "")
+
+    def test_协议条目在就放过(self):
+        run = self._run(lambda d, b: None)
+        self.assertIn("[  ok ] X14", run.stdout or "")

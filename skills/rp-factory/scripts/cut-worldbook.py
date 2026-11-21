@@ -144,6 +144,9 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--merge-protocol", metavar="BOOK",
                     help="从已有的世界书里带上协议条目（comment 以 [ 开头的：变量初始化 / 更新块 / 阶段控制器），"
                          "追加在切割条目之后。协议条目来自阶段 6 的模板，不是设定原稿，所以不走切割")
+    ap.add_argument("--merge-entries", metavar="FILE", action="append", default=[],
+                    help="把额外条目装进书（可重复）：文件里是 entries: 列表，或单条 {comment, content, ...}。"
+                         "用来放协议条目（状态栏标签要求等）——这些不该占角色卡的 depth_prompt")
     ap.add_argument("--merge-mvu", metavar="DIR",
                     help="把 MVU 三件套一起装进书：<DIR>/变量规则.yaml 的条目 + <DIR>/[initvar]变量初始化.yaml 包成一条禁用条目")
     ap.add_argument("--dry-run", action="store_true", help="只打印每条的名称与字数，不写文件")
@@ -287,6 +290,22 @@ def main(argv: list[str]) -> int:
             entries[str(len(entries))] = build_entry(len(entries), item, content, defaults)
         if extra:
             print(f"带上 {len(extra)} 条 MVU 条目：" + "、".join(str(i["comment"]) for i, _ in extra))
+
+    for path in args.merge_entries:
+        src = Path(path)
+        if not src.exists():
+            print(f"--merge-entries 的文件不存在：{src}", file=sys.stderr)
+            return 2
+        data = yaml.safe_load(read_text(src)) or {}
+        items = data.get("entries") if isinstance(data, dict) and "entries" in data else [data]
+        added = []
+        for item in items or []:
+            if not isinstance(item, dict) or "content" not in item:
+                continue
+            entries[str(len(entries))] = build_entry(len(entries), dict(item), str(item["content"]), defaults)
+            added.append(str(item.get("comment")))
+        if added:
+            print(f"带上 {len(added)} 条额外条目：" + "、".join(added))
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

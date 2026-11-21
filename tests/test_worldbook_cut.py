@@ -252,3 +252,36 @@ class TestMergeMvu(unittest.TestCase):
         comments = [str(e.get("comment", "")) for e in book["entries"].values()]
         self.assertTrue(any("[initvar]" in c for c in comments))
         self.assertEqual(sum(1 for c in comments if "[mvu_update]" in c), 2, "更新规则 + 输出格式两条")
+
+_ENTRY_LINES = [
+    "entries:",
+    "  - comment: \"[statusbar]状态栏协议\"",
+    "    constant: true",
+    "    position: 4",
+    "    depth: 2",
+    "    content: |",
+    "      每轮最后输出 <StatusPlaceHolderImpl/>。",
+]
+
+
+class TestMergeEntries(unittest.TestCase):
+    """--merge-entries：协议条目不该靠角色卡的 depth_prompt 承载。"""
+
+    def test_额外条目并进书(self):
+        with tempfile.TemporaryDirectory() as td:
+            proj = Path(td)
+            proto = proj / "协议.yaml"
+            proto.write_text(NL.join(_ENTRY_LINES) + NL, encoding="utf-8")
+            out = proj / "book.json"
+            run = subprocess.run(
+                [sys.executable, str(CUTTER), "--plan", str(EXAMPLE / "制作文件" / "项目记录" / "世界书切割.yaml"),
+                 "--draft-root", str(EXAMPLE / "制作文件" / "产物"),
+                 "--merge-entries", str(proto), "--out", str(out), "--book-name", "白潮 世界书"],
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
+                env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+            self.assertEqual(run.returncode, 0, run.stderr)
+            book = json.loads(out.read_text(encoding="utf-8"))
+            hits = [e for e in book["entries"].values() if e.get("comment") == "[statusbar]状态栏协议"]
+            self.assertEqual(len(hits), 1)
+            self.assertEqual(hits[0]["position"], 4)
+            self.assertFalse(hits[0]["disable"])

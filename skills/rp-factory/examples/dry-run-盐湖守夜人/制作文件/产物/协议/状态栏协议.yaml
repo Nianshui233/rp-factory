@@ -1,0 +1,23 @@
+# 协议条目：每轮都要模型照做、但内容属于"怎么输出"而不是"世界是什么"。
+# 放进世界书（constant + 靠下的位置），不要塞角色卡的 depth_prompt ——
+# 那份每轮也付费，而且和世界书条目重复时没人会去删。
+#
+# 用法：python scripts/cut-worldbook.py --plan ... --merge-entries 制作文件/产物/协议条目.yaml
+
+entries:
+  - comment: "[statusbar]状态栏协议"
+    constant: true
+    keys: []
+    position: 4       # atDepth：贴到最新消息附近
+    depth: 2
+    role: 0           # system
+    order: 95
+    ignore_budget: true
+    exclude_recursion: true
+    prevent_recursion: true
+    content: |
+      ### 状态栏挂载
+      每次回复的最后单独空一行，写一行 `<StatusPlaceHolderImpl/>`，整行只放这一个标签。
+      正文里不要提它，不要解释，不要给它加标题或代码块。
+      数值变化只体现在变量更新块里；正文不许报数（「体温 78」「炉信 40」这类写法一律不出现在正文）。
+      忘了写这一行，玩家的状态栏就停在上一轮的数字上，而且不会有任何报错。

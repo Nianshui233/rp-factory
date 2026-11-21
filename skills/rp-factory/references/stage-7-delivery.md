@@ -67,7 +67,7 @@
 |---|---|
 | `name` / `data.name` | `st_name` |
 | `description` / `data.description` | **只写每轮都要在、且书里没有的**：一句话世界 + 怎么玩 + AI 的扮演职责与自发动静。**别复述世界书**——住户、地点、轴值、硬规则书里都有，再写一遍就是每轮重复付费（X12 查重）。不写"以上是设定"这类元话 |
-| `personality` / `scenario` / `mes_example` / `post_history_instructions` | 留空（内容在 `description` 与世界书里） |
+| `personality` / `scenario` / `mes_example` / `post_history_instructions` | 留空（书里都有；写了就是每轮重复付费，X13 会警告） |
 | `first_mes` / `data.first_mes` | 见上表三条规则。做面板时它**只放 `<开局界面>` 数据块**，不放散文；散文开场白去 `alternate_greetings` |
 | `creator_notes` | 装配步骤（第六节）+ 全局设置 + 版本 + `RP-Factory` |
 | `system_prompt` | 项目档案「本文档对AI的核心指令」（`hard_settings` 那条） |
@@ -77,7 +77,7 @@
 | `spec` / `spec_version` | `"chara_card_v2"` / `"2.0"` |
 | `data.extensions.world` | `<世界名> 世界书`——与书名逐字一致 |
 | `data.extensions.regex_scripts` | `[]`（正则单独一份） |
-| `data.extensions.talkativeness` / `fav` / `depth_prompt` | `"0.5"` / `false` / `{prompt: "", depth: 4, role: "system"}` |
+| `data.extensions.talkativeness` / `fav` / `depth_prompt` | `"0.5"` / `false` / `{prompt: "", depth: 4, role: "system"}`（状态栏标签要求放进书里 `[statusbar]协议` 条目，别用 `depth_prompt`） |
 | `create_date` | `YYYY-MM-DD` |
 
 **不写 `character_book`**：书单独一份，靠 `extensions.world` 同名挂上。
@@ -110,15 +110,16 @@ python scripts/cut-worldbook.py --plan 制作文件/项目记录/世界书切割
     --out "导入包/<世界名> 世界书.json"
 ```
 
-  plan（形状见 `templates/worldbook-plan.yaml`）里只写**选择**：哪一节、叫什么、什么关键词、什么顺序、是不是常驻；切的动作交给脚本，所以不可能顺手压掉半句。
-- **为什么不能压缩**：删掉的每一句原本都是模型做判断时唯一的依据。《常见误解或谣言》压成「有一些谣言」，模型就只剩一个空标签；每级 `behavioral_signs` 压成一句，阈值与慢热就都不存在了。参考实现 `我，非我`（22 条 / 42,945 字 / 单条均 1,952 / 最长 6,184）就是整节搬。
+  plan（见 `templates/worldbook-plan.yaml`）只写**选择**：哪一节、叫什么、什么关键词、什么顺序、是否常驻；切交给脚本，不可能顺手压半句。
+- **为什么不能压缩**：删掉的每一句原本都是模型做判断时唯一的依据。《常见误解或谣言》压成「有一些谣言」，模型就只剩一个空标签；每级 `behavioral_signs` 压成一句，阈值与慢热就都不存在了。参考实现 `我，非我` 22 条 / 42,945 字，就是整节搬。
 - **长度不设上限**：关键词条目只在命中时才进上下文，长条目的代价只在它被点名的那一轮。常驻条目合计参考 ≤8000 字（W09 只报数不判定）；原稿一节超过 6000 字才按子标题再切一刀。
 - **整份文件当一条**：`rolecard.yaml` / `scene-sheet.yaml` / `axis-system.yaml` 这种一份一个实体的，plan 里写 `whole:`。人物条目含 `psychology` / `behavior` / `attitudes` / `speech` 全部字段，只把 `nsfw` 分档挪出去（单独一条或并入「数值与判定」，看谁更近）。
-- **切过就不许改**：只三种情况动字——节标题提为条目名、给「未来才该知道」的包 `[秘密]`、按分档挪 `nsfw`。
-- **`未决事项` 不进书**（它是对账，留在 `制作文件/`），写进 plan 的 `skip` 里；脚本会把没切走的内容抖出来，抖出来的每一条都要么补切、要么进 `skip`。
+- **切过不许改**：只有三种情况动字——标题提为条目名、包 `[秘密]`、按分档挪 `nsfw`。
+- **`未决事项` 不进书**（它是对账，留在 `制作文件/`），写进 plan 的 `skip`；脚本会抖出没切走的内容，每一条要么补切、要么进 `skip`。
 - **一个 key 只归一条**：同名出现在两条里就失去判别力（`W08` 会拦）。
-- **协议条目不进切割**（`[initvar]` / `[mvu_update]` / `[阶段]` / `[ejs]` / `[statusbar]` 开头的那几条）：它们来自阶段 6 的模板，`--merge-protocol` 会自动带过去；命名必须带方括号前缀，否则会被当成设定条目查逐字性。
-- **MVU 三件套必须随书**：`--merge-mvu 制作文件/产物/mvu`。留在 `制作文件/` 里等于没交（W25 拦）。
+- **协议条目不进切割**（`[initvar]` / `[mvu_update]` / `[statusbar]` / `[阶段]` 开头）：来自阶段 6 的模板，`--merge-protocol` 带走；名字必须带方括号，否则会被当设定条目查逐字性。
+- **MVU 三件套随书**：`--merge-mvu 制作文件/产物/mvu`，留在 `制作文件/` 等于没交（W25）。
+- **状态栏标签要求也得有条目**：`--merge-entries 制作文件/产物/协议/状态栏协议.yaml`（constant + atDepth 2）。塞卡里 `depth_prompt` 会在面板关掉后失踪，X14 拦。
 - `uid` == 键序号；`excludeRecursion: true`（关键词别在递归里反复展开）。
 
 ### 四、正则装什么（`正则.json`）
