@@ -16,6 +16,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "skills" / "rp-factory"
+NL = chr(10)
 CONTRACT_SCRIPT = ROOT / "scripts" / "validate-contract.py"
 PACKAGE_SCRIPT = ROOT / "scripts" / "validate-st-package.py"
 SKILL = ROOT
@@ -305,3 +306,37 @@ class TestMvuEntriesRideTheBook(unittest.TestCase):
                                   "--contract", str(proj / "制作文件" / "项目记录" / "contract.yaml")],
                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertIn("W25", run.stdout or "")
+
+class TestFirstMesUi(unittest.TestCase):
+    """开局消息同时挂面板和状态栏 → 第一楼多一块 HUD（X08）。"""
+
+    def _run(self, first_mes):
+        with tempfile.TemporaryDirectory() as td:
+            proj = pathlib.Path(td) / "p"
+            (proj / "制作文件" / "项目记录").mkdir(parents=True)
+            (proj / "导入包").mkdir(parents=True)
+            shutil.copy(EXAMPLE / "制作文件" / "项目记录" / "contract.yaml",
+                        proj / "制作文件" / "项目记录" / "contract.yaml")
+            for name in ("白潮 世界书.json", "正则.json", "白潮 酒馆助手脚本.json",
+                         "白潮 开局前端.html", "白潮 状态栏.html", "导入说明.txt"):
+                shutil.copy(EXAMPLE / "导入包" / name, proj / "导入包" / name)
+            card = json.loads((EXAMPLE / "导入包" / "白潮（纯净）.json").read_text(encoding="utf-8"))
+            card["data"]["first_mes"] = first_mes
+            (proj / "导入包" / "白潮（纯净）.json").write_text(
+                json.dumps(card, ensure_ascii=False), encoding="utf-8")
+            return subprocess.run([sys.executable, str(PACKAGE_SCRIPT), str(proj / "导入包")],
+                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+    def test_两样都有会警告(self):
+        run = self._run(NL.join(["<开局界面>", "<标题>x</标题>", "</开局界面>", "", "<StatusPlaceHolderImpl/>"]))
+        self.assertIn("X08", run.stdout or "")
+
+    def test_只在末行挂状态栏不警告(self):
+        run = self._run(NL.join(["<开局界面>", "<标题>x</标题>", "</开局界面>"]))
+        self.assertNotIn("X08", run.stdout or "")
+
+    def test_示例包不触发(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = subprocess.run([sys.executable, str(PACKAGE_SCRIPT), str(EXAMPLE / "导入包")],
+                                 capture_output=True, text=True, encoding="utf-8", errors="replace")
+        self.assertNotIn("X08", run.stdout or "")

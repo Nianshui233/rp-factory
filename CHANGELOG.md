@@ -3,6 +3,26 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.8 — 2026-11-22
+
+**玩家改完数值，下一回合又变回去了。** 每层楼的 `stat_data` 是各自快照：状态栏在开局楼层
+（第 0 楼）把 `体温` 从 82 改成 60，改的只是这一层，最新层仍是 82，模型读回 82 就当没改过。
+真机实测：`floor0 = 60`、`floorLast = 82`。
+
+- `templates/control-center.html` 与状态栏：读写一律 `message_id: 'latest'`。
+- `validate-frontend.py` 新增 **F24**：写回（`replaceMvuData`）配 `getCurrentMessageId()` → 警告。
+  只读 HUD 读自己那一楼不算（那一楼快照 + 与上一楼的差是有意义的）。
+- `frontend-interaction.md` / `tavern-helper.md`（十一之二）补这条。
+
+同时补一条交付期提示：
+
+- `validate-st-package.py` 新增 **X08**：`first_mes` 里既有 `<开局界面>` 又有
+  `<StatusPlaceHolderImpl/>` → 第一楼会多渲染一块状态栏；只想在回复末尾显示就删掉那行。
+- 测试 +7（F24 四态、X08 三态）。
+
+真机（极寒末日）：你跑的那条把 78/40 推到 韩秋 82/71、老鸦 66/58、白嬷嬷 88/63；
+改完后三块界面都读最新层，数值一致。
+
 ## 1.4.7 — 2026-11-22
 
 **状态栏显示「Mvu 未启用」，其实变量好好的。** 消息 iframe 里的 `window.Mvu` 是

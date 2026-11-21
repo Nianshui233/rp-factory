@@ -295,6 +295,14 @@ def validate_mvu_panel(script_list, rep):
         rep.ok("X07", "MVU 挂载标签与最终界面的变量读取路径已静态核对")
 
 
+def check_first_mes_ui(card_data: dict, rep) -> None:
+    """开局消息里同时有面板和状态栏挂载标签 → 第一楼会多出一块 HUD（X08）。"""
+    first = str(card_data.get("first_mes") or "")
+    if "<StatusPlaceHolderImpl/>" in first and "<开局界面>" in first:
+        rep.warn("X08", "开局消息里既有开场面板又有 `<StatusPlaceHolderImpl/>`：第一楼会多渲染一块状态栏，"
+                        "而它和面板说的是同一件事。只想在回复末尾显示状态栏，就把 first_mes 里那行删掉")
+
+
 def validate_card(card: dict, card_path: Path | None, book_path: Path | None, rep: Report) -> dict:
     data = card.get("data") if isinstance(card.get("data"), dict) else {}
 
@@ -853,6 +861,7 @@ def main(argv: list[str]) -> int:
             scripts = None
 
     data = validate_card(card, card_path, book_path, rep)
+    check_first_mes_ui(data, rep)
     stages = (contract or {}).get("stages") or ((contract or {}).get("project") or {}).get("stages") or {}
     mvu_done = str(stages.get("mvu", "")) == "done"
     entry_count = validate_worldbook(book, book_path, rep, mvu_done) if book else 0

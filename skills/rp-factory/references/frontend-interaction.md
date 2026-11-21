@@ -87,6 +87,11 @@ await triggerSlash('/trigger');        // 输入框右边那只飞机背后真�
 
 `RP_PREVIEW`（`window.self === window.top`）为真时：不 `replaceMvuData`、不 `setChatMessages`、不 `triggerSlash`、不 `SillyTavern.generate`。**只有 localStorage 的界面草稿可以写**（那是浏览器本地，不是存档）。
 
+**读写哪个楼层**：`message_id` 一律用 `'latest'`。每个楼层的 `stat_data` 是**各自**的快照，
+历史楼层不会随后续回合更新——真机实测：从开局楼层写 `体温 60`，最新楼层仍是 `82`，下一回合模型读回
+`82`，玩家看到的修改「自己退回去了」。只读 HUD 读自己那一楼是对的（显示那一楼快照、还能算与上一楼的差），
+**会写回的必须写最新楼层**；F24 拦这一条。
+
 F18 会扫描 `if (RP_PREVIEW) { … }` 的花括号块，块内出现写调用直接判失败；F19 拿 `WRITES` 声明与实际调用对账。
 
 ## 八、写码前四问

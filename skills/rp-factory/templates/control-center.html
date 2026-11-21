@@ -194,7 +194,7 @@
     if (missing) return { ok: false, reason: '未接入：' + missing };
 
     try {
-      var mid = getCurrentMessageId();
+      var mid = 'latest';   // 读最新楼层：历史楼层的快照不会跟着后续回合更新
       var data = MvuApi().getMvuData({ type: 'message', message_id: mid });
       var stat = (data && data.stat_data) || null;
       if (!stat) return { ok: false, reason: '未接入：本楼还没有变量快照' };
@@ -313,7 +313,7 @@
 
     var snapshot = JSON.stringify(changes);
     var mid;
-    try { mid = getCurrentMessageId(); } catch (e) { mid = null; }
+    try { mid = 'latest'; } catch (e) { mid = null; }
 
     Promise.resolve()
       .then(function () {

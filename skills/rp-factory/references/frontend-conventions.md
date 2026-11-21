@@ -211,7 +211,7 @@
 7. 走 D 时字段名必须能在 `mvu-schema.js` 的 `Schema` 里找到，`FIELDS` 的 min/max 逐项抄轴的 `range`（不一致就改界面，不改产物）。
 8. 数据先转义：把字段值改成 `<b>x</b>` 试一次，界面里必须显示成字面文本；越界值不溢出。
 9. 交用户四句话：正则怎么导入、渲染开关在哪、提示词条目贴哪里、触发词该出现在哪条消息里。
-10. 阶段收尾一检 `python scripts/check-stage.py opening|statusbar <项目根>` 全过（内部跑 `validate-frontend.py`，F01–F23）。F18 预览分支里有写调用、F19 `WRITES` 声明与实际不符、F20 写完不复读、F21 无 pending 防护、F22 只 `/send` 不 `/trigger`、F23 读 Mvu 前没等它加载。
+10. 阶段收尾一检 `python scripts/check-stage.py opening|statusbar <项目根>` 全过（内部跑 `validate-frontend.py`，F01–F23）。F18 预览分支里有写调用、F19 `WRITES` 声明与实际不符、F20 写完不复读、F21 无 pending 防护、F22 只 `/send` 不 `/trigger`、F23 读 Mvu 前没等它加载、F24 写回没写最新楼层。
 
 ## 九、正则只能界面导入
 

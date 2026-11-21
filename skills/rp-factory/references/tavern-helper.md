@@ -278,6 +278,9 @@ var api = window.Mvu || window.parent.Mvu;   // 兜底
 `validate-frontend.py` 的 **F23** 拦这一条：文件里出现 `Mvu.` / `getMvuData` / `replaceMvuData`，
 却没有 `waitGlobalInitialized` 也没有 `parent.Mvu` → 失败。
 
+顺带一条同源的坑：`message_id` 要用 `'latest'`。每个楼层的 `stat_data` 是各自快照，从开局楼层
+写回只改那一楼（实测 60），最新楼层仍读到旧值（82），下一回合修改就「自己退回去了」。
+
 真机现象（极寒末日，1.19.0 + 4.12.1）：状态栏起手写 `typeof Mvu === 'undefined'` 就 return 诊断态，
 画面显示「未接入：Mvu 未启用」，而同一时刻 `getAllVariables()` 已经能读到 `stat_data`——变量是好的，
 只是这一帧没等到。

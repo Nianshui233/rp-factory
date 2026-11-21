@@ -161,3 +161,36 @@ class TestMvuWait(unittest.TestCase):
         for name in ("control-center.html", "statusbar.html"):
             run = self._run((SKILL / "templates" / name).read_text(encoding="utf-8"))
             self.assertNotIn("[ FAIL ] F23", run.stdout or "", name)
+
+class TestLatestFloor(unittest.TestCase):
+    """F24：写回必须写最新楼层——历史楼层的快照不会跟着后续回合更新。"""
+
+    def _run(self, html: str):
+        with tempfile.TemporaryDirectory() as td:
+            f = Path(td) / "ui.html"
+            f.write_text(html, encoding="utf-8")
+            return subprocess.run([sys.executable, str(VALIDATOR), str(f)],
+                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+    def test_写回自己那一楼会警告(self):
+        run = self._run("<html><body><script>await waitGlobalInitialized('Mvu');"
+                        "var mid = getCurrentMessageId();"
+                        "Mvu.replaceMvuData(d, {type:'message', message_id: mid});</script></body></html>")
+        self.assertIn("F24", run.stdout or "")
+
+    def test_写最新楼层放过(self):
+        run = self._run("<html><body><script>await waitGlobalInitialized('Mvu');"
+                        "Mvu.replaceMvuData(d, {type:'message', message_id: 'latest'});</script></body></html>")
+        self.assertNotIn("F24", run.stdout or "")
+
+    def test_只读HUD读自己那一楼不警告(self):
+        run = self._run("<html><body><script>await waitGlobalInitialized('Mvu');"
+                        "var mid = getCurrentMessageId();"
+                        "var d = Mvu.getMvuData({type:'message', message_id: mid});</script></body></html>")
+        self.assertNotIn("F24", run.stdout or "")
+
+    def test_示例状态栏与模板都不触发(self):
+        for path in (SKILL / "templates" / "control-center.html",
+                     SKILL / "examples/dry-run-盐湖守夜人/制作文件/产物/statusbar-ui.html"):
+            run = self._run(path.read_text(encoding="utf-8"))
+            self.assertNotIn("F24", run.stdout or "", path.name)

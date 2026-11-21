@@ -363,6 +363,18 @@ def check(path: Path) -> tuple[list[str], list[str], list[str]]:
     elif uses_mvu:
         ok.append("F23 等过 Mvu 再读")
 
+    # F24 读写自己那一楼：历史楼层的 stat_data 不会随后续回合更新，读它显示旧值、
+    # 写它下一回合就被旧值盖回去（真机实测：开局楼层写成 60，最新楼层还是 82）
+    # 只读 HUD 读自己那一楼是对的（显示的是那一楼快照，还能算与上一楼的差）；
+    # 会写回的界面必须写最新楼层，否则下一回合读到的还是旧数。
+    writes_own_floor = ("replaceMvuData" in scripts and "getCurrentMessageId()" in scripts
+                        and "message_id: 'latest'" not in scripts)
+    if uses_mvu and writes_own_floor:
+        warn.append(
+            "F24 写回用的是 getCurrentMessageId()：只改了这一楼的快照，下一回合读到的还是旧值。"
+            "写入改用 message_id: 'latest'（只读 HUD 不受此限）"
+        )
+
     return fail, warn, ok
 
 
