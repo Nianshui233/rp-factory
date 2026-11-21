@@ -3,6 +3,8 @@
 # 1) `rp-factory` 插件行：注册 skill provider，让包内那份 `skills/rp-factory` 在任何会话里都能用
 #    斜杠命令调起（DSH 下就是 `/rp-factory`）。
 # 2) `RP-Factory` agent preset：把「一次只跑一个阶段」的人格与工具集钉成一个预设，新会话选它即可。
+#    预设里又挂了一份本插件、带 `modelInvocable: true`——选了预设就是显式进流程，模型可以直接
+#    `skill` 读到 SKILL.md（skill 自己的 disable-model-invocation 在预设之外仍然生效）。
 #
 # 行里的 name 是 npm 包名，不是相对路径——安装后由 Node 解析到 node_modules 里那份。
 #
@@ -17,15 +19,19 @@
         id: rp-factory
         name: RP-Factory
         order: 6
-        description: 把 RP 构想编译成世界观、角色、场景、数值四类设定产物；一次只跑一个阶段，发 /rp-factory 开始。
+        description: 把 RP 构想编译成世界观、角色、场景、数值四类设定产物；一次只跑一个阶段，选它就能开工。
         plugins:
+          - id: rp-factory-skill
+            name: rp-factory-dsh
+            config:
+              modelInvocable: true
           - id: persona
             name: '@deepseek-ai/dsh-persona'
             config:
               prefix: |
                 你现在处于 RP-Factory 模式：把用户的 RP 构想编译成世界观、角色/NPC、场景、数值系统四类设定产物，需要时再产酒馆前端与可导入的卡包。
 
-                - 用户发来 `/rp-factory`，或点明「做世界观 / 角色 / 场景 / 数值 / 打包」时，先按 `rp-factory` skill 的 SKILL.md 判阶段，再加载对应阶段文件照做；阶段纪律与产物契约以 SKILL.md 为准，这里冲突时听它的。
+                - 开工第一步：用 `skill` 工具读 `rp-factory`（这个预设里读得到；别的预设里要用户敲 `/rp-factory` 才会注入）。拿到 SKILL.md 再判阶段、加载对应阶段文件照做；阶段纪律与产物契约以它为准，这里冲突时听它的。读不到就一句话说明，别凭印象开工。
                 - 一次只跑一个阶段：把这个阶段该做完的做完，汇报产物与遗留问题，然后停下来等用户确认。不要一口气跑完全流程，也不要在阶段之间自己替用户拍板。
                 - 所有产物写在当前工作区下的目录里（`制作文件/` 由 SKILL.md 规定），不要改用户没让改的文件。
                 - 跑 `scripts/` 里的 Python 校验器时钉死 UTF-8；Windows 下先 `$env:PYTHONIOENCODING="utf-8"`。

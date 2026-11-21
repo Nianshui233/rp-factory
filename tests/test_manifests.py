@@ -144,6 +144,24 @@ class TestDshPlugin(unittest.TestCase):
         # SKILL.md 锁了 disable-model-invocation: true
         self.assertFalse(data["model"])
 
+    def test_preset_mount_can_override_invocation(self):
+        """`RP-Factory` 预设挂的那份带 modelInvocable: true——选了预设就是显式进流程。
+
+        不带这个开关时模型读不到 SKILL.md（真机会话 session-111be7e6 里，
+        用户选了预设、说「开始」，模型摸黑找了五个回合才报告「skill 没装上」）。
+        """
+        script = (
+            "import('./host-adapters/dsh/plugin/index.js').then(m => {"
+            "  const c = m.loadSkillCatalog('skills');"
+            "  m.applyModelInvocation(c, true);"
+            "  console.log(JSON.stringify({m: c[0].invocation.modelInvocable}));"
+            "}).catch(e => { console.error(e.message); process.exit(1); })"
+        )
+        proc = subprocess.run(["node", "--input-type=module", "-e", script],
+                              cwd=REPO, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        self.assertEqual(proc.returncode, 0, (proc.stdout or "") + (proc.stderr or ""))
+        self.assertTrue(json.loads(proc.stdout.strip().splitlines()[-1])["m"])
+
 
 class TestDshBundlePatch(unittest.TestCase):
     """bundle 补丁一次给两样东西：skill provider + 可选的 RP-Factory 预设。
@@ -203,6 +221,18 @@ class TestDshBundlePatch(unittest.TestCase):
         self.assertEqual(banned & set(ids), set(), "预设里不该有会自己跑完整个流程的工具")
         persona = next(plugin for plugin in plugins if plugin["id"] == "persona")
         self.assertIn("/rp-factory", persona["config"]["prefix"])
+
+    def test_preset_mounts_model_invocable_skill(self):
+        """预设必须自己再挂一份 provider，并允许模型直接读 SKILL.md。
+
+        否则用户「选了预设 → 说开始」时读不到 skill：人格要求「先按 SKILL.md 判阶段」，
+        模型却只能去磁盘摸黑找文件（真机会话 session-111be7e6 的现场）。
+        """
+        preset = self.row_named("@deepseek-ai/dsh-agent-preset")
+        plugins = preset["config"]["plugins"]
+        row = next((p for p in plugins if p.get("name") == "rp-factory-dsh"), None)
+        self.assertIsNotNone(row, "预设里没挂 rp-factory-dsh，模型读不到 SKILL.md")
+        self.assertIs(row["config"]["modelInvocable"], True)
 
 
 if __name__ == "__main__":

@@ -51,8 +51,8 @@ dsh plugin --profile <profile> add dist/rp-factory-dsh-v<版本>.tgz
 
 装完 profile 上多两样东西：
 
-- **`RP-Factory` 预设**（预设选择器里排在 standard / ptc / minimal 之后）：人格写着「一次只跑一个阶段、跑完停下来汇报」，工具集按这个节奏裁过——带 `skill`、文件读写搜索、ask-user、todo、web、present，不带 subagent / workflow / plan mode / goal / schedule，免得它自己一口气跑完九个阶段；bash 与 pwsh 按平台自动二选一；压缩清理的阈值也调过（`thresholdChars: 8192`）。
-- **`rp-factory` skill**：注册成 host 级 provider，所以**任何**预设的会话里都能用斜杠命令调起（见下）。
+- **`RP-Factory` 预设**（预设选择器里排在 standard / ptc / minimal 之后）：人格写着「一次只跑一个阶段、跑完停下来汇报」，工具集按这个节奏裁过——带 `skill`、文件读写搜索、ask-user、todo、web、present，不带 subagent / workflow / plan mode / goal / schedule，免得它自己一口气跑完九个阶段；bash 与 pwsh 按平台自动二选一；压缩清理的阈值也调过（`thresholdChars: 8192`）。**选了它就等于显式进流程**：预设内挂的那份 skill 允许模型直接读，说一句「开始」就能开工，不必再敲斜杠。
+- **`rp-factory` skill**：另注册成 host 级 provider，所以**任何**预设的会话里都能用斜杠命令调起（见下）。
 
 只要 skill、不要预设：装之前设 `DSH_RP_FACTORY_NO_PRESET=1`，compose 时会跳过预设那一行。
 

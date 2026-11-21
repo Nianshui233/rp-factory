@@ -36,7 +36,7 @@
     "url": "git+https://github.com/Nianshui233/rp-factory.git",
     "directory": "host-adapters/dsh/plugin"
   },
-  "version": "1.4.13",
+  "version": "1.4.14",
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

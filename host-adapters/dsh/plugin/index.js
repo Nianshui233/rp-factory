@@ -9,6 +9,8 @@
  * 把「一次只跑一个阶段」的人格与工具集钉成预设。预设读的是本包注册的 skill，两边靠 skill 名对上。
  *
  * 触发：DSH 里是斜杠命令 `/rp-factory`（SKILL.md 锁了 disable-model-invocation，不参与自然语言匹配）。
+ * 例外是 `RP-Factory` 预设自己——预设内部会把本插件再挂一份、并带 `modelInvocable: true`：
+ * 选了预设就等于显式开了这个流程，模型可以直接 `skill` 读到它，不用再等用户敲斜杠。
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
@@ -127,9 +129,23 @@ export function createProvider(catalog) {
   };
 }
 
+/**
+ * SKILL.md 自己锁了 disable-model-invocation（默认在自然语言里不自动接手）。
+ * `RP-Factory` 预设挂的这一份带 `modelInvocable: true`：用户选了预设＝显式进流程，
+ * 模型可以直接 skill 读到它；其他预设里仍是 host 层那份，只能靠斜杠命令注入。
+ */
+export function applyModelInvocation(catalog, modelInvocable) {
+  if (typeof modelInvocable !== "boolean") return catalog;
+  for (const skill of catalog) {
+    skill.invocation = { ...skill.invocation, modelInvocable };
+  }
+  return catalog;
+}
+
 export function apply(ctx, config = {}) {
   const skillsRoot = config.skillsRoot ?? resolveSkillsRoot();
   const catalog = loadSkillCatalog(skillsRoot);
+  applyModelInvocation(catalog, config.modelInvocable);
   ctx.skills.registerProvider(() => createProvider(catalog));
   ctx.logger?.info?.(`RP-Factory DSH: registered ${catalog.length} skill from ${skillsRoot}`);
 }

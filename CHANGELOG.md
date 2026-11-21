@@ -3,6 +3,20 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.14 — 2026-11-22
+
+**修：选了 RP-Factory 预设、说一句「开始」，却被告知「这个环境没装 skill」。**
+
+预设只给了人格，skill 仍是 `disable-model-invocation: true`：用户没敲斜杠时，模型读不到 SKILL.md，
+却又被人格要求「先按 SKILL.md 判阶段」，于是去工作区和 DSH 安装目录翻文件，五个回合后如实报告
+「rp-factory 没装上」——真机会话 `session-111be7e6-755f-40ae-b510-93a3a6abdcd5` 的现场。
+
+- 预设里再挂一份 provider，带 `modelInvocable: true`：**选了预设就等于显式进流程**，模型可以直接
+  `skill` 读到 SKILL.md；预设之外的会话仍是 host 层那份，只能斜杠命令进。
+- 人格第一条改成「开工先 `skill` 读 `rp-factory`；读不到就一句话说明，别凭印象开工」，
+  不再让它去磁盘找文件。
+- 预设描述改成「选它就能开工」；测试 +1（预设必须挂上可读的那份）。
+
 ## 1.4.13 — 2026-11-22
 
 **DSH 改成预设交付：装一个 `.tgz`，预设选择器里就多出一个 `RP-Factory`。**
