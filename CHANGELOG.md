@@ -3,6 +3,13 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.4.12 — 2026-11-22
+
+- `tavern-helper.md` 第九节补一条真机教训：`TavernHelper.createOrReplaceCharacter` 的
+  `extensions` 是**整块覆盖**，传部分字段会把 `regex_scripts` 或 `tavern_helper` 抹掉
+  （实测把一张卡的两条角色脚本清空）；局部改走 `writeExtensionField` 或
+  `/api/characters/merge-attributes`，改完用 `/api/characters/get` 核对。
+
 ## 1.4.11 — 2026-11-22
 
 **卡上还有四个字段也在每轮付费，而且内容早就写在书里了。** `角色设定摘要`(personality)、

@@ -211,6 +211,8 @@ getAllEnabledScriptButtons()  // {script_id: [{button_id, button_name}]}
 
 `id` 被重生成意味着**不能靠 id 判断是不是同一份脚本**；同一份内容导入两次会得到两条独立脚本，两条都开就会跑两遍。
 
+**改卡时别用会整块替换 `extensions` 的工具**：`TavernHelper.createOrReplaceCharacter(avatar, {extensions: {...}})` 的 `extensions` 是覆盖不是合并，传一个只含 `tavern_helper` 的对象会把 `regex_scripts` 一起抹掉，反之亦然。要局部改走 `writeExtensionField` 或 `/api/characters/merge-attributes`，改完用 `/api/characters/get` 核对 `data.extensions` 里两样都还在。
+
 ---
 
 ## 十、生成、注入、宏、正则
