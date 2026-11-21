@@ -13,17 +13,19 @@
 </p>
 
 > [!WARNING]
-> **只从这一个仓库安装。** RP-Factory 是自用工具，没有 npm 包、没有市场条目、没有多语言镜像站。任何第三方转存、二次打包的副本都与本仓库无关，作者不审阅、不维护。安装方式只有两种：把本目录放进 skill 搜索路径，或用一个 junction 指过来。
+> **只从这一个仓库安装。** RP-Factory 是自用工具，没有 npm 包、没有市场条目、没有多语言镜像站。任何第三方转存、二次打包的副本都与本仓库无关，作者不审阅、不维护。安装方式只有一条：跑仓库里的 `scripts/build-skill.py`，它把运行时要用的 70 个文件拷进 skill 目录。
 
 ## 装到 Pi
 
 ```bash
-# 方式一（推荐）：junction 指向工作树，改完立刻生效
-cmd //c mklink /J "C:\Users\<你>\.agents\skills\rp-factory" "D:\path\to\rp-factory"
-
-# 方式二：拷一份快照（不会跟着改动更新）
-cp -a rp-factory "C:\Users\<你>\.agents\skills\"
+git clone https://github.com/Nianshui233/rp-factory
+cd rp-factory
+python scripts/build-skill.py            # → ~/.agents/skills/rp-factory
+python scripts/build-skill.py --check    # 改完仓库后：看 skill 有没有过期
 ```
+
+构建是**白名单**的：只拷 `SKILL.md`、`references/`、`templates/`、`scripts/`、`examples/*.yaml`。
+`docs/`（计划、复盘、规格）、`tests/`、`node_modules/`、`.git/` 一律不进 skill。
 
 装完在会话里敲 `/skill:rp-factory`，不敲斜杠不会触发（`disable-model-invocation: true`）。
 
@@ -36,11 +38,9 @@ cp -a rp-factory "C:\Users\<你>\.agents\skills\"
 </details>
 
 <details>
-<summary><strong>junction 的副作用</strong></summary>
+<summary><strong>为什么不直接 junction 指向仓库</strong></summary>
 
-用 junction 时，skill 目录下还能看到 `node_modules/`（真机验收用的 `puppeteer-core`，约 32 MB）、`tests/`、`docs/`、`.git/`。Pi 只读 `SKILL.md` 与它按需加载的 `references/`，其余文件不会被读进上下文，但它们在盘上。
-
-换成拷贝就看不到这些，代价是每次改完要重新拷。
+junction 更省事（改完立刻生效），但仓库里有 `docs/plans/`、`docs/reviews/`、`tests/`、`node_modules/`、`.git/`——这些是开发物，不该出现在 skill 目录里。构建脚本把它们挡在外面，代价是每次改完仓库要重跑一次 `build-skill.py`（`--check` 能告诉你忘没忘）。
 </details>
 
 # RP-Factory
@@ -255,8 +255,7 @@ Windows 终端默认 GBK，跑会打印 `✗` 的脚本要带 `PYTHONIOENCODING=
 <summary><strong>卸载</strong></summary>
 
 ```bash
-rm "C:\Users\<你>\.agents\skills\rp-factory"      # 拷贝安装
-cmd //c rmdir "C:\Users\<你>\.agents\skills\rp-factory"  # junction（只删链接，不动工作树）
+rm -r "C:\Users\<你>\.agents\skills\rp-factory"
 ```
 
 RP-Factory 不往宿主机写任何隐藏状态：没有安装清单、没有全局配置、没有遥测。产物全部落在你自己指定的工作区目录里。

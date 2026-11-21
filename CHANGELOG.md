@@ -3,6 +3,26 @@
 版本号写在 `SKILL.md` frontmatter 的 `metadata.version`；这份文件的第一条标题必须与它一致，
 由 `tests/test_version.py` 守着。
 
+## 1.2.04 — 2026-11-21
+
+**skill 目录不再等于仓库：新增 `scripts/build-skill.py`。**
+
+skill 目录原来是仓库的 junction，于是 `docs/plans/`、`docs/reviews/`、`tests/`、`node_modules/`、
+`.git/` 全都出现在 skill 路径下——它们不占 token（模型只读 `SKILL.md` 与按需的 `references/`），
+但确实是「技能里有开发资料」。
+
+- 新增 `scripts/build-skill.py`：白名单构建，只拷 `SKILL.md` + `references/` + `templates/` +
+  `scripts/` + `examples/*.yaml`，共 70 文件 / 673 KB；`--check` 比对漂移、`--dry-run` 只看清单；
+  目标里若有 `.git` 拒绝清理，链接（junction/symlink）只摘链接不动目标。
+- 新增 `tests/test_build_skill.py`（8 个）：白名单不含开发物、文档提到的路径必须真在 skill 里、
+  构建后 `--check` 干净、故意制造「缺 / 多 / 旧」三种漂移都能报出、拒绝清理 git 仓库。
+- 引用完整性测试当场抓到一个悬空引用：`references/stage-7-delivery.md` 还在提已删的
+  `scripts/embed-book.py`，改成「这条第二入口 v1.2.00 删了（脚本已不在仓库）」。
+- `SKILL.md` 文件索引里 `check_st_facts.py` + `tests/` 改成 `check_st_facts.py` · `measure_load.py`
+  （`tests/` 不在 skill 里，不该让模型去找）。
+- README 安装段重写：junction 两种装法 → `git clone` + `build-skill.py`，并说明为什么不直接 junction。
+- 体积：九阶段全部低于基线（world −14、delivery −22），SKILL.md 5,565。
+
 ## 1.2.03 — 2026-11-21
 
 **把「角色卡」这个词拆开：阶段 2 产的是角色/NPC，不是卡。**

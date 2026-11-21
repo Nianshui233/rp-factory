@@ -81,7 +81,7 @@
 
 **不写 `character_book`**：书单独一份，靠 `extensions.world` 同名挂上。
 
-> 「把书内嵌进卡」的第二入口（`scripts/embed-book.py`）v1.2.00 删了：它造出的卡正是 C09 要拦的。内嵌书的四个触发前提（S-16 / S-24 / S-29）仍留在 `references/st-correctness.md`，看别人的卡时用得上。
+> 「把书内嵌进卡」这条第二入口 v1.2.00 删了（脚本已不在仓库）：它造出的卡正是 C09 要拦的。内嵌书的四个触发前提（S-16 / S-24 / S-29）仍留在 `references/st-correctness.md`，看别人的卡时用得上。
 
 ### 三、世界书装什么（`<世界名> 世界书.json`）
 

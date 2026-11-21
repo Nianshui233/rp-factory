@@ -1,7 +1,7 @@
 ---
 name: rp-factory
 metadata:
-  version: 1.2.03
+  version: 1.2.04
 description: 把 RP 构想编译成世界观、角色/NPC、场景、数值系统四类 YAML 设定产物，跨产物命名与硬设定保持一致；可选把数值投影成酒馆变量系统（MVU 的 zod 结构 + 初始化 + 更新条目）与按数值切换的分档控制器（EJS），可选再产开局界面与状态栏两种酒馆前端（正则 + HTML），整条流程跑完可再打一个能直接导入 SillyTavern 的包（角色卡 JSON + 世界书 JSON + 正则）。支持粘贴用提示词条目与工程文件两种交付。仅在用户显式输入 /skill:rp-factory 时执行，不参与自然语言自动匹配。
 disable-model-invocation: true
 ---
@@ -143,7 +143,7 @@ disable-model-invocation: true
 | `templates/st-card.json` / `regex-frontend.json` / `st-worldbook.json` · `scripts/validate-contract.py` · `validate-rolecard.py` · `validate-st-package.py` · `validate-frontend.py`（F01–F14） · `validate-mvu.py` · `validate-ejs.py` · `validate_st_semantics.py` | 交付骨架（卡 / 正则 / 世界书 / 脚本）+ 七个校验器 |
 | `scripts/detect-sillytavern.py` / `st-import.py` / `st-probe.js` | 找酒馆 → 导入 → 真机验收（只在用户点头后跑） |
 | `scripts/check_prose.py` | P01–P09 去 AI 味提示（解释腔 / 情绪直说 / 陈词比喻 / 模板标签 / 绝对化失衡） |
-| `check_st_facts.py` + `tests/` | 复核源码锚点、加载预算、全套单测（`python -m unittest discover -s tests -t .`） |
+| `check_st_facts.py` · `measure_load.py` | 复核源码锚点、量加载预算（单测在仓库 `tests/`） |
 
 ## 八、阶段文件约定
 
