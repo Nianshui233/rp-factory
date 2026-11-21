@@ -66,7 +66,7 @@
 | 字段 | 写什么 |
 |---|---|
 | `name` / `data.name` | `st_name` |
-| `description` / `data.description` | **总设定**（不是开场白）：一句话世界 + 怎么玩 + 世界怎么运转 + 硬设定 + **住户索引**（每人一行：名字·住处·身份·命门）+ **地点索引**（每地一行）+ **两轴读法**（轴名、范围、初始、每级一句话）+ 结尾一句"以上是设定，不是示例对话"。2–5k 字都该写；**不出现"你…"的场景动作**，那是开场白 |
+| `description` / `data.description` | **只写每轮都要在、且书里没有的**：一句话世界 + 怎么玩 + AI 的扮演职责与自发动静。**别复述世界书**——住户、地点、轴值、硬规则书里都有，再写一遍就是每轮重复付费（X12 查重）。不写"以上是设定"这类元话 |
 | `personality` / `scenario` / `mes_example` / `post_history_instructions` | 留空（内容在 `description` 与世界书里） |
 | `first_mes` / `data.first_mes` | 见上表三条规则。做面板时它**只放 `<开局界面>` 数据块**，不放散文；散文开场白去 `alternate_greetings` |
 | `creator_notes` | 装配步骤（第六节）+ 全局设置 + 版本 + `RP-Factory` |

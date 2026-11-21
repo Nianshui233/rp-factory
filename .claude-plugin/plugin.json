@@ -1,6 +1,6 @@
 {
   "name": "rp-factory",
-  "version": "1.4.9",
+  "version": "1.4.10",
   "description": "把 RP 构想编译成世界观、角色/NPC、场景、数值系统四类 YAML 设定产物，可选投影成酒馆变量系统与前端，最后打成能直接导入 SillyTavern 的包。在 Claude Code 里以插件形式提供 skill。",
   "author": {
     "name": "Nianshui233"

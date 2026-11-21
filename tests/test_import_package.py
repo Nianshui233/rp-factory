@@ -383,3 +383,42 @@ class TestCardFieldSplit(unittest.TestCase):
         for code in ("X09", "X10", "X11"):
             self.assertNotIn("[ FAIL ] " + code, run.stdout or "")
             self.assertNotIn("[ warn] " + code, run.stdout or "")
+
+class TestDescriptionNotRepeat(unittest.TestCase):
+    """X12：description 每轮都在烧 token，复述世界书就是重复付费。"""
+
+    def _run(self, desc):
+        with tempfile.TemporaryDirectory() as td:
+            proj = pathlib.Path(td) / "p"
+            (proj / "制作文件" / "项目记录").mkdir(parents=True)
+            (proj / "导入包").mkdir(parents=True)
+            shutil.copy(EXAMPLE / "制作文件" / "项目记录" / "contract.yaml",
+                        proj / "制作文件" / "项目记录" / "contract.yaml")
+            for name in ("白潮 世界书.json", "正则.json", "白潮 酒馆助手脚本.json",
+                         "白潮 开局前端.html", "白潮 状态栏.html", "导入说明.txt"):
+                shutil.copy(EXAMPLE / "导入包" / name, proj / "导入包" / name)
+            card = json.loads((EXAMPLE / "导入包" / "白潮（纯净）.json").read_text(encoding="utf-8"))
+            card["data"]["description"] = desc
+            (proj / "导入包" / "白潮（纯净）.json").write_text(
+                json.dumps(card, ensure_ascii=False), encoding="utf-8")
+            return subprocess.run([sys.executable, str(PACKAGE_SCRIPT), str(proj / "导入包")],
+                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+    def test_元话会警告(self):
+        run = self._run("一句话世界。怎么玩若干。" + NL.join(["以上是设定，不是示例对话。"] * 1))
+        self.assertIn("X12", run.stdout or "")
+
+    def test_复述书里的段落会警告(self):
+        book = json.loads((EXAMPLE / "导入包" / "白潮 世界书.json").read_text(encoding="utf-8"))
+        chunk = max((str(e.get("content") or "") for e in book["entries"].values()), key=len)[:900]
+        run = self._run(NL.join(["一句话世界。", "", chunk, "", "怎么玩若干。"]))
+        self.assertIn("X12", run.stdout or "")
+
+    def test_短描述放过(self):
+        run = self._run("一句话世界。你刚到堤线，被派去补第七塔的缺。点灯要烧记忆。")
+        self.assertNotIn("[ warn] X12", run.stdout or "")
+
+    def test_示例包自身干净(self):
+        run = subprocess.run([sys.executable, str(PACKAGE_SCRIPT), str(EXAMPLE / "导入包")],
+                             capture_output=True, text=True, encoding="utf-8", errors="replace")
+        self.assertNotIn("[ warn] X12", run.stdout or "")

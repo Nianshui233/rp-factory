@@ -290,6 +290,46 @@ def check_card_field_split(card_data: dict, rep) -> None:
         rep.ok("X09", "description 是总设定、开场白在各自字段里")
 
 
+META_TALK = ("以上是设定", "不是示例对话", "以下是设定")
+
+
+def _shingles(text: str, size: int = 8):
+    """8 字滑窗：比"整句逐字"更能抓住改写过的重复。"""
+    flat = re.sub(r"\s+", "", text or "")
+    return {flat[i:i + size] for i in range(len(flat) - size + 1)}
+
+
+def check_description_dup(book: dict, card_data: dict, rep) -> None:
+    """X12：description 每轮都在烧 token，复述书里已有的内容就是重复付费。"""
+    desc = str(card_data.get("description") or "")
+    if not desc.strip():
+        rep.fail("X12", "`description` 是空的：至少写一句话世界 + 怎么玩 + AI 的扮演职责")
+        return
+
+    hits = [w for w in META_TALK if w in desc]
+    if hits:
+        rep.warn("X12", "`description` 里有元话（" + "、".join(hits[:2]) +
+                  "）：正式包里这句每轮都在付费，删掉")
+
+    if len(desc) < 300:
+        rep.ok("X12", "description 很短，没有重复风险")
+        return
+
+    book_text = chr(10).join(str(e.get('content') or '')
+                            for e in (book.get('entries') or {}).values())
+    mine = _shingles(desc)
+    theirs = _shingles(book_text)
+    if not mine:
+        rep.ok("X12", "description 没有复述世界书")
+        return
+    overlap = len(mine & theirs) / len(mine)
+    if overlap >= 0.2:
+        rep.warn("X12", f"`description` 与世界书有 {overlap:.0%} 的字面重叠：这些内容书里已经有了，"
+                        f"每轮重复付费；删掉复述，只留书里没有的（世界一句话 / 怎么玩 / 扮演职责）")
+    else:
+        rep.ok("X12", f"description 没有复述世界书（重叠 {overlap:.0%}）")
+
+
 def validate_mvu_panel(script_list, rep):
     """核对最终发布的 AI 显示规则和替换后的内联脚本。"""
     marker = "<StatusPlaceHolderImpl/>"
@@ -894,6 +934,8 @@ def main(argv: list[str]) -> int:
     data = validate_card(card, card_path, book_path, rep)
     check_first_mes_ui(data, rep)
     check_card_field_split(data, rep)
+    if book is not None:
+        check_description_dup(book, data, rep)
     stages = (contract or {}).get("stages") or ((contract or {}).get("project") or {}).get("stages") or {}
     mvu_done = str(stages.get("mvu", "")) == "done"
     entry_count = validate_worldbook(book, book_path, rep, mvu_done) if book else 0
