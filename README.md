@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.3.00-blue?style=flat" alt="version" />
+  <img src="https://img.shields.io/badge/version-1.3.1-blue?style=flat" alt="version" />
   <img src="https://img.shields.io/badge/tests-218%20passing-brightgreen?style=flat" alt="tests" />
   <img src="https://img.shields.io/badge/gates-14-8A2BE2?style=flat" alt="gates" />
   <img src="https://img.shields.io/badge/stages-9-ff69b4?style=flat" alt="stages" />
