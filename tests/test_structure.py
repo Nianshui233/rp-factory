@@ -48,6 +48,10 @@ class TestGates(unittest.TestCase):
             self.assertNotIn(stale, SKILL, f"SKILL.md 还在说 {stale}")
             self.assertNotIn(stale, PIPELINE, f"pipeline.md 还在说 {stale}")
 
+    def test_routing_acknowledges_preset_entry(self):
+        # 预设里挂的那份是预置入口；SKILL.md 若写成「只」认斜杠，模型会拿这条推掉用户
+        self.assertIn("RP-Factory 预设", SKILL, "SKILL.md 路由没提预设内可以直接读")
+        self.assertNotIn("**只由斜杠命令显式调用**", SKILL, "SKILL.md 又写回了「只由斜杠命令」")
     def test_skill_gate_table_matches_pipeline(self):
         # SKILL 的表里每一行都以 | n | 开头；条数必须与 pipeline 一致
         rows = re.findall(r"^\|\s*(\d+)\s*\|\s*`?([^|`]+)`?\s*\|", SKILL, re.M)
