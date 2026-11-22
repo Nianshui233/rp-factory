@@ -14,6 +14,14 @@
   允许角色专属正则），delivery 一度 +297 超上限，靠在同一文件里回收内嵌书三条代价、正则导入
   长句、装配步骤与调优指针的重复表述抵平，最终 delivery 回到 25,966（基线不动）。
   教训：delivery 是四个文件叠加的最挤阶段，任何两句以上新增都得先在同一文件里找冗余。
+- Ruling ⑥（2026-11-23，v1.5.0）**一次性抬高上限**：设计方法论五项改进（阶段 0 输入评估、追问档位、
+  可执行性三检、前端 6 步主动调研、交互范式按需加载）与 8108cc1 的流程前置共增约 2.3k/阶段。
+  当时的选择是承认体积、把 `MAX_STAGE_TOKENS` 抬到 27,000、`BASELINE` 重置为本次实测值，
+  而不是硬删已有内容；理由与代价都明写在 CHANGELOG 的 1.5.0 条目里，不靠悄悄调数过关。
+  后续若要收回这 10%，正路是把「6 步调研」「交互范式」的细节搬进不进 LOAD_MAP 的按需文档，
+  阶段文件只留指针（搬家比删内容能保住内容）。
+
+⚠ 抬上限是记账，不是豁免：新改动仍需先在同一文件里找冗余，基线只在「整批功能一起进来」时才重置。
 
 CLI:
     python scripts/measure_load.py                # 全部阶段 + 结论
@@ -31,7 +39,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-MAX_STAGE_TOKENS = 26000
+MAX_STAGE_TOKENS = 27000
 SKILL_MD_MAX = 6600
 PIPELINE_MAX = 4700
 
@@ -69,17 +77,17 @@ LOAD_MAP: dict[str, list[str]] = {
     ],
 }
 
-# 2026-11-21 实测（改动前），见 scripts/measure_load.py 首次运行的输出。
+# 2026-11-23 实测（v1.5.0：设计方法论五项 + 流程前置，见 Ruling ⑥）。旧基线 2026-11-21 见 CHANGELOG。
 BASELINE: dict[str, int] = {
-    "world": 23652,
-    "cast": 20631,
-    "scenes": 19334,
-    "axes": 20296,
-    "mvu": 16609,
-    "ejs": 15637,
-    "opening": 23771,
-    "statusbar": 22761,
-    "delivery": 25966,
+    "world": 25939,
+    "cast": 22576,
+    "scenes": 21026,
+    "axes": 21606,
+    "mvu": 17032,
+    "ejs": 15962,
+    "opening": 26156,
+    "statusbar": 25077,
+    "delivery": 26389,
 }
 
 _CJK = re.compile(r"[\u4e00-\u9fff]")

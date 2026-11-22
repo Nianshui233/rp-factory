@@ -221,7 +221,8 @@ class TestMergeMvu(unittest.TestCase):
         out = self.root / "book.json"
         run = subprocess.run([sys.executable, str(CUTTER), "--plan", str(self.root / "plan.yaml"),
                               "--draft-root", str(self.root / "draft"), "--out", str(out), *extra],
-                             capture_output=True, text=True, encoding="utf-8", errors="replace")
+                             capture_output=True, text=True, encoding="utf-8", errors="replace",
+                             env={**os.environ, "PYTHONIOENCODING": "utf-8"})
         book = json.loads(out.read_text(encoding="utf-8")) if out.exists() else {"entries": {}}
         return run, book
 

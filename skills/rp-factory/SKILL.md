@@ -1,7 +1,7 @@
 ---
 name: rp-factory
 metadata:
-  version: 1.4.15
+  version: 1.5.0
 description: 把 RP 构想编译成世界观、角色/NPC、场景、数值系统四类 YAML 设定产物，跨产物命名与硬设定保持一致；可选把数值投影成酒馆变量系统（MVU 的 zod 结构 + 初始化 + 更新条目）与按数值切换的分档控制器（EJS），可选再产开局界面与状态栏两种酒馆前端（正则 + HTML），跑完可再打一个能直接导入 SillyTavern 的包（角色卡 JSON + 世界书 JSON + 正则）。支持粘贴用提示词条目与工程文件两种交付。仅在用户显式调用时执行，不参与自然语言自动匹配。
 disable-model-invocation: true
 ---
@@ -32,52 +32,15 @@ disable-model-invocation: true
 
 ## 一.5、阶段 0：输入评估（开局四问之前）
 
-**收到用户第一句话后，先内部评估信息完整度，再决定是否追问。**
+**收到第一句话先内部评估，再决定追问什么。** 三项（不向用户展示）：
 
-### 评估三项（不向用户展示）
+1. **世界观/题材** —— 能定下语言风格、禁忌、冲突类型？「现代都市灵异，主角驱魔人，禁虐杀平民」算充分；「做个魔法世界」不算。
+2. **核心动机 & 恐惧**（仅 `cast`）—— 能推出 ≥2 条 `behavior.rules`？「想保护妹妹，怕失去亲人」算；「是个好人」不算。
+3. **底线 / 价值排序**（仅 `cast`）—— 能推出 `taboos` 与 `anti_ooc.never`？「绝不背叛朋友，但可为朋友撒谎」算；「有正义感」不算。
 
-对用户第一句话，内部检查以下三项是否充分：
+**判定**：三项全充分 → 开局四问只问后三问（工作区、阶段、NSFW/联网），已有信息直接用；任一不充分 → 走正常四问。**只问缺失项，不重复问已给的。**
 
-1. **世界观/题材**：能确定语言风格、禁忌、冲突类型？
-   - 充分示例：「现代都市灵异，主角是驱魔人，禁止虐杀平民」
-   - 不充分示例：「做个魔法世界」（没说时代、冲突类型、禁忌）
-
-2. **核心动机 & 恐惧**（仅 `cast` 阶段需要）：能转化为 ≥2 条 behavior.rules？
-   - 充分示例：「角色想保护妹妹，害怕失去亲人」→ 可推导行为规则
-   - 不充分示例：「角色是个好人」（抽象形容词，无法转化为行为）
-
-3. **底线/价值排序**（仅 `cast` 阶段需要）：能推导 taboos 和 anti_ooc.never？
-   - 充分示例：「绝不背叛朋友，但可以为朋友撒谎」→ 价值排序清晰
-   - 不充分示例：「有正义感」（无法推导具体底线）
-
-### 快速通道判定
-
-- **全部充分** → 跳过「开局四问」的第一问（仍需问工作区、阶段、NSFW、联网），直接用已有信息开工
-- **任一不充分** → 进入「开局四问」正常流程
-
-### 列出「已有信息」和「缺失信息」
-
-评估后，内部记录：
-```yaml
-phase_0_assessment:
-  已有信息:
-    - 世界观：现代都市灵异
-    - 核心动机：保护妹妹
-  缺失信息:
-    - 底线/价值排序：不清楚
-    - 冲突类型：未明确（驱魔 vs 谁？）
-```
-
-**只追问缺失的部分**，不重复问已有的信息。
-
-### 写回契约
-
-在 `project.decisions[]` 记录一条：
-```yaml
-- decision: "阶段 0 评估：用户第一句话已包含世界观与核心动机，跳过部分追问"
-  status: confirmed
-  timestamp: <时间戳>
-```
+评估结果本身不进回复；在 `project.decisions[]` 记一行（`confirmed`）说明「哪些已由第一句话确定、哪些待问」。
 
 ## 二、开局四问（第一步）
 
@@ -178,7 +141,9 @@ phase_0_assessment:
 | `references/st-correctness.md` | ST 语义事实（S 系列），每条带源码锚点 |
 | `references/tavern-helper.md` | 酒馆助手 4.12.1 接口：渲染链路、iframe 全局、变量/消息/事件 |
 | `references/frontend-conventions.md` · `frontend-interaction.md` | 表现层机制、HTML 骨架、正则、提示词条目、前端门；交互（四栅声明 / 三形态 / 写回五步） |
+| `references/frontend-interaction-recipes.md` | 四个交互范式（直接发送 / 填输入框 / 建卡提交 / 改变量）+ 事件监听骨架 |
 | `references/frontend-design.md` | 界面设计：推色法、风格配方、版式原型、字体、动效、AI 味 |
+| `frontend-design-hud.md` · `frontend-design-content.md` · `frontend-design-opening.md` | 同上按界面类型拆的三份：状态栏 / 内容页 / 开局（阶段只读对应那份） |
 | `references/stage-1-world-bible.md` … `stage-4-axis-system.md` | 阶段 `world` / `cast` / `scenes` / `axes` |
 | `references/stage-mvu.md` | 阶段 `mvu`：轴 → zod / `[initvar]` / 三条更新条目 / 两条隐藏正则 / 卡内脚本 |
 | `references/stage-ejs.md` | 阶段 `ejs`：分档控制器 + 被控条目 |
