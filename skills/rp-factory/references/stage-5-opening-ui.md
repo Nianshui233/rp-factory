@@ -56,15 +56,28 @@
 
 **在进入「追问」之前，必须主动搜索同类界面设计参考，不等用户指路。**
 
-- [ ] **1. 确认界面类型**：
+- [ ] **1. 确认界面类型与交互需求**：
   - 这是哪种开局界面？
     - **A. 登场面板**：开屏三行字就进正文，需要快速入场 + 气氛烘托
     - **B. 建卡向导**：分步骤采集玩家设定，需要清晰表单流程 + 进度提示
+  - **判断交互需求**（从项目上下文推断）：
+    - **形态 A（登场面板）**：
+      - 默认是只读展示（展示世界观 + 气氛烘托 + 入口按钮）
+      - 如果用户明确提到「行动选择」「点击选项」「玩家可以选择开场」→ 标记为「需要交互」
+    - **形态 B（建卡向导）**：
+      - 必然需要交互（收集用户输入 → 提交 → 创建真实消息）
+      - 需要判断提交方式：「复制文本让用户粘贴」还是「直接发送消息」
+    - **判断依据**：
+      - 项目描述里是否提到「行动选择」「点击按钮」「输入表单」
+      - 参考项目（如尸变纪元）是否有交互功能
+      - 世界观是否需要玩家主动选择行动（如生存游戏、策略游戏）
+  - 记录到本阶段决策：`[交互需求: 建卡向导 - 直接发送]` 或 `[交互需求: 登场面板 - 只读展示]`
   - 内部判定，不展示到回复中
 
 - [ ] **2. 搜索同类界面设计**：
   - 使用 `web_search` 搜索关键词：
-    - **登场面板**：`"game opening screen" design` + `"character introduction panel"` + `"visual novel opening"`
+    - **登场面板（只读展示）**：`"game opening screen" design` + `"character introduction panel"` + `"visual novel opening"`
+    - **登场面板（需要交互）**：`"game action selection UI"` + `"interactive opening choices"` + `"choice-based intro"`
     - **建卡向导**：`"character creation wizard" UI` + `"onboarding flow" design` + `"step-by-step setup"`
   - **必须搜索 ≥3 个关键词，找到 ≥3 个真实参考网站**
 
@@ -125,6 +138,24 @@
 - 基调红线（`项目档案.yaml` 的 `基调红线`）在视觉与文案上都不许违反：写"冷硬"就别配粉色渐变。
 
 ## 生成
+
+### 前置检查：加载交互范式文档
+
+根据「主动设计调研」阶段的 `[交互需求]` 决策，加载对应文档：
+
+- **`[交互需求: 登场面板 - 只读展示]`** → 无需额外文档，只用动态数据读取（参考 `frontend-conventions.md` 第三节“HTML 骨架”）
+- **`[交互需求: 登场面板 - 需要交互]`** → 加载 `references/frontend-interaction-recipes.md`：
+  - 如果是行动选择 → 参考「范式 1：行动选择（点击 → 直接发送）」
+- **`[交互需求: 建卡向导 - 直接发送]`** → 加载 `references/frontend-interaction-recipes.md`：
+  - 参考「范式 3：建卡向导（收集输入 → 拼成消息）」
+  - 提交时用 `createChatMessages()` + `triggerSlash('/trigger')`，不直接 `generate()`
+- **`[交互需求: 建卡向导 - 复制文本]`** → 无需 `frontend-interaction-recipes.md`，直接用 `navigator.clipboard.writeText()` 复制到剪贴板
+
+**关键要点**：
+- 如果加载了 `frontend-interaction-recipes.md`，必须直接使用其中的完整代码片段，不许减简或写静态 HTML
+- 如果是只读展示，不许写死数值，必须用 `getChatMessages()` 或 `Mvu.getMvuData()` 动态读取
+
+---
 
 ### 形态 A · 登场面板（`templates/opening-ui.html` 起手）
 

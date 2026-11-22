@@ -47,18 +47,29 @@
 
 **在进入「追问」之前，必须主动搜索同类 HUD 状态栏设计参考，不等用户指路。**
 
-- [ ] **1. 确认界面类型**：
+- [ ] **1. 确认界面类型与交互需求**：
   - 这是哪种 HUD 状态栏？
     - **游戏 HUD**：显示 HP/MP/经验值，需要快速可读 + 危险预警
     - **关系面板**：显示好感度/信任度，需要直观对比 + 情绪色彩
     - **资源仪表盘**：显示金钱/道具/状态，需要紧凑布局 + 多字段
+  - **判断交互需求**（从项目上下文推断）：
+    - **默认是只读显示器**：显示当前数值，用户不可点击修改
+    - **如果用户明确提到**：
+      - 「点击按钮执行行动」「点击状态栏打开控制面板」→ 标记为「交互控制器」
+      - 「点击修改变量」「手动调整好感度」→ 标记为「变量修改器」
+    - **判断依据**：
+      - 项目描述里是否提到「点击按钮」「控制面板」「修改变量」
+      - 参考项目（如尸变纪元）状态栏是否有交互功能
+      - 世界观是否需要玩家通过状态栏主动控制（如策略游戏、模拟经营）
+  - 记录到本阶段决策：`[交互需求: 只读显示器]` 或 `[交互需求: 交互控制器 - 打开面板]`
   - 内部判定，不展示到回复中
 
 - [ ] **2. 搜索同类 HUD 设计**：
   - 使用 `web_search` 搜索关键词：
-    - **游戏 HUD**：`"game HUD design"` + `"health bar UI"` + `"RPG status bar"`
-    - **关系面板**：`"relationship meter UI"` + `"affection gauge design"` + `"visual novel status"`
-    - **资源仪表盘**：`"resource dashboard UI"` + `"game inventory HUD"` + `"stat panel design"`
+    - **游戏 HUD（只读显示）**：`"game HUD design"` + `"health bar UI"` + `"RPG status bar"`
+    - **关系面板（只读显示）**：`"relationship meter UI"` + `"affection gauge design"` + `"visual novel status"`
+    - **资源仪表盘（只读显示）**：`"resource dashboard UI"` + `"game inventory HUD"` + `"stat panel design"`
+    - **交互控制器（需要交互）**：`"interactive HUD buttons"` + `"game control panel UI"` + `"clickable status bar"`
   - **必须搜索 ≥3 个关键词，找到 ≥3 个真实参考网站**
 
 - [ ] **3. 打开参考网站检查**：
@@ -118,6 +129,24 @@
 - **先出三版再写码**：照 `frontend-design-hud.md` 的推色法与版式 A / E / C，出三版线框 + 色板，用户选一版定稿写进 `frontend-prompt.yaml`。
 
 ## 生成
+
+### 前置检查：加载交互范式文档
+
+根据「主动设计调研」阶段的 `[交互需求]` 决策，加载对应文档：
+
+- **`[交互需求: 只读显示器]`** → 无需额外文档，只用动态数据读取（参考 `frontend-conventions.md` 第三节“HTML 骨架”）
+- **`[交互需求: 交互控制器 - 打开面板]`** → 加载 `references/frontend-interaction-recipes.md`：
+  - 参考「范式 1：行动选择（点击 → 直接发送）」（如果点击按钮执行行动）
+  - 或「辅助函数」节（如果只是打开控制面板）
+- **`[交互需求: 变量修改器]`** → 加载 `references/frontend-interaction-recipes.md`：
+  - 参考「范式 4：控制面板（修改变量 → 写回）」
+  - 用 `generateRaw()` + `Mvu.parseMessage()` + `Mvu.replaceMvuData()`，不直接修改 `Mvu.stat_data`
+
+**关键要点**：
+- 如果加载了 `frontend-interaction-recipes.md`，必须直接使用其中的完整代码片段，不许减简或写静态 HTML
+- 如果是只读显示器，不许写死数值，必须用 `getChatMessages()` 或 `Mvu.getMvuData()` 动态读取
+
+---
 
 ### 〇、先看有没有 `mvu`
 
